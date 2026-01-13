@@ -9,6 +9,5 @@ import java.util.Optional;
 @Repository
 public interface TagRepository extends JpaRepository<Tag, Long> {
     
-    // Buscar una etiqueta por su nombre exacto
     Optional<Tag> findByName(String name);
 }
