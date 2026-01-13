@@ -25,30 +25,26 @@ public class MediaItem {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MediaType type; // LIBRO, PELICULA...
+    private MediaType type;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MediaStatus status; // VISTO, POR_VER...
+    private MediaStatus status;
 
-    private String genre;   // Ej: "Ciencia Ficción"
-    private String creator; // Autor, Director o Desarrollador
-    private Integer rating; // 1 a 5 (o 1 a 10)
+    private String genre;
+    private String creator;
+    private Integer rating;
     
-    private LocalDate releaseDate; // Fecha de lanzamiento de la obra
-    private LocalDate dateAdded;   // Fecha en que tú la registraste
+    private LocalDate releaseDate;
+    private LocalDate dateAdded;
 
     @Column(length = 2000)
-    private String comment; // Tu reseña personal
+    private String comment;
 
-    // --- RELACIONES ---
-
-    // Muchos items pertenecen a Un usuario
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Relación Muchos a Muchos para las etiquetas
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
         name = "media_tags",

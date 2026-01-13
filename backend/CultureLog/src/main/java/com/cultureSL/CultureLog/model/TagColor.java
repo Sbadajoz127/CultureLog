@@ -14,7 +14,7 @@ public enum TagColor {
     CYAN("#18FFFF"),
     GRIS("#9E9E9E"),
     NEGRO("#212121"),
-    POR_DEFECTO("#E0E0E0"); // Un gris claro neutro
+    POR_DEFECTO("#E0E0E0");
 
     private final String hexCode;
 
