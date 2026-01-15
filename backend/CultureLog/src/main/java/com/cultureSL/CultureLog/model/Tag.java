@@ -1,5 +1,7 @@
 package com.cultureSL.CultureLog.model;
 
+import com.cultureSL.CultureLog.model.enums.TagColor;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

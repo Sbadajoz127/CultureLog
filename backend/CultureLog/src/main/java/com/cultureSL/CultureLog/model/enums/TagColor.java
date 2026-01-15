@@ -1,4 +1,4 @@
-package com.cultureSL.CultureLog.model;
+package com.cultureSL.CultureLog.model.enums;
 
 import lombok.Getter;
 
