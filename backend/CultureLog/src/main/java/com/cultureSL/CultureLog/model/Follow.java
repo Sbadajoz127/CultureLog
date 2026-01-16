@@ -19,17 +19,14 @@ public class Follow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Quién envía la solicitud (El seguidor)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "follower_id", nullable = false)
     private User follower;
 
-    // A quién quieren seguir
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "followed_id", nullable = false)
     private User followed;
 
-    // Estado: PENDING (si el perfil es privado), ACCEPTED (si es público o ya aceptó)
     @Enumerated(EnumType.STRING)
     private FollowStatus status;
 
