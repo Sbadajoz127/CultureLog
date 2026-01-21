@@ -1,8 +1,9 @@
 package com.cultureSL.CultureLog.repository;
 
 import com.cultureSL.CultureLog.model.MediaItem;
-import com.cultureSL.CultureLog.model.MediaStatus;
-import com.cultureSL.CultureLog.model.MediaType;
+import com.cultureSL.CultureLog.model.enums.MediaStatus;
+import com.cultureSL.CultureLog.model.enums.MediaType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

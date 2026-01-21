@@ -9,6 +9,9 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.cultureSL.CultureLog.model.enums.MediaStatus;
+import com.cultureSL.CultureLog.model.enums.MediaType;
+
 @Entity
 @Table(name = "media_items")
 @Data

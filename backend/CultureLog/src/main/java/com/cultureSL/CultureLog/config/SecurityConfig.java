@@ -23,7 +23,7 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll() // CUIDADO: En producción esto se cambia
+                .anyRequest().permitAll() // TODO: En producción esto se cambia
             );
         return http.build();
     }

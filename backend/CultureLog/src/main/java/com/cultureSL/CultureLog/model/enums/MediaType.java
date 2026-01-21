@@ -1,4 +1,4 @@
-package com.cultureSL.CultureLog.model;
+package com.cultureSL.CultureLog.model.enums;
 
 public enum MediaType {
     PELICULA,
