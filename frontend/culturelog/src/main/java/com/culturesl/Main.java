@@ -7,17 +7,15 @@ import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        // Hacemos esto para que la UI se cree en el hilo correcto
         SwingUtilities.invokeLater(() -> {
             try {
-                // 1. Instalar Tema Oscuro
+                // Instalar Tema Oscuro
                 FlatDarkLaf.setup();
                 
                 // Opcional: Personalizar color de acento
                 UIManager.put("Button.arc", 10);
                 UIManager.put("Component.arc", 10);
 
-                // 2. Abrir Login
                 new LoginFrame().setVisible(true);
                 
             } catch (Exception e) {
