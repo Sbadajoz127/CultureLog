@@ -12,6 +12,13 @@ import java.util.Set;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 
+/**
+ * Representa un elemento multimedia (ítem) dentro de la biblioteca personal del usuario.
+ * <p>
+ * Almacena información sobre películas, libros, videojuegos, etc., incluyendo
+ * el estado de consumo (Visto, Por ver) y la valoración personal.
+ * </p>
+ */
 @Entity
 @Table(name = "media_items")
 @Data
@@ -23,31 +30,45 @@ public class MediaItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Título de la obra. */
     @Column(nullable = false)
     private String title;
 
+    /** Tipo de medio (LIBRO, PELICULA, etc.). */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MediaType type;
 
+    /** Estado de consumo (VISTO, PENDIENTE, ABANDONADO). */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MediaStatus status;
 
+    /** Género de la obra (Ciencia Ficción, Terror, etc.). */
     private String genre;
+    
+    /** Creador principal (Autor, Director, Desarrollador). */
     private String creator;
+    
+    /** Puntuación personal (ej. 1-5). */
     private Integer rating;
     
+    /** Fecha de lanzamiento de la obra original. */
     private LocalDate releaseDate;
+    
+    /** Fecha en que el usuario añadió el ítem a su colección. */
     private LocalDate dateAdded;
 
+    /** Reseña o notas personales del usuario. */
     @Column(length = 2000)
     private String comment;
 
+    /** Usuario propietario de este ítem. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    /** Etiquetas asociadas para clasificación personalizada. */
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
         name = "media_tags",

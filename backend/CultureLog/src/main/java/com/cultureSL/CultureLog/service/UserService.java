@@ -10,4 +10,8 @@ public interface UserService {
     Optional<User> login(String username, String rawPassword);
     
     boolean exists(String username);
+
+    void requestPasswordReset(String email) throws Exception;
+
+    void resetPassword(String token, String newPassword) throws Exception;
 }
