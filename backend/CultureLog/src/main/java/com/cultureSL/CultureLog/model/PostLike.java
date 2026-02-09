@@ -6,9 +6,16 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad que registra la acción de "Me gusta" de un usuario sobre un post.
+ * <p>
+ * Utiliza una clave única compuesta (post_id + user_id) para asegurar que un usuario
+ * solo pueda dar like una vez a la misma publicación.
+ * </p>
+ */
 @Entity
 @Table(name = "post_likes", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"post_id", "user_id"}) // Un usuario solo puede dar 1 like por post
+    @UniqueConstraint(columnNames = {"post_id", "user_id"})
 })
 @Data
 @NoArgsConstructor

@@ -6,8 +6,21 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * Repositorio de acceso a datos para la entidad {@link Tag}.
+ * <p>
+ * Permite la gestión y búsqueda de etiquetas utilizadas para clasificar items multimedia.
+ * </p>
+ */
 @Repository
 public interface TagRepository extends JpaRepository<Tag, Long> {
     
+    /**
+     * Busca una etiqueta por su nombre exacto.
+     * Útil para reutilizar etiquetas existentes antes de crear una nueva.
+     *
+     * @param name Nombre de la etiqueta.
+     * @return Un {@link Optional} con la etiqueta si existe.
+     */
     Optional<Tag> findByName(String name);
 }

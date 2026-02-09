@@ -14,6 +14,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementación del servicio de notificaciones internas (In-App).
+ * <p>
+ * Gestiona la creación, recuperación y marcado de lectura de las notificaciones
+ * generadas por eventos sociales (likes, follows, comentarios).
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
@@ -21,6 +28,18 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Crea y persiste una nueva notificación en la base de datos.
+     * <p>
+     * Este método es asíncrono para no bloquear la transacción principal del evento que lo dispara.
+     * Se ignora la notificación si el receptor y el actor son la misma persona.
+     * </p>
+     *
+     * @param recipientId ID del usuario que recibirá la alerta.
+     * @param actorId     ID del usuario que provocó el evento.
+     * @param type        Tipo de evento (LIKE, FOLLOW, etc.).
+     * @param referenceId ID de la entidad relacionada (ej. ID del post) para navegación.
+     */
     @Override
     @Async
     @Transactional
@@ -39,6 +58,13 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.save(notif);
     }
 
+    /**
+     * Recupera las notificaciones de un usuario de forma paginada y ordenadas por fecha reciente.
+     *
+     * @param userId   ID del usuario.
+     * @param pageable Configuración de paginación.
+     * @return Página de objetos {@link NotificationResponse} (DTOs) listos para la vista.
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<NotificationResponse> getUserNotifications(Long userId, Pageable pageable) {
@@ -46,12 +72,24 @@ public class NotificationServiceImpl implements NotificationService {
                 .map(this::mapToDto);
     }
 
+    /**
+     * Cuenta el número de notificaciones que el usuario aún no ha marcado como leídas.
+     * Útil para mostrar badges o contadores en la interfaz.
+     *
+     * @param userId ID del usuario.
+     * @return Número de notificaciones sin leer.
+     */
     @Override
     @Transactional(readOnly = true)
     public long getUnreadCount(Long userId) {
         return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
     }
 
+    /**
+     * Marca una notificación específica como leída.
+     *
+     * @param notificationId ID de la notificación.
+     */
     @Override
     @Transactional
     public void markAsRead(Long notificationId) {
@@ -61,6 +99,13 @@ public class NotificationServiceImpl implements NotificationService {
         });
     }
 
+    /**
+     * Método auxiliar para convertir la entidad {@link Notification} en un DTO {@link NotificationResponse}.
+     * Construye el mensaje de texto legible basado en el tipo de notificación.
+     *
+     * @param n Entidad notificación.
+     * @return DTO formateado.
+     */
     private NotificationResponse mapToDto(Notification n) {
         String text = switch (n.getType()) {
             case NUEVO_SEGUIDOR -> "ha comenzado a seguirte.";
