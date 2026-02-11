@@ -16,10 +16,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Implementación del servicio para la gestión de la biblioteca multimedia del usuario.
+ * Implementación del servicio para la gestión de la biblioteca multimedia del
+ * usuario.
  * <p>
- * Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Borrar) sobre los elementos
- * multimedia (Libros, Películas, etc.) asegurando que los usuarios solo modifiquen sus propios items.
+ * Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Borrar) sobre los
+ * elementos
+ * multimedia (Libros, Películas, etc.) asegurando que los usuarios solo
+ * modifiquen sus propios items.
  * </p>
  */
 @Service
@@ -42,12 +45,15 @@ public class MediaItemServiceImpl implements MediaItemService {
     }
 
     /**
-     * Filtra la biblioteca del usuario según el tipo de medio y/o el estado de consumo.
+     * Filtra la biblioteca del usuario según el tipo de medio y/o el estado de
+     * consumo.
      *
      * @param userId ID del usuario.
-     * @param type   Tipo de medio (ej. PELICULA, LIBRO) o {@code null} para ignorar filtro.
+     * @param type   Tipo de medio (ej. PELICULA, LIBRO) o {@code null} para ignorar
+     *               filtro.
      * @param status Estado (ej. VISTO, POR_VER) o {@code null} para ignorar filtro.
-     * @return Lista de items filtrada. Si ambos filtros son nulos, devuelve toda la lista.
+     * @return Lista de items filtrada. Si ambos filtros son nulos, devuelve toda la
+     *         lista.
      */
     @Override
     @Transactional(readOnly = true)
@@ -69,7 +75,8 @@ public class MediaItemServiceImpl implements MediaItemService {
      *
      * @param userId  ID del usuario que añade el ítem.
      * @param request DTO con los datos del nuevo ítem (título, tipo, rating, etc.).
-     * @return El {@link MediaItem} persistido en base de datos con fecha de creación actual.
+     * @return El {@link MediaItem} persistido en base de datos con fecha de
+     *         creación actual.
      * @throws RuntimeException Si el usuario no existe.
      */
     @Override
@@ -80,6 +87,7 @@ public class MediaItemServiceImpl implements MediaItemService {
 
         MediaItem item = new MediaItem();
         item.setTitle(request.getTitle());
+        item.setItemImageUrl(request.getItemImageUrl());
         item.setType(request.getType());
         item.setStatus(request.getStatus());
         item.setGenre(request.getGenre());
@@ -93,7 +101,10 @@ public class MediaItemServiceImpl implements MediaItemService {
 
     /**
      * Actualiza los datos de un ítem existente.
-     * <p>Incluye una validación de seguridad para asegurar que el ítem pertenece al usuario solicitante.</p>
+     * <p>
+     * Incluye una validación de seguridad para asegurar que el ítem pertenece al
+     * usuario solicitante.
+     * </p>
      *
      * @param itemId  ID del ítem a modificar.
      * @param userId  ID del usuario que solicita la modificación.
@@ -112,6 +123,7 @@ public class MediaItemServiceImpl implements MediaItemService {
         }
 
         item.setTitle(request.getTitle());
+        item.setItemImageUrl(request.getItemImageUrl());
         item.setType(request.getType());
         item.setStatus(request.getStatus());
         item.setGenre(request.getGenre());
@@ -123,7 +135,10 @@ public class MediaItemServiceImpl implements MediaItemService {
 
     /**
      * Elimina un ítem de la base de datos.
-     * <p>Incluye una validación de seguridad para asegurar que el ítem pertenece al usuario solicitante.</p>
+     * <p>
+     * Incluye una validación de seguridad para asegurar que el ítem pertenece al
+     * usuario solicitante.
+     * </p>
      *
      * @param itemId ID del ítem a eliminar.
      * @param userId ID del usuario que solicita la eliminación.
@@ -140,5 +155,30 @@ public class MediaItemServiceImpl implements MediaItemService {
         }
 
         mediaItemRepository.delete(item);
+    }
+
+    /**
+     * Elimina la imagen asociada a un ítem multimedia, estableciendo su URL a null.
+     * <p>
+     * Incluye una validación de seguridad para asegurar que el ítem pertenece al
+     * usuario solicitante.
+     * </p>
+     *
+     * @param itemId ID del ítem cuya imagen se va a eliminar.
+     * @param userId ID del usuario que solicita la eliminación de la imagen.
+     * @throws RuntimeException Si el ítem no existe o no pertenece al usuario.
+     */
+    @Override
+    @Transactional
+    public void removeMediaItemImage(Long itemId, Long userId) {
+        MediaItem item = mediaItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item no encontrado"));
+
+        if (!item.getUser().getId().equals(userId)) {
+            throw new RuntimeException("No tienes permiso");
+        }
+
+        item.setItemImageUrl(null);
+        mediaItemRepository.save(item);
     }
 }

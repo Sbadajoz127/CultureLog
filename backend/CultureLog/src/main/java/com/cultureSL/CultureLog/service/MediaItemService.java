@@ -17,5 +17,7 @@ public interface MediaItemService {
 
     MediaItem updateItem(Long itemId, Long userId, MediaItemRequest request);
 
+    void removeMediaItemImage(Long itemId, Long userId);
+
     void deleteItem(Long itemId, Long userId);
 }

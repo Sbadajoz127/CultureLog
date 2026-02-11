@@ -15,6 +15,8 @@ import java.time.LocalDate;
 public class MediaItemRequest {
     /** Título de la obra. */
     private String title;
+    /** Url de la imagen representativa del ítem (portada, póster, etc.). */
+    private String itemImageUrl;
     /** Tipo de medio (PELICULA, LIBRO...). */
     private MediaType type;
     /** Estado de consumo (VISTO, POR_VER...). */
