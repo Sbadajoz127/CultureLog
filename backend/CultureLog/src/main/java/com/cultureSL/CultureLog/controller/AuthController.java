@@ -12,6 +12,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+/**
+ * Controlador REST para la gestión de la autenticación y registro de usuarios.
+ * <p>
+ * Expone endpoints públicos para permitir que nuevos usuarios se den de alta
+ * y que usuarios existentes inicien sesión.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -19,6 +26,14 @@ public class AuthController {
 
     private final UserService userService;
 
+    /**
+     * Registra un nuevo usuario en el sistema.
+     * <p>Endpoint: {@code POST /api/auth/register}</p>
+     *
+     * @param request DTO con los datos de registro (username, password, email).
+     * @return {@code 201 Created} con los datos del usuario si tiene éxito,
+     * o {@code 400 Bad Request} si ocurre un error (ej. usuario duplicado).
+     */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
@@ -42,6 +57,14 @@ public class AuthController {
         }
     }
 
+    /**
+     * Autentica a un usuario verificando sus credenciales.
+     * <p>Endpoint: {@code POST /api/auth/login}</p>
+     *
+     * @param request DTO con username y password.
+     * @return {@code 200 OK} con los datos del usuario si las credenciales son válidas,
+     * o {@code 401 Unauthorized} si son incorrectas.
+     */
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         Optional<User> userOpt = userService.login(request.getUsername(), request.getPassword());
