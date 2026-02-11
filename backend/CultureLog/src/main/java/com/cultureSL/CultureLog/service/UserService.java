@@ -11,6 +11,10 @@ public interface UserService {
     
     boolean exists(String username);
 
+    void updateProfilePicture(Long userId, String imageUrl);
+
+    void removeProfilePicture(Long userId);
+
     void requestPasswordReset(String email) throws Exception;
 
     void resetPassword(String token, String newPassword) throws Exception;

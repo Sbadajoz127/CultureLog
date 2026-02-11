@@ -63,6 +63,10 @@ public class MediaItem {
     @Column(length = 2000)
     private String comment;
 
+    /** Url de la imagen representativa del ítem (portada, póster, etc.). */
+    @Column(name = "item_imageurl")
+    private String itemImageUrl;
+
     /** Usuario propietario de este ítem. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

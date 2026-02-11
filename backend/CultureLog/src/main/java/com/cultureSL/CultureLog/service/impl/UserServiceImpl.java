@@ -19,8 +19,10 @@ import java.util.Optional;
 /**
  * Implementación del servicio de gestión de usuarios y autenticación.
  * <p>
- * Maneja el ciclo de vida de la cuenta de usuario: registro (con configuración por defecto),
- * inicio de sesión (verificación de credenciales) y flujo de recuperación de contraseña.
+ * Maneja el ciclo de vida de la cuenta de usuario: registro (con configuración
+ * por defecto),
+ * inicio de sesión (verificación de credenciales) y flujo de recuperación de
+ * contraseña.
  * </p>
  */
 @Service
@@ -38,7 +40,8 @@ public class UserServiceImpl implements UserService {
      * Realiza las siguientes acciones:
      * 1. Verifica que el username y email no existan ya.
      * 2. Encripta la contraseña.
-     * 3. Crea e inicializa una entidad {@link UserSettings} con valores por defecto (Tema oscuro, perfil público).
+     * 3. Crea e inicializa una entidad {@link UserSettings} con valores por defecto
+     * (Tema oscuro, perfil público).
      * 4. Vincula settings y usuario y persiste en base de datos.
      * </p>
      *
@@ -63,7 +66,7 @@ public class UserServiceImpl implements UserService {
         defaultSettings.setProfilePrivacy(ProfilePrivacy.PUBLICO);
         defaultSettings.setAccentColor("#448AFF");
 
-        defaultSettings.setUser(user); 
+        defaultSettings.setUser(user);
         user.setSettings(defaultSettings);
 
         return userRepository.save(user);
@@ -72,9 +75,10 @@ public class UserServiceImpl implements UserService {
     /**
      * Verifica las credenciales para iniciar sesión.
      *
-     * @param username   Nombre de usuario.
+     * @param username    Nombre de usuario.
      * @param rawPassword Contraseña en texto plano introducida por el usuario.
-     * @return Un {@link Optional} que contiene el usuario si las credenciales son correctas, o vacío si fallan.
+     * @return Un {@link Optional} que contiene el usuario si las credenciales son
+     *         correctas, o vacío si fallan.
      */
     @Override
     public Optional<User> login(String username, String rawPassword) {
@@ -152,5 +156,37 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         tokenRepository.delete(resetToken);
+    }
+
+    /**
+     * Actualiza la imagen de perfil del usuario.
+     *
+     * @param userId   ID del usuario que solicita el cambio.
+     * @param imageUrl URL de la nueva imagen de perfil.
+     * @throws RuntimeException Si el usuario no existe.
+     */
+    @Override
+    @Transactional
+    public void updateProfilePicture(Long userId, String imageUrl) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        user.setProfilePictureUrl(imageUrl);
+        userRepository.save(user);
+    }
+
+    /**
+     * Elimina la imagen de perfil del usuario, estableciendo su URL a null.
+     *
+     * @param userId ID del usuario que solicita la eliminación.
+     * @throws RuntimeException Si el usuario no existe.
+     */
+    @Override
+    @Transactional
+    public void removeProfilePicture(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        user.setProfilePictureUrl(null);
+        userRepository.save(user);
     }
 }
