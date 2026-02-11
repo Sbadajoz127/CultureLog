@@ -27,11 +27,14 @@ public class MainFrame extends JFrame {
         
         JButton btnFeed = createNavButton("Feed Social", "feed");
         JButton btnLibrary = createNavButton("Mi Biblioteca", "library");
+        JButton btnMisPublicaciones = createNavButton("Mis Publicaciones", "misPublicaciones");
         JButton btnProfile = createNavButton("Perfil", "profile");
         
         toolbar.add(btnFeed);
         toolbar.add(Box.createHorizontalStrut(10));
         toolbar.add(btnLibrary);
+        toolbar.add(Box.createHorizontalStrut(10));
+        toolbar.add(btnMisPublicaciones);
         toolbar.add(Box.createHorizontalGlue()); // Empuja lo siguiente a la derecha
         
         // Botón Perfil / Logout a la derecha
@@ -53,6 +56,7 @@ public class MainFrame extends JFrame {
         // Aquí añadiremos los paneles reales más adelante
         contentPanel.add(new JLabel("AQUÍ IRÁ EL FEED SOCIAL", SwingConstants.CENTER), "feed");
         contentPanel.add(new JLabel("AQUÍ IRÁ LA BIBLIOTECA", SwingConstants.CENTER), "library");
+        contentPanel.add(new JLabel("AQUÍ IRÁ MIS PUBLICACIONES", SwingConstants.CENTER), "misPublicaciones");
         contentPanel.add(new JLabel("AQUÍ IRÁ EL PERFIL", SwingConstants.CENTER), "profile");
 
         add(contentPanel, BorderLayout.CENTER);
