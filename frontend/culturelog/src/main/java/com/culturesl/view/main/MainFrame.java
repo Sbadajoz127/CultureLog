@@ -54,13 +54,16 @@ public class MainFrame extends JFrame {
         // 2. PANEL CENTRAL (CONTENIDO CAMBIANTE)
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
+        contentPanel.setBorder(null);
+        contentPanel.setBackground(new Color(18,18,18)); // Fondo blanco para el contenido
 
         // Aquí añadiremos los paneles reales más adelante
-        contentPanel.add(new JLabel("AQUÍ IRÁ EL FEED SOCIAL", SwingConstants.CENTER), "feed");
+        contentPanel.add(new SocialHubPanel(), "feed");
+        contentPanel.add(new ProfilePanel(), "profile");
+
         contentPanel.add(new JLabel("AQUÍ IRÁ LA BIBLIOTECA", SwingConstants.CENTER), "library");
         contentPanel.add(new JLabel("AQUÍ IRÁ MIS PUBLICACIONES", SwingConstants.CENTER), "misPublicaciones");
         
-        contentPanel.add(new ProfilePanel(),"profile");
         add(contentPanel, BorderLayout.CENTER);
         
         // Acciones de navegación
@@ -68,6 +71,8 @@ public class MainFrame extends JFrame {
         btnMisPublicaciones.addActionListener(e -> cardLayout.show(contentPanel, "misPublicaciones"));
         btnLibrary.addActionListener(e -> cardLayout.show(contentPanel, "library"));
         btnProfile.addActionListener(e -> cardLayout.show(contentPanel, "profile"));
+
+        cardLayout.show(contentPanel, "feed"); // Mostrar el feed por defecto
     }
 
     private JButton createNavButton(String text, String actionCommand) {

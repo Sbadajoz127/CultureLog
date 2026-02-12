@@ -9,12 +9,15 @@ public class AuthService {
     private final ApiClient apiClient;
 
     public AuthService() {
-        this.apiClient = new ApiClient();
+        // CORRECCIÓN AQUÍ:
+        // En lugar de 'new ApiClient()', usamos el método estático getInstance()
+        this.apiClient = ApiClient.getInstance();
     }
 
     public AuthResponse login(String username, String password) throws Exception {
         LoginRequest request = new LoginRequest(username, password);
                 
+        // Ahora apiClient ya está inicializado correctamente
         return apiClient.post("/auth/login", request, AuthResponse.class);
     }
 
