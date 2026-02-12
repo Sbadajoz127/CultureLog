@@ -1,10 +1,10 @@
 package com.culturesl.model;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 public class UserSession {
     private static UserSession instance;
 

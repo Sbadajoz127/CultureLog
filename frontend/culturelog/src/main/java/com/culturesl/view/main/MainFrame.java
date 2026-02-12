@@ -2,6 +2,8 @@ package com.culturesl.view.main;
 
 import com.culturesl.model.UserSession;
 import com.culturesl.view.login.LoginFrame;
+import com.culturesl.view.profile.ProfilePanel;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -57,12 +59,13 @@ public class MainFrame extends JFrame {
         contentPanel.add(new JLabel("AQUÍ IRÁ EL FEED SOCIAL", SwingConstants.CENTER), "feed");
         contentPanel.add(new JLabel("AQUÍ IRÁ LA BIBLIOTECA", SwingConstants.CENTER), "library");
         contentPanel.add(new JLabel("AQUÍ IRÁ MIS PUBLICACIONES", SwingConstants.CENTER), "misPublicaciones");
-        contentPanel.add(new JLabel("AQUÍ IRÁ EL PERFIL", SwingConstants.CENTER), "profile");
-
+        
+        contentPanel.add(new ProfilePanel(),"profile");
         add(contentPanel, BorderLayout.CENTER);
         
         // Acciones de navegación
         btnFeed.addActionListener(e -> cardLayout.show(contentPanel, "feed"));
+        btnMisPublicaciones.addActionListener(e -> cardLayout.show(contentPanel, "misPublicaciones"));
         btnLibrary.addActionListener(e -> cardLayout.show(contentPanel, "library"));
         btnProfile.addActionListener(e -> cardLayout.show(contentPanel, "profile"));
     }
@@ -79,4 +82,5 @@ public class MainFrame extends JFrame {
         new LoginFrame().setVisible(true);
         dispose();
     }
+
 }
