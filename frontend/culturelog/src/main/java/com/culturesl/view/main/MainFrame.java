@@ -3,6 +3,7 @@ package com.culturesl.view.main;
 import com.culturesl.model.UserSession;
 import com.culturesl.view.login.LoginFrame;
 import com.culturesl.view.profile.ProfilePanel;
+import com.culturesl.view.utils.ModernStyles;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,6 +22,7 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1200, 800);
         setLocationRelativeTo(null);
+        getContentPane().setBackground(ModernStyles.BG_MAIN);
 
         // 1. TOOLBAR SUPERIOR
         JToolBar toolbar = new JToolBar();
