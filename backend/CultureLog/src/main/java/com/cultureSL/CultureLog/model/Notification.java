@@ -1,8 +1,7 @@
 package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.cultureSL.CultureLog.model.enums.NotificationType;
@@ -18,12 +17,16 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "notifications")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Notification {
 
+    /** Identificador único de la notificación. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     /** Usuario que recibe la notificación. */
@@ -50,6 +53,7 @@ public class Notification {
     /** Indica si el usuario ya ha visto esta notificación. */
     private boolean isRead = false;
 
+    /** Fecha y hora de creación de la notificación (generada automáticamente). */
     @CreationTimestamp
     private LocalDateTime createdAt;
 }

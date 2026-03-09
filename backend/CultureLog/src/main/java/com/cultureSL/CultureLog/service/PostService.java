@@ -7,17 +7,77 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+/**
+ * Servicio que gestiona las publicaciones del feed social.
+ * <p>
+ * Define el contrato para la creación de posts, generación del feed de noticias,
+ * interacciones sociales (likes) y comentarios.
+ * </p>
+ */
 public interface PostService {
-    
+
+    /**
+     * Crea una nueva publicación en el feed.
+     *
+     * @param userId            ID del autor
+     * @param content           contenido textual del post
+     * @param linkedMediaItemId ID del ítem multimedia vinculado (puede ser {@code null})
+     * @return el post creado con su ID generado
+     * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si el usuario o el ítem vinculado no existen
+     */
     Post createPost(Long userId, String content, Long linkedMediaItemId);
 
+    /**
+     * Genera el feed de noticias personalizado para un usuario.
+     * <p>
+     * Incluye publicaciones propias y de usuarios seguidos con estado ACCEPTED,
+     * ordenadas de más reciente a más antigua.
+     * </p>
+     *
+     * @param userId   ID del usuario que visualiza el feed
+     * @param pageable configuración de paginación
+     * @return página de posts del feed
+     */
     Page<Post> getNewsFeed(Long userId, Pageable pageable);
 
+    /**
+     * Obtiene las publicaciones de un usuario específico (vista de perfil).
+     *
+     * @param userId   ID del usuario autor
+     * @param pageable configuración de paginación
+     * @return página de posts del usuario ordenados cronológicamente
+     */
     Page<Post> getPostsByUserId(Long userId, Pageable pageable);
 
+    /**
+     * Alterna el estado de "Me gusta" en una publicación.
+     * <p>
+     * Si el usuario ya dio like, lo elimina; si no, lo crea.
+     * Actualiza el contador desnormalizado del post y genera una notificación al autor.
+     * </p>
+     *
+     * @param postId ID de la publicación
+     * @param userId ID del usuario que interactúa
+     * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si el post no existe
+     */
     void toggleLike(Long postId, Long userId);
 
+    /**
+     * Añade un comentario a una publicación.
+     *
+     * @param postId ID de la publicación
+     * @param userId ID del usuario que comenta
+     * @param text   contenido textual del comentario
+     * @return el comentario creado
+     * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si el post o el usuario no existen
+     */
     Comment addComment(Long postId, Long userId, String text);
 
+    /**
+     * Recupera todos los comentarios de una publicación ordenados cronológicamente.
+     *
+     * @param postId ID de la publicación
+     * @return lista de comentarios ordenados del más antiguo al más reciente
+     */
     List<Comment> getCommentsForPost(Long postId);
 }

@@ -3,14 +3,14 @@ package com.cultureSL.CultureLog.controller;
 import com.cultureSL.CultureLog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controlador REST para la gestión de datos del usuario.
+ * Controlador REST para la gestión del perfil de usuario.
  * <p>
- * Maneja operaciones específicas del perfil de usuario que no están
- * relacionadas
- * con la autenticación, como la actualización de la foto de perfil.
+ * Permite actualizar y eliminar la foto de perfil del usuario autenticado.
+ * Requiere autenticación JWT.
  * </p>
  */
 @RestController
@@ -21,36 +21,33 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * Actualiza la foto de perfil de un usuario.
-     * <p>
-     * Endpoint: {@code POST /api/users/{userId}/profile-picture}
-     * </p>
+     * Actualiza la foto de perfil del usuario autenticado.
+     * <p>Endpoint: {@code PUT /api/users/profile-picture?imageUrl=...}</p>
      *
-     * @param userId   ID del usuario a actualizar.
-     * @param imageUrl URL pública de la imagen (obtenida previamente de
-     *                 Cloudinary).
-     * @return {@code 200 OK} si la actualización fue exitosa.
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param imageUrl       nueva URL de la imagen de perfil
+     * @return HTTP 200 sin contenido
      */
-    @PostMapping("/{userId}/profile-picture")
+    @PutMapping("/profile-picture")
     public ResponseEntity<Void> updateProfilePicture(
-            @PathVariable Long userId,
+            Authentication authentication,
             @RequestParam String imageUrl) {
 
+        Long userId = (Long) authentication.getPrincipal();
         userService.updateProfilePicture(userId, imageUrl);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Elimina la foto de perfil de un usuario, estableciendo la URL a null.
-     * <p>
-     * Endpoint: {@code DELETE /api/users/{userId}/profile-picture}
-     * </p>
+     * Elimina la foto de perfil del usuario autenticado.
+     * <p>Endpoint: {@code DELETE /api/users/profile-picture}</p>
      *
-     * @param userId ID del usuario a actualizar.
-     * @return {@code 200 OK} si la eliminación fue exitosa.
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 sin contenido
      */
-    @DeleteMapping("/{userId}/profile-picture")
-    public ResponseEntity<Void> removeProfilePicture(@PathVariable Long userId) {
+    @DeleteMapping("/profile-picture")
+    public ResponseEntity<Void> removeProfilePicture(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
         userService.removeProfilePicture(userId);
         return ResponseEntity.ok().build();
     }

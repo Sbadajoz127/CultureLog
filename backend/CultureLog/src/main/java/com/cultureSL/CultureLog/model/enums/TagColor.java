@@ -26,6 +26,11 @@ public enum TagColor {
     /** Código de color en formato Hexadecimal (ej: #FF0000) para uso en Swing/CSS. */
     private final String hexCode;
 
+    /**
+     * Crea un color de etiqueta con su código hexadecimal.
+     *
+     * @param hexCode código de color en formato hexadecimal (ej: "#FF0000")
+     */
     TagColor(String hexCode) {
         this.hexCode = hexCode;
     }

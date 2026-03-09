@@ -1,9 +1,7 @@
 package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -21,13 +19,17 @@ import com.cultureSL.CultureLog.model.enums.MediaType;
  */
 @Entity
 @Table(name = "media_items")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class MediaItem {
 
+    /** Identificador único del ítem multimedia. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     /** Título de la obra. */
