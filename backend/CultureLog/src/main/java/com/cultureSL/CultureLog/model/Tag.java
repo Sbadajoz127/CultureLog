@@ -3,9 +3,7 @@ package com.cultureSL.CultureLog.model;
 import com.cultureSL.CultureLog.model.enums.TagColor;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * Representa una etiqueta o categoría para clasificar items multimedia.
@@ -15,13 +13,16 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "tags")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Tag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     /** Nombre de la etiqueta (ej: "Favoritos", "Verano 2024"). Debe ser único. */
@@ -33,6 +34,11 @@ public class Tag {
     @Column(nullable = false)
     private TagColor color = TagColor.POR_DEFECTO;
 
+    /**
+     * Crea una etiqueta con el nombre indicado y el color por defecto.
+     *
+     * @param name nombre de la etiqueta
+     */
     public Tag(String name) {
         this.name = name;
         this.color = TagColor.POR_DEFECTO;

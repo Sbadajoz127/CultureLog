@@ -1,7 +1,10 @@
 package com.cultureSL.CultureLog.service.impl;
 
+import com.cultureSL.CultureLog.exception.BadRequestException;
+import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.model.Follow;
 import com.cultureSL.CultureLog.model.User;
+import com.cultureSL.CultureLog.model.UserSettings;
 import com.cultureSL.CultureLog.model.enums.FollowStatus;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
@@ -18,11 +21,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Implementación de la lógica de negocio relacionada con el grafo social (Seguidores/Seguidos).
+ * Implementación del servicio de gestión de relaciones de seguimiento.
  * <p>
- * Gestiona la creación y eliminación de relaciones de seguimiento, verificando la privacidad
- * del perfil destino (Público vs Privado) y orquestando las notificaciones (Email e In-App).
+ * Gestiona la lógica de seguir/dejar de seguir usuarios, teniendo en cuenta
+ * la privacidad del perfil destino para determinar si la relación se acepta
+ * automáticamente o queda pendiente de aprobación. Además, genera notificaciones
+ * internas y emails al usuario seguido.
  * </p>
+ *
+ * @see FollowService
  */
 @Service
 @RequiredArgsConstructor
@@ -33,46 +40,29 @@ public class FollowServiceImpl implements FollowService {
     private final EmailService emailService;
     private final NotificationService notificationService;
 
-    /**
-     * Crea una relación de seguimiento entre dos usuarios.
-     * <p>
-     * Realiza las siguientes validaciones y acciones:
-     * <ul>
-     * <li>Verifica que el usuario no se siga a sí mismo.</li>
-     * <li>Verifica que la relación no exista previamente.</li>
-     * <li>Comprueba la privacidad del usuario destino:
-     * <ul>
-     * <li>Si es {@code PRIVADO}: El estado se guarda como {@code PENDING}.</li>
-     * <li>Si es {@code PUBLICO}: El estado se guarda como {@code ACCEPTED}.</li>
-     * </ul>
-     * </li>
-     * <li>Envía notificación por correo (si el usuario destino las tiene activadas).</li>
-     * <li>Crea una notificación interna en la aplicación.</li>
-     * </ul>
-     *
-     * @param followerId ID del usuario que quiere seguir (seguidor).
-     * @param followedId ID del usuario a seguir.
-     * @throws RuntimeException Si el usuario intenta seguirse a sí mismo o ya existe la relación.
-     */
+    /** {@inheritDoc} */
     @Override
     @Transactional
     public void followUser(Long followerId, Long followedId) {
         if (followerId.equals(followedId)) {
-            throw new RuntimeException("No puedes seguirte a ti mismo");
+            throw new BadRequestException("No puedes seguirte a ti mismo");
         }
 
         if (followRepository.existsByFollowerIdAndFollowedId(followerId, followedId)) {
-            throw new RuntimeException("Ya sigues a este usuario");
+            throw new BadRequestException("Ya sigues a este usuario");
         }
 
-        User follower = userRepository.findById(followerId).orElseThrow();
-        User followed = userRepository.findById(followedId).orElseThrow();
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario seguidor no encontrado"));
+        User followed = userRepository.findById(followedId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario a seguir no encontrado"));
 
         Follow follow = new Follow();
         follow.setFollower(follower);
         follow.setFollowed(followed);
 
-        if (followed.getSettings().getProfilePrivacy() == ProfilePrivacy.PRIVADO) {
+        UserSettings settings = followed.getSettings();
+        if (settings != null && settings.getProfilePrivacy() == ProfilePrivacy.PRIVADO) {
             follow.setStatus(FollowStatus.PENDING);
         } else {
             follow.setStatus(FollowStatus.ACCEPTED);
@@ -80,7 +70,7 @@ public class FollowServiceImpl implements FollowService {
 
         followRepository.save(follow);
 
-        if (followed.getSettings().isEmailNotifications()) {
+        if (settings != null && settings.isEmailNotifications()) {
             emailService.sendNewFollowerNotification(
                     followed.getEmail(),
                     follower.getUsername());
@@ -94,51 +84,29 @@ public class FollowServiceImpl implements FollowService {
         );
     }
 
-    /**
-     * Elimina una relación de seguimiento existente (Dejar de seguir).
-     *
-     * @param followerId ID del usuario que deja de seguir.
-     * @param followedId ID del usuario que estaba siendo seguido.
-     * @throws RuntimeException Si la relación no existe.
-     */
+    /** {@inheritDoc} */
     @Override
     @Transactional
     public void unfollowUser(Long followerId, Long followedId) {
         Follow follow = followRepository.findByFollowerIdAndFollowedId(followerId, followedId)
-                .orElseThrow(() -> new RuntimeException("No sigues a este usuario"));
+                .orElseThrow(() -> new ResourceNotFoundException("No sigues a este usuario"));
 
         followRepository.delete(follow);
     }
 
-    /**
-     * Comprueba si existe una relación de seguimiento entre dos usuarios, independientemente del estado.
-     *
-     * @param followerId ID del seguidor.
-     * @param followedId ID del seguido.
-     * @return {@code true} si existe la relación en base de datos, {@code false} en caso contrario.
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isFollowing(Long followerId, Long followedId) {
         return followRepository.existsByFollowerIdAndFollowedId(followerId, followedId);
     }
 
-    /**
-     * Obtiene la lista de seguidores de un usuario que han sido aceptados.
-     *
-     * @param userId ID del usuario.
-     * @return Lista de relaciones {@link Follow} donde el usuario es el 'followed' y el estado es ACCEPTED.
-     */
+    /** {@inheritDoc} */
     @Override
     public List<Follow> getFollowers(Long userId) {
         return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED);
     }
 
-    /**
-     * Obtiene la lista de personas a las que sigue un usuario (aceptadas).
-     *
-     * @param userId ID del usuario.
-     * @return Lista de relaciones {@link Follow} donde el usuario es el 'follower' y el estado es ACCEPTED.
-     */
+    /** {@inheritDoc} */
     @Override
     public List<Follow> getFollowing(Long userId) {
         return followRepository.findByFollowerIdAndStatus(userId, FollowStatus.ACCEPTED);

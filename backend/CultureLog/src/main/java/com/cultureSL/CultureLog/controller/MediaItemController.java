@@ -1,22 +1,25 @@
 package com.cultureSL.CultureLog.controller;
 
 import com.cultureSL.CultureLog.dto.MediaItemRequest;
+import com.cultureSL.CultureLog.dto.MediaItemResponse;
+import com.cultureSL.CultureLog.mapper.MediaItemMapper;
 import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.service.MediaItemService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * Controlador REST para la gestión de la biblioteca multimedia personal.
+ * Controlador REST para la gestión de la biblioteca multimedia del usuario.
  * <p>
- * Proporciona operaciones CRUD completas para items multimedia (Libros,
- * Películas, etc.)
- * permitiendo filtrado y actualización.
+ * Expone endpoints CRUD para los ítems multimedia, incluyendo filtrado
+ * por tipo y estado. Requiere autenticación JWT.
  * </p>
  */
 @RestController
@@ -25,101 +28,105 @@ import java.util.List;
 public class MediaItemController {
 
     private final MediaItemService mediaItemService;
+    private final MediaItemMapper mediaItemMapper;
 
     /**
-     * Obtiene la lista de items de la biblioteca de un usuario, con filtros
-     * opcionales.
-     * <p>
-     * Endpoint: {@code GET /api/items}
-     * </p>
+     * Obtiene los ítems multimedia del usuario autenticado, con filtros opcionales.
+     * <p>Endpoint: {@code GET /api/items?type=...&status=...}</p>
      *
-     * @param userId ID del usuario propietario de la biblioteca.
-     * @param type   (Opcional) Filtrar por tipo de medio (ej. LIBRO).
-     * @param status (Opcional) Filtrar por estado (ej. POR_VER).
-     * @return Lista de {@link MediaItem} filtrada.
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param type           filtro por tipo de medio (opcional)
+     * @param status         filtro por estado de consumo (opcional)
+     * @return HTTP 200 con la lista de ítems en formato {@link MediaItemResponse}
      */
     @GetMapping
-    public ResponseEntity<List<MediaItem>> getUserItems(
-            @RequestParam Long userId,
+    public ResponseEntity<List<MediaItemResponse>> getUserItems(
+            Authentication authentication,
             @RequestParam(required = false) MediaType type,
             @RequestParam(required = false) MediaStatus status) {
 
+        Long userId = (Long) authentication.getPrincipal();
+        List<MediaItem> items;
+
         if (type == null && status == null) {
-            return ResponseEntity.ok(mediaItemService.getUserItems(userId));
+            items = mediaItemService.getUserItems(userId);
         } else {
-            return ResponseEntity.ok(mediaItemService.filterItems(userId, type, status));
+            items = mediaItemService.filterItems(userId, type, status);
         }
+
+        return ResponseEntity.ok(mediaItemMapper.toDtoList(items));
     }
 
     /**
-     * Añade un nuevo ítem a la biblioteca del usuario.
-     * <p>
-     * Endpoint: {@code POST /api/items}
-     * </p>
+     * Añade un nuevo ítem multimedia a la biblioteca del usuario.
+     * <p>Endpoint: {@code POST /api/items}</p>
      *
-     * @param userId  ID del usuario.
-     * @param request Datos del nuevo ítem.
-     * @return El ítem creado.
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param request        datos del ítem a crear
+     * @return HTTP 200 con el ítem creado en formato {@link MediaItemResponse}
      */
     @PostMapping
-    public ResponseEntity<MediaItem> addItem(
-            @RequestParam Long userId,
-            @RequestBody MediaItemRequest request) {
-        return ResponseEntity.ok(mediaItemService.addItem(userId, request));
+    public ResponseEntity<MediaItemResponse> addItem(
+            Authentication authentication,
+            @Valid @RequestBody MediaItemRequest request) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        MediaItem item = mediaItemService.addItem(userId, request);
+        return ResponseEntity.ok(mediaItemMapper.toDto(item));
     }
 
     /**
-     * Actualiza los datos de un ítem existente.
-     * <p>
-     * Endpoint: {@code PUT /api/items/{itemId}}
-     * </p>
+     * Actualiza los datos de un ítem multimedia existente.
+     * <p>Endpoint: {@code PUT /api/items/{itemId}}</p>
      *
-     * @param itemId  ID del ítem a modificar.
-     * @param userId  ID del usuario (para verificación de permisos).
-     * @param request Nuevos datos del ítem.
-     * @return El ítem actualizado.
+     * @param itemId         ID del ítem a actualizar
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param request        nuevos datos del ítem
+     * @return HTTP 200 con el ítem actualizado en formato {@link MediaItemResponse}
      */
     @PutMapping("/{itemId}")
-    public ResponseEntity<MediaItem> updateItem(
+    public ResponseEntity<MediaItemResponse> updateItem(
             @PathVariable Long itemId,
-            @RequestParam Long userId,
-            @RequestBody MediaItemRequest request) {
-        return ResponseEntity.ok(mediaItemService.updateItem(itemId, userId, request));
+            Authentication authentication,
+            @Valid @RequestBody MediaItemRequest request) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        MediaItem item = mediaItemService.updateItem(itemId, userId, request);
+        return ResponseEntity.ok(mediaItemMapper.toDto(item));
     }
 
     /**
-     * Elimina la imagen asociada a un ítem, estableciendo la URL a null.
-     * <p>
-     * Endpoint: {@code DELETE /api/items/{itemId}/image}
-     * </p>
+     * Elimina la imagen asociada a un ítem multimedia.
+     * <p>Endpoint: {@code DELETE /api/items/{itemId}/image}</p>
      *
-     * @param itemId ID del ítem a modificar.
-     * @param userId ID del usuario (para verificación de permisos).
-     * @return {@code 200 OK} si se elimina correctamente.
+     * @param itemId         ID del ítem
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 sin contenido
      */
     @DeleteMapping("/{itemId}/image")
     public ResponseEntity<Void> removeImage(
             @PathVariable Long itemId,
-            @RequestParam Long userId) {
+            Authentication authentication) {
 
+        Long userId = (Long) authentication.getPrincipal();
         mediaItemService.removeMediaItemImage(itemId, userId);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Elimina un ítem de la biblioteca.
-     * <p>
-     * Endpoint: {@code DELETE /api/items/{itemId}}
-     * </p>
+     * Elimina un ítem multimedia de la biblioteca del usuario.
+     * <p>Endpoint: {@code DELETE /api/items/{itemId}}</p>
      *
-     * @param itemId ID del ítem a eliminar.
-     * @param userId ID del usuario (para verificación de permisos).
-     * @return {@code 200 OK} si se elimina correctamente.
+     * @param itemId         ID del ítem a eliminar
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 sin contenido
      */
     @DeleteMapping("/{itemId}")
     public ResponseEntity<Void> deleteItem(
             @PathVariable Long itemId,
-            @RequestParam Long userId) {
+            Authentication authentication) {
+
+        Long userId = (Long) authentication.getPrincipal();
         mediaItemService.deleteItem(itemId, userId);
         return ResponseEntity.ok().build();
     }

@@ -46,7 +46,18 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
      * @return Lista de items que coinciden con el estado.
      */
     List<MediaItem> findByUserIdAndStatus(Long userId, MediaStatus status);
-    
+
+    /**
+     * Filtra la biblioteca del usuario combinando tipo de medio y estado de consumo.
+     * Ej: "Mis LIBROS que tengo POR_VER".
+     *
+     * @param userId ID del usuario.
+     * @param type   tipo de medio (ej. LIBRO, PELICULA).
+     * @param status estado del ítem (ej. VISTO, POR_VER).
+     * @return lista de items que coinciden con ambos criterios.
+     */
+    List<MediaItem> findByUserIdAndTypeAndStatus(Long userId, MediaType type, MediaStatus status);
+
     /**
      * Filtra la biblioteca del usuario por género.
      *

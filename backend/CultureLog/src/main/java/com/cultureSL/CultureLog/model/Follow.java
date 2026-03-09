@@ -1,8 +1,7 @@
 package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import java.time.LocalDateTime;
 
 import com.cultureSL.CultureLog.model.enums.FollowStatus;
@@ -16,15 +15,18 @@ import com.cultureSL.CultureLog.model.enums.FollowStatus;
  */
 @Entity
 @Table(name = "follows", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"follower_id", "followed_id"}) // Evita seguir dos veces al mismo
+    @UniqueConstraint(columnNames = {"follower_id", "followed_id"})
 })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Follow {
 
     /** Identificador único de la relación. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     /**

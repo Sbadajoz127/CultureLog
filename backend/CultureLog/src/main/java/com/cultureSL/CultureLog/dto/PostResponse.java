@@ -20,23 +20,30 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostResponse {
-    // --- Datos del Post ---
+    /** Identificador único del post. */
     private Long id;
+    /** Contenido textual de la publicación. */
     private String content;
+    /** Fecha y hora de creación. */
     private LocalDateTime createdAt;
-    
-    // --- Datos del Autor ---
+
+    /** ID del autor de la publicación. */
     private Long authorId;
+    /** Nombre de usuario del autor. */
     private String authorName;
-    
-    // --- Datos del Item Multimedia Vinculado (Resumen) ---
+
+    /** ID del ítem multimedia vinculado ({@code null} si no hay). */
     private Long linkedItemId;
+    /** Título del ítem vinculado. */
     private String linkedItemTitle;
+    /** Tipo de medio del ítem vinculado (ej: "PELICULA"). */
     private String linkedItemType;
+    /** Puntuación del ítem vinculado. */
     private Integer linkedItemRating;
 
-    // --- Datos Sociales ---
+    /** Número total de likes en la publicación. */
     private int likeCount;
+    /** Número total de comentarios en la publicación. */
     private int commentCount;
     /** Indica si el usuario que ve el feed ya ha dado like a este post (para pintar el corazón rojo/gris). */
     private boolean likedByCurrentUser;

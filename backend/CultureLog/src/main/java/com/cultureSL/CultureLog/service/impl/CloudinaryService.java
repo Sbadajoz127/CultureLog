@@ -12,8 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Servicio para la integración con Cloudinary.
@@ -81,10 +83,12 @@ public class CloudinaryService {
      * @throws IOException Si ocurre un error durante la conversión.
      */
     private File convertMultiPartToFile(MultipartFile file) throws IOException {
-        File convFile = new File(file.getOriginalFilename());
-        FileOutputStream fos = new FileOutputStream(convFile);
-        fos.write(file.getBytes());
-        fos.close();
-        return convFile;
+        String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("upload");
+        String safeName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        File tempFile = Files.createTempFile("cloudinary_", "_" + safeName).toFile();
+        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+            fos.write(file.getBytes());
+        }
+        return tempFile;
     }
 }

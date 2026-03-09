@@ -3,15 +3,61 @@ package com.cultureSL.CultureLog.service;
 import com.cultureSL.CultureLog.model.Follow;
 import java.util.List;
 
+/**
+ * Servicio que gestiona las relaciones de seguimiento entre usuarios (grafo social).
+ * <p>
+ * Define el contrato para seguir/dejar de seguir usuarios y consultar
+ * las listas de seguidores y seguidos.
+ * </p>
+ */
 public interface FollowService {
-    
+
+    /**
+     * Crea una relación de seguimiento entre dos usuarios.
+     * <p>
+     * Si el perfil del usuario destino es privado, la relación se crea con estado PENDING;
+     * si es público, se acepta automáticamente (ACCEPTED).
+     * Genera una notificación y, opcionalmente, un email al usuario seguido.
+     * </p>
+     *
+     * @param followerId ID del usuario que inicia el seguimiento
+     * @param followedId ID del usuario a seguir
+     * @throws com.cultureSL.CultureLog.exception.BadRequestException       si el usuario intenta seguirse a sí mismo o ya lo sigue
+     * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si alguno de los usuarios no existe
+     */
     void followUser(Long followerId, Long followedId);
 
+    /**
+     * Elimina la relación de seguimiento entre dos usuarios.
+     *
+     * @param followerId ID del usuario seguidor
+     * @param followedId ID del usuario seguido
+     * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si la relación no existe
+     */
     void unfollowUser(Long followerId, Long followedId);
 
+    /**
+     * Comprueba si un usuario sigue a otro.
+     *
+     * @param followerId ID del posible seguidor
+     * @param followedId ID del posible seguido
+     * @return {@code true} si existe la relación de seguimiento
+     */
     boolean isFollowing(Long followerId, Long followedId);
-    
+
+    /**
+     * Obtiene la lista de seguidores de un usuario (relaciones con estado ACCEPTED).
+     *
+     * @param userId ID del usuario
+     * @return lista de relaciones de seguimiento donde el usuario es seguido
+     */
     List<Follow> getFollowers(Long userId);
-    
+
+    /**
+     * Obtiene la lista de usuarios a los que sigue un usuario (relaciones con estado ACCEPTED).
+     *
+     * @param userId ID del usuario
+     * @return lista de relaciones de seguimiento donde el usuario es seguidor
+     */
     List<Follow> getFollowing(Long userId);
 }

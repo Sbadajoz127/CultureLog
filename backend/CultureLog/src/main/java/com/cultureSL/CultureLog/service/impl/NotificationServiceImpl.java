@@ -1,12 +1,13 @@
 package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.dto.NotificationResponse;
+import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.model.Notification;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.repository.NotificationRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
-import com.cultureSL.CultureLog.service.NotificationService; // Crea esta interfaz primero
+import com.cultureSL.CultureLog.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,8 +47,10 @@ public class NotificationServiceImpl implements NotificationService {
     public void createNotification(Long recipientId, Long actorId, NotificationType type, Long referenceId) {
         if (recipientId.equals(actorId)) return;
 
-        User recipient = userRepository.findById(recipientId).orElseThrow();
-        User actor = userRepository.findById(actorId).orElseThrow();
+        User recipient = userRepository.findById(recipientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario destinatario no encontrado"));
+        User actor = userRepository.findById(actorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario actor no encontrado"));
 
         Notification notif = new Notification();
         notif.setRecipient(recipient);

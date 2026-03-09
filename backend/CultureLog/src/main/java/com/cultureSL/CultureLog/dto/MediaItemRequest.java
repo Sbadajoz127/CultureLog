@@ -2,31 +2,41 @@ package com.cultureSL.CultureLog.dto;
 
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDate;
 
 /**
- * DTO de entrada para crear o actualizar un elemento multimedia en la biblioteca.
+ * DTO de entrada para crear o actualizar un ítem multimedia en la biblioteca del usuario.
  * <p>
- * Encapsula todos los campos editables por el usuario para una obra (título, estado, valoración, etc.).
+ * Los campos obligatorios son el título, el tipo de medio y el estado.
+ * El resto de campos son opcionales y permiten enriquecer la información del ítem.
  * </p>
  */
 @Data
 public class MediaItemRequest {
-    /** Título de la obra. */
+    /** Título de la obra (obligatorio). */
+    @NotBlank(message = "El título es obligatorio")
     private String title;
-    /** Url de la imagen representativa del ítem (portada, póster, etc.). */
+
+    /** URL de la imagen representativa del ítem (portada, póster). */
     private String itemImageUrl;
-    /** Tipo de medio (PELICULA, LIBRO...). */
+
+    /** Tipo de medio: PELICULA, SERIE, LIBRO, etc. (obligatorio). */
+    @NotNull(message = "El tipo de medio es obligatorio")
     private MediaType type;
-    /** Estado de consumo (VISTO, POR_VER...). */
+
+    /** Estado de consumo: POR_VER, EN_PROGRESO, VISTO, ABANDONADO (obligatorio). */
+    @NotNull(message = "El estado es obligatorio")
     private MediaStatus status;
-    /** Género literario/cinematográfico. */
+
+    /** Género de la obra (ej: "Ciencia Ficción", "Terror"). */
     private String genre;
-    /** Valoración personal (ej. 1-5). */
+    /** Puntuación personal del usuario. */
     private Integer rating;
-    /** Reseña o comentario personal. */
+    /** Reseña o notas personales. */
     private String comment;
-    /** Fecha de lanzamiento de la obra original (opcional). */
+    /** Fecha de lanzamiento original de la obra. */
     private LocalDate releaseDate;
 }

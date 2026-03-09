@@ -3,12 +3,13 @@ package com.cultureSL.CultureLog.controller;
 import com.cultureSL.CultureLog.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controlador REST para gestionar las relaciones sociales entre usuarios.
+ * Controlador REST para las operaciones de seguimiento entre usuarios.
  * <p>
- * Permite realizar acciones de seguimiento (Follow/Unfollow).
+ * Permite seguir y dejar de seguir a otros usuarios. Requiere autenticación JWT.
  * </p>
  */
 @RestController
@@ -19,35 +20,37 @@ public class FollowController {
     private final FollowService followService;
 
     /**
-     * Envía una solicitud para seguir a otro usuario.
-     * <p>Endpoint: {@code POST /api/users/{userId}/follow?targetId={targetId}}</p>
+     * Envía una solicitud de seguimiento a otro usuario.
+     * <p>Endpoint: {@code POST /api/users/follow?targetId=...}</p>
      *
-     * @param userId   ID del usuario que quiere seguir (quien realiza la acción).
-     * @param targetId ID del usuario al que se quiere seguir.
-     * @return Mensaje de confirmación.
+     * @param authentication contexto de autenticación con el ID del usuario actual
+     * @param targetId       ID del usuario a seguir
+     * @return HTTP 200 con mensaje de confirmación
      */
-    @PostMapping("/{userId}/follow")
+    @PostMapping("/follow")
     public ResponseEntity<String> followUser(
-            @PathVariable Long userId, 
+            Authentication authentication,
             @RequestParam Long targetId) {
-        
+
+        Long userId = (Long) authentication.getPrincipal();
         followService.followUser(userId, targetId);
         return ResponseEntity.ok("Solicitud de seguimiento enviada/aceptada");
     }
 
     /**
-     * Deja de seguir a un usuario previamente seguido.
-     * <p>Endpoint: {@code POST /api/users/{userId}/unfollow?targetId={targetId}}</p>
+     * Deja de seguir a un usuario.
+     * <p>Endpoint: {@code DELETE /api/users/follow?targetId=...}</p>
      *
-     * @param userId   ID del usuario que deja de seguir.
-     * @param targetId ID del usuario que dejará de ser seguido.
-     * @return Mensaje de confirmación.
+     * @param authentication contexto de autenticación con el ID del usuario actual
+     * @param targetId       ID del usuario a dejar de seguir
+     * @return HTTP 200 con mensaje de confirmación
      */
-    @PostMapping("/{userId}/unfollow")
+    @DeleteMapping("/follow")
     public ResponseEntity<String> unfollowUser(
-            @PathVariable Long userId, 
+            Authentication authentication,
             @RequestParam Long targetId) {
-        
+
+        Long userId = (Long) authentication.getPrincipal();
         followService.unfollowUser(userId, targetId);
         return ResponseEntity.ok("Dejado de seguir correctamente");
     }
