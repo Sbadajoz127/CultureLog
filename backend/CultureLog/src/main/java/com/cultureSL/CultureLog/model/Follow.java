@@ -2,6 +2,8 @@ package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 import com.cultureSL.CultureLog.model.enums.FollowStatus;
@@ -54,5 +56,6 @@ public class Follow {
     private FollowStatus status;
 
     /** Fecha en la que se inició la solicitud de seguimiento. */
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }

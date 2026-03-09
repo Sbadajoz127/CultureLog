@@ -9,6 +9,8 @@ import com.cultureSL.CultureLog.service.FollowService;
 import com.cultureSL.CultureLog.service.NotificationService;
 import com.cultureSL.CultureLog.service.PostService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ import java.util.Optional;
  *
  * @see PostService
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
@@ -61,8 +64,7 @@ public class PostServiceImpl implements PostService {
 
         Post savedPost = postRepository.save(post);
 
-        List<Long> followerIds = followService.getFollowers(userId).stream()
-                .map(f -> f.getFollower().getId()).toList();
+        List<Long> followerIds = followService.getFollowerIds(userId);
         notificationService.createBulkNotificationsAsync(
                 followerIds, userId, NotificationType.NUEVO_POST, savedPost.getId());
 
@@ -98,8 +100,13 @@ public class PostServiceImpl implements PostService {
             postLikeRepository.delete(existingLike.get());
             postRepository.updateLikeCount(postId, -1);
         } else {
-            postLikeRepository.save(new PostLike(post, user));
-            postRepository.updateLikeCount(postId, 1);
+            try {
+                postLikeRepository.save(new PostLike(post, user));
+                postRepository.updateLikeCount(postId, 1);
+            } catch (DataIntegrityViolationException e) {
+                log.debug("Like duplicado ignorado para post {} y usuario {}", postId, userId);
+                return;
+            }
 
             if (!post.getAuthor().getId().equals(userId)) {
                 notificationService.createNotification(

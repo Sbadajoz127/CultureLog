@@ -10,6 +10,7 @@ import com.cultureSL.CultureLog.repository.NotificationRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
 import com.cultureSL.CultureLog.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -17,7 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de notificaciones internas (In-App).
@@ -26,6 +30,7 @@ import java.util.Objects;
  * generadas por eventos sociales (likes, follows, comentarios).
  * </p>
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
@@ -126,25 +131,37 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     @Override
     public void createBulkNotificationsAsync(List<Long> recipientIds, Long actorId, NotificationType type, Long referenceId) {
-        User actor = userRepository.findById(actorId).orElse(null);
-        if (actor == null) return;
+        try {
+            User actor = userRepository.findById(actorId).orElse(null);
+            if (actor == null) return;
 
-        List<Notification> notifications = recipientIds.stream()
-                .filter(id -> !id.equals(actorId))
-                .map(recipientId -> {
-                    User recipient = userRepository.findById(recipientId).orElse(null);
-                    if (recipient == null) return null;
-                    Notification n = new Notification();
-                    n.setRecipient(recipient);
-                    n.setActor(actor);
-                    n.setType(type);
-                    n.setReferenceId(referenceId);
-                    return n;
-                })
-                .filter(Objects::nonNull)
-                .toList();
+            List<Long> filteredIds = recipientIds.stream()
+                    .filter(id -> !id.equals(actorId))
+                    .toList();
 
-        notificationRepository.saveAll(notifications);
+            if (filteredIds.isEmpty()) return;
+
+            Map<Long, User> recipientMap = userRepository.findAllById(filteredIds).stream()
+                    .collect(Collectors.toMap(User::getId, Function.identity()));
+
+            List<Notification> notifications = filteredIds.stream()
+                    .map(recipientId -> {
+                        User recipient = recipientMap.get(recipientId);
+                        if (recipient == null) return null;
+                        Notification n = new Notification();
+                        n.setRecipient(recipient);
+                        n.setActor(actor);
+                        n.setType(type);
+                        n.setReferenceId(referenceId);
+                        return n;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            notificationRepository.saveAll(notifications);
+        } catch (Exception e) {
+            log.error("Error al crear notificaciones en bloque para actor {}: {}", actorId, e.getMessage(), e);
+        }
     }
 
     /**

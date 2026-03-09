@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/follows")
 @RequiredArgsConstructor
 public class FollowController {
 
@@ -22,13 +22,13 @@ public class FollowController {
 
     /**
      * Envía una solicitud de seguimiento a otro usuario.
-     * <p>Endpoint: {@code POST /api/users/follow?targetId=...}</p>
+     * <p>Endpoint: {@code POST /api/follows?targetId=...}</p>
      *
      * @param authentication contexto de autenticación con el ID del usuario actual
      * @param targetId       ID del usuario a seguir
      * @return HTTP 200 con mensaje de confirmación
      */
-    @PostMapping("/follow")
+    @PostMapping
     public ResponseEntity<String> followUser(
             Authentication authentication,
             @RequestParam Long targetId) {
@@ -40,13 +40,13 @@ public class FollowController {
 
     /**
      * Deja de seguir a un usuario.
-     * <p>Endpoint: {@code DELETE /api/users/follow?targetId=...}</p>
+     * <p>Endpoint: {@code DELETE /api/follows?targetId=...}</p>
      *
      * @param authentication contexto de autenticación con el ID del usuario actual
      * @param targetId       ID del usuario a dejar de seguir
      * @return HTTP 200 con mensaje de confirmación
      */
-    @DeleteMapping("/follow")
+    @DeleteMapping
     public ResponseEntity<String> unfollowUser(
             Authentication authentication,
             @RequestParam Long targetId) {
@@ -58,13 +58,13 @@ public class FollowController {
 
     /**
      * Acepta una solicitud de seguimiento pendiente.
-     * <p>Endpoint: {@code POST /api/users/follow/accept?followerId=...}</p>
+     * <p>Endpoint: {@code POST /api/follows/accept?followerId=...}</p>
      *
      * @param authentication contexto de autenticación con el ID del usuario que acepta
      * @param followerId     ID del usuario que envió la solicitud
      * @return HTTP 200 con mensaje de confirmación
      */
-    @PostMapping("/follow/accept")
+    @PostMapping("/accept")
     public ResponseEntity<String> acceptFollow(
             Authentication authentication,
             @RequestParam Long followerId) {
@@ -76,13 +76,13 @@ public class FollowController {
 
     /**
      * Rechaza una solicitud de seguimiento pendiente.
-     * <p>Endpoint: {@code POST /api/users/follow/reject?followerId=...}</p>
+     * <p>Endpoint: {@code POST /api/follows/reject?followerId=...}</p>
      *
      * @param authentication contexto de autenticación con el ID del usuario que rechaza
      * @param followerId     ID del usuario que envió la solicitud
      * @return HTTP 200 con mensaje de confirmación
      */
-    @PostMapping("/follow/reject")
+    @PostMapping("/reject")
     public ResponseEntity<String> rejectFollow(
             Authentication authentication,
             @RequestParam Long followerId) {

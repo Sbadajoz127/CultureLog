@@ -43,8 +43,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = "SELECT DISTINCT p FROM Post p " +
            "LEFT JOIN FETCH p.author " +
            "LEFT JOIN FETCH p.linkedItem " +
-           "LEFT JOIN FETCH p.comments c " +
-           "LEFT JOIN FETCH c.author " +
            "WHERE p.author.id = :userId OR p.author.id IN " +
            "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED')",
            countQuery = "SELECT COUNT(DISTINCT p) FROM Post p WHERE p.author.id = :userId OR p.author.id IN " +
@@ -72,7 +70,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      * @param delta  valor a sumar (1 para like, -1 para unlike).
      */
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE Post p SET p.likeCount = p.likeCount + :delta WHERE p.id = :postId")
+    @Query("UPDATE Post p SET p.likeCount = CASE WHEN p.likeCount + :delta < 0 THEN 0 ELSE p.likeCount + :delta END WHERE p.id = :postId")
     void updateLikeCount(@Param("postId") Long postId, @Param("delta") int delta);
 
     /**
@@ -86,6 +84,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      * @param delta  valor a sumar (1 para nuevo comentario, -1 para eliminaci?n).
      */
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE Post p SET p.commentCount = p.commentCount + :delta WHERE p.id = :postId")
+    @Query("UPDATE Post p SET p.commentCount = CASE WHEN p.commentCount + :delta < 0 THEN 0 ELSE p.commentCount + :delta END WHERE p.id = :postId")
     void updateCommentCount(@Param("postId") Long postId, @Param("delta") int delta);
 }

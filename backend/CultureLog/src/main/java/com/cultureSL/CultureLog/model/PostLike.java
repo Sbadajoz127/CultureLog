@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -39,7 +40,8 @@ public class PostLike {
     private User user;
 
     /** Fecha y hora en que se registró el like. */
-    private LocalDateTime likedAt = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime likedAt;
 
     /**
      * Crea un nuevo like vinculando un post con un usuario.

@@ -9,6 +9,7 @@ import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.repository.MediaItemRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
+import com.cultureSL.CultureLog.service.ImageStorageService;
 import com.cultureSL.CultureLog.service.MediaItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,13 +33,13 @@ public class MediaItemServiceImpl implements MediaItemService {
 
     private final MediaItemRepository mediaItemRepository;
     private final UserRepository userRepository;
-    private final CloudinaryService cloudinaryService;
+    private final ImageStorageService imageStorageService;
 
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
     public List<MediaItem> getUserItems(Long userId) {
-        return mediaItemRepository.findByUserId(userId);
+        return mediaItemRepository.findByUserIdWithTags(userId);
     }
 
     /** {@inheritDoc} */
@@ -46,11 +47,11 @@ public class MediaItemServiceImpl implements MediaItemService {
     @Transactional(readOnly = true)
     public List<MediaItem> filterItems(Long userId, MediaType type, MediaStatus status) {
         if (type != null && status != null) {
-            return mediaItemRepository.findByUserIdAndTypeAndStatus(userId, type, status);
+            return mediaItemRepository.findByUserIdAndTypeAndStatusWithTags(userId, type, status);
         } else if (type != null) {
-            return mediaItemRepository.findByUserIdAndType(userId, type);
+            return mediaItemRepository.findByUserIdAndTypeWithTags(userId, type);
         } else if (status != null) {
-            return mediaItemRepository.findByUserIdAndStatus(userId, status);
+            return mediaItemRepository.findByUserIdAndStatusWithTags(userId, status);
         }
         return getUserItems(userId);
     }
@@ -114,7 +115,7 @@ public class MediaItemServiceImpl implements MediaItemService {
         }
 
         if (item.getItemImageUrl() != null) {
-            cloudinaryService.deleteImage(item.getItemImageUrl());
+            imageStorageService.deleteImage(item.getItemImageUrl());
         }
 
         mediaItemRepository.delete(item);
@@ -132,7 +133,7 @@ public class MediaItemServiceImpl implements MediaItemService {
         }
 
         if (item.getItemImageUrl() != null) {
-            cloudinaryService.deleteImage(item.getItemImageUrl());
+            imageStorageService.deleteImage(item.getItemImageUrl());
         }
 
         item.setItemImageUrl(null);

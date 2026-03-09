@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -53,6 +54,7 @@ public class Post {
 
     /** Lista de comentarios recibidos. */
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     private List<Comment> comments = new ArrayList<>();
 
     /** Lista de interacciones "Me gusta". */

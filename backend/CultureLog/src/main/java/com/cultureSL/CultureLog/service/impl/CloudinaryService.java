@@ -3,6 +3,7 @@ package com.cultureSL.CultureLog.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.cultureSL.CultureLog.exception.BadRequestException;
+import com.cultureSL.CultureLog.service.ImageStorageService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CloudinaryService {
+public class CloudinaryService implements ImageStorageService {
 
     @Value("${cloudinary.cloud-name}")
     private String cloudName;
@@ -62,7 +63,8 @@ public class CloudinaryService {
     public String uploadImage(MultipartFile file) {
         try {
             File uploadedFile = convertMultiPartToFile(file);
-            Map uploadResult = cloudinary.uploader().upload(uploadedFile, ObjectUtils.emptyMap());
+            @SuppressWarnings("unchecked")
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(uploadedFile, ObjectUtils.emptyMap());
             
             boolean isDeleted = uploadedFile.delete();
             if (!isDeleted) {
@@ -104,7 +106,9 @@ public class CloudinaryService {
         if (afterUpload.matches("v\\d+/.*")) {
             afterUpload = afterUpload.substring(afterUpload.indexOf('/') + 1);
         }
-        return afterUpload.substring(0, afterUpload.lastIndexOf('.'));
+        int dotIndex = afterUpload.lastIndexOf('.');
+        if (dotIndex <= 0) return afterUpload;
+        return afterUpload.substring(0, dotIndex);
     }
 
     /**

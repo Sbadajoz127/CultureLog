@@ -66,7 +66,8 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = (Long) authentication.getPrincipal();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Post> postPage = postService.getNewsFeed(userId, pageable);
 
         Page<PostResponse> dtoPage = postMapper.toPageDto(postPage, userId);

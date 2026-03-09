@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.mapper;
 
 import com.cultureSL.CultureLog.dto.CommentResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
+import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.Post;
 import com.cultureSL.CultureLog.repository.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class PostMapper {
     public Page<PostResponse> toPageDto(Page<Post> postPage, Long currentUserId) {
         List<Post> posts = postPage.getContent();
         if (posts.isEmpty()) {
-            return postPage.map(p -> null);
+            return Page.empty(postPage.getPageable());
         }
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
@@ -94,6 +95,8 @@ public class PostMapper {
      * @return DTO completo del post
      */
     private PostResponse buildDto(Post post, boolean isLiked) {
+        MediaItem linkedItem = post.getLinkedItem();
+
         return PostResponse.builder()
                 .id(post.getId())
                 .content(post.getContent())
@@ -103,10 +106,10 @@ public class PostMapper {
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .likedByCurrentUser(isLiked)
-                .linkedItemId(post.getLinkedItem() != null ? post.getLinkedItem().getId() : null)
-                .linkedItemTitle(post.getLinkedItem() != null ? post.getLinkedItem().getTitle() : null)
-                .linkedItemType(post.getLinkedItem() != null ? post.getLinkedItem().getType().name() : null)
-                .linkedItemRating(post.getLinkedItem() != null ? post.getLinkedItem().getRating() : null)
+                .linkedItemId(linkedItem != null ? linkedItem.getId() : null)
+                .linkedItemTitle(linkedItem != null ? linkedItem.getTitle() : null)
+                .linkedItemType(linkedItem != null ? linkedItem.getType().name() : null)
+                .linkedItemRating(linkedItem != null ? linkedItem.getRating() : null)
                 .recentComments(post.getComments().stream()
                         .sorted(Comparator.comparing(c -> c.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                         .limit(3)

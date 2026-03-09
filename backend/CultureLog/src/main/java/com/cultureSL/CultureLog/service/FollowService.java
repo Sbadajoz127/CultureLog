@@ -54,6 +54,15 @@ public interface FollowService {
     List<Follow> getFollowers(Long userId);
 
     /**
+     * Obtiene directamente los IDs de los seguidores de un usuario (estado ACCEPTED).
+     * Más eficiente que getFollowers() cuando solo se necesitan los IDs.
+     *
+     * @param userId ID del usuario
+     * @return lista de IDs de los seguidores
+     */
+    List<Long> getFollowerIds(Long userId);
+
+    /**
      * Obtiene la lista de usuarios a los que sigue un usuario (relaciones con estado ACCEPTED).
      *
      * @param userId ID del usuario

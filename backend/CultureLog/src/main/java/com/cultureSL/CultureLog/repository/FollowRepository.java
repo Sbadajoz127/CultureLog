@@ -3,6 +3,8 @@ package com.cultureSL.CultureLog.repository;
 import com.cultureSL.CultureLog.model.Follow;
 import com.cultureSL.CultureLog.model.enums.FollowStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,6 +28,16 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
      * @return {@code true} si existe la relación, {@code false} en caso contrario.
      */
     boolean existsByFollowerIdAndFollowedId(Long followerId, Long followedId);
+
+    /**
+     * Verifica si existe una relación de seguimiento entre dos usuarios con un estado concreto.
+     *
+     * @param followerId ID del usuario que sigue.
+     * @param followedId ID del usuario que es seguido.
+     * @param status     Estado requerido de la relación.
+     * @return {@code true} si existe la relación con ese estado.
+     */
+    boolean existsByFollowerIdAndFollowedIdAndStatus(Long followerId, Long followedId, FollowStatus status);
 
     /**
      * Busca la entidad de relación específica entre dos usuarios.
@@ -78,4 +90,15 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
      * @return Un {@link Optional} con la relación si existe con ese estado.
      */
     Optional<Follow> findByFollowerIdAndFollowedIdAndStatus(Long followerId, Long followedId, FollowStatus status);
+
+    /**
+     * Obtiene directamente los IDs de los seguidores de un usuario con un estado dado.
+     * Evita cargar entidades Follow completas y el problema N+1 al acceder a follower.
+     *
+     * @param followedId ID del usuario seguido.
+     * @param status     Estado requerido de la relación.
+     * @return Lista de IDs de los seguidores.
+     */
+    @Query("SELECT f.follower.id FROM Follow f WHERE f.followed.id = :followedId AND f.status = :status")
+    List<Long> findFollowerIdsByFollowedIdAndStatus(@Param("followedId") Long followedId, @Param("status") FollowStatus status);
 }

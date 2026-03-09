@@ -5,9 +5,12 @@ import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repositorio de acceso a datos para la entidad {@link MediaItem}.
@@ -20,6 +23,15 @@ import java.util.List;
 public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
 
     /**
+     * Recupera toda la biblioteca de un usuario con sus etiquetas precargadas.
+     *
+     * @param userId ID del usuario propietario.
+     * @return Lista completa de items multimedia del usuario.
+     */
+    @Query("SELECT DISTINCT m FROM MediaItem m LEFT JOIN FETCH m.tags WHERE m.user.id = :userId")
+    List<MediaItem> findByUserIdWithTags(@Param("userId") Long userId);
+
+    /**
      * Recupera toda la biblioteca de un usuario sin filtros adicionales.
      *
      * @param userId ID del usuario propietario.
@@ -28,8 +40,17 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
     List<MediaItem> findByUserId(Long userId);
 
     /**
+     * Filtra la biblioteca del usuario por tipo de medio, con etiquetas precargadas.
+     *
+     * @param userId ID del usuario.
+     * @param type   Tipo de medio (ej. LIBRO, PELICULA).
+     * @return Lista de items que coinciden con el tipo.
+     */
+    @Query("SELECT DISTINCT m FROM MediaItem m LEFT JOIN FETCH m.tags WHERE m.user.id = :userId AND m.type = :type")
+    List<MediaItem> findByUserIdAndTypeWithTags(@Param("userId") Long userId, @Param("type") MediaType type);
+
+    /**
      * Filtra la biblioteca del usuario por tipo de medio.
-     * Ej: "Ver solo mis LIBROS".
      *
      * @param userId ID del usuario.
      * @param type   Tipo de medio (ej. LIBRO, PELICULA).
@@ -38,8 +59,17 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
     List<MediaItem> findByUserIdAndType(Long userId, MediaType type);
 
     /**
+     * Filtra la biblioteca del usuario por estado de consumo, con etiquetas precargadas.
+     *
+     * @param userId ID del usuario.
+     * @param status Estado del ítem (ej. VISTO, POR_VER).
+     * @return Lista de items que coinciden con el estado.
+     */
+    @Query("SELECT DISTINCT m FROM MediaItem m LEFT JOIN FETCH m.tags WHERE m.user.id = :userId AND m.status = :status")
+    List<MediaItem> findByUserIdAndStatusWithTags(@Param("userId") Long userId, @Param("status") MediaStatus status);
+
+    /**
      * Filtra la biblioteca del usuario por estado de consumo.
-     * Ej: "Ver solo lo que tengo POR_VER".
      *
      * @param userId ID del usuario.
      * @param status Estado del ítem (ej. VISTO, POR_VER).
@@ -48,8 +78,18 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
     List<MediaItem> findByUserIdAndStatus(Long userId, MediaStatus status);
 
     /**
+     * Filtra la biblioteca del usuario combinando tipo de medio y estado de consumo, con etiquetas precargadas.
+     *
+     * @param userId ID del usuario.
+     * @param type   tipo de medio (ej. LIBRO, PELICULA).
+     * @param status estado del ítem (ej. VISTO, POR_VER).
+     * @return lista de items que coinciden con ambos criterios.
+     */
+    @Query("SELECT DISTINCT m FROM MediaItem m LEFT JOIN FETCH m.tags WHERE m.user.id = :userId AND m.type = :type AND m.status = :status")
+    List<MediaItem> findByUserIdAndTypeAndStatusWithTags(@Param("userId") Long userId, @Param("type") MediaType type, @Param("status") MediaStatus status);
+
+    /**
      * Filtra la biblioteca del usuario combinando tipo de medio y estado de consumo.
-     * Ej: "Mis LIBROS que tengo POR_VER".
      *
      * @param userId ID del usuario.
      * @param type   tipo de medio (ej. LIBRO, PELICULA).
@@ -57,6 +97,15 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
      * @return lista de items que coinciden con ambos criterios.
      */
     List<MediaItem> findByUserIdAndTypeAndStatus(Long userId, MediaType type, MediaStatus status);
+
+    /**
+     * Recupera un item por su ID con etiquetas precargadas.
+     *
+     * @param itemId ID del item.
+     * @return Optional con el item y sus tags.
+     */
+    @Query("SELECT m FROM MediaItem m LEFT JOIN FETCH m.tags WHERE m.id = :itemId")
+    Optional<MediaItem> findByIdWithTags(@Param("itemId") Long itemId);
 
     /**
      * Filtra la biblioteca del usuario por género.

@@ -27,10 +27,11 @@ public class PasswordResetToken {
     private Long id;
 
     /** Código único generado para la validación. */
+    @Column(unique = true)
     private String token;
 
     /** Usuario propietario del token. */
-    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 

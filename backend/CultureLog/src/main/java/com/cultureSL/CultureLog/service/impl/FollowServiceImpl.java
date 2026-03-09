@@ -98,7 +98,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     @Transactional(readOnly = true)
     public boolean isFollowing(Long followerId, Long followedId) {
-        return followRepository.existsByFollowerIdAndFollowedId(followerId, followedId);
+        return followRepository.existsByFollowerIdAndFollowedIdAndStatus(followerId, followedId, FollowStatus.ACCEPTED);
     }
 
     /** {@inheritDoc} */
@@ -106,6 +106,13 @@ public class FollowServiceImpl implements FollowService {
     @Transactional(readOnly = true)
     public List<Follow> getFollowers(Long userId) {
         return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> getFollowerIds(Long userId) {
+        return followRepository.findFollowerIdsByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED);
     }
 
     /** {@inheritDoc} */

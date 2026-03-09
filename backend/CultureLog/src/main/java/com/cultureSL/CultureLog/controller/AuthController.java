@@ -4,6 +4,7 @@ import com.cultureSL.CultureLog.config.JwtService;
 import com.cultureSL.CultureLog.dto.AuthResponse;
 import com.cultureSL.CultureLog.dto.LoginRequest;
 import com.cultureSL.CultureLog.dto.RegisterRequest;
+import com.cultureSL.CultureLog.dto.ResetPasswordRequest;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.service.UserService;
 import jakarta.validation.Valid;
@@ -99,15 +100,14 @@ public class AuthController {
 
     /**
      * Restablece la contraseña de un usuario utilizando un token de seguridad.
-     * <p>Endpoint: {@code POST /api/auth/reset-password?token=...&newPassword=...}</p>
+     * <p>Endpoint: {@code POST /api/auth/reset-password}</p>
      *
-     * @param token       token de restablecimiento (UUID recibido por email)
-     * @param newPassword nueva contraseña en texto plano
+     * @param request token de restablecimiento y nueva contraseña
      * @return HTTP 200 con confirmación, o HTTP 400 si el token es inválido o ha expirado
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-        userService.resetPassword(token, newPassword);
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok("Contraseña actualizada correctamente");
     }
 }
