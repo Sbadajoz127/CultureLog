@@ -43,10 +43,12 @@ public interface NotificationService {
     long getUnreadCount(Long userId);
 
     /**
-     * Marca una notificación como leída.
+     * Marca una notificación como leída, verificando que pertenece al usuario.
      *
      * @param notificationId ID de la notificación
+     * @param userId         ID del usuario propietario de la notificación
      * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si la notificación no existe
+     * @throws com.cultureSL.CultureLog.exception.UnauthorizedException     si la notificación no pertenece al usuario
      */
-    void markAsRead(Long notificationId);
+    void markAsRead(Long notificationId, Long userId);
 }

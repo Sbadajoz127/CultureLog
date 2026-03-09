@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.dto.NotificationResponse;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
+import com.cultureSL.CultureLog.exception.UnauthorizedException;
 import com.cultureSL.CultureLog.model.Notification;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.model.User;
@@ -11,7 +12,6 @@ import com.cultureSL.CultureLog.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +32,6 @@ public class NotificationServiceImpl implements NotificationService {
     /**
      * Crea y persiste una nueva notificación en la base de datos.
      * <p>
-     * Este método es asíncrono para no bloquear la transacción principal del evento que lo dispara.
      * Se ignora la notificación si el receptor y el actor son la misma persona.
      * </p>
      *
@@ -42,7 +41,6 @@ public class NotificationServiceImpl implements NotificationService {
      * @param referenceId ID de la entidad relacionada (ej. ID del post) para navegación.
      */
     @Override
-    @Async
     @Transactional
     public void createNotification(Long recipientId, Long actorId, NotificationType type, Long referenceId) {
         if (recipientId.equals(actorId)) return;
@@ -95,11 +93,16 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     @Transactional
-    public void markAsRead(Long notificationId) {
-        notificationRepository.findById(notificationId).ifPresent(n -> {
-            n.setRead(true);
-            notificationRepository.save(n);
-        });
+    public void markAsRead(Long notificationId, Long userId) {
+        Notification n = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notificación no encontrada"));
+
+        if (!n.getRecipient().getId().equals(userId)) {
+            throw new UnauthorizedException("No tienes permiso para modificar esta notificación");
+        }
+
+        n.setRead(true);
+        notificationRepository.save(n);
     }
 
     /**

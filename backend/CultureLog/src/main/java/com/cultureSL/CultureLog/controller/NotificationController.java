@@ -58,12 +58,14 @@ public class NotificationController {
      * Marca una notificación como leída.
      * <p>Endpoint: {@code POST /api/notifications/{id}/read}</p>
      *
-     * @param id ID de la notificación a marcar
+     * @param id             ID de la notificación a marcar
+     * @param authentication contexto de autenticación con el ID del usuario
      * @return HTTP 200 sin contenido
      */
     @PostMapping("/{id}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
-        notificationService.markAsRead(id);
+    public ResponseEntity<Void> markAsRead(@PathVariable Long id, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        notificationService.markAsRead(id, userId);
         return ResponseEntity.ok().build();
     }
 }

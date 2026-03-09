@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     /** {@inheritDoc} */
     @Override
-    public User registerUser(User user) throws Exception {
+    public User registerUser(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new BadRequestException("El nombre de usuario ya existe");
         }
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public void requestPasswordReset(String email) throws Exception {
+    public void requestPasswordReset(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe ningún usuario con ese email"));
 
@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public void resetPassword(String token, String newPassword) throws Exception {
+    public void resetPassword(String token, String newPassword) {
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Token inválido o no encontrado"));
 

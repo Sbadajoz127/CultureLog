@@ -97,20 +97,20 @@ public class PostServiceImpl implements PostService {
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());
-            post.setLikeCount(post.getLikeCount() - 1);
+            postRepository.updateLikeCount(postId, -1);
         } else {
             postLikeRepository.save(new PostLike(post, user));
-            post.setLikeCount(post.getLikeCount() + 1);
+            postRepository.updateLikeCount(postId, 1);
 
-            notificationService.createNotification(
-                    post.getAuthor().getId(),
-                    userId,
-                    NotificationType.LIKE_POST,
-                    post.getId()
-            );
+            if (!post.getAuthor().getId().equals(userId)) {
+                notificationService.createNotification(
+                        post.getAuthor().getId(),
+                        userId,
+                        NotificationType.LIKE_POST,
+                        post.getId()
+                );
+            }
         }
-
-        postRepository.save(post);
     }
 
     /** {@inheritDoc} */
@@ -127,17 +127,18 @@ public class PostServiceImpl implements PostService {
         comment.setAuthor(author);
         comment.setText(text);
 
-        post.setCommentCount(post.getCommentCount() + 1);
-        postRepository.save(post);
+        postRepository.updateCommentCount(postId, 1);
 
         Comment savedComment = commentRepository.save(comment);
 
-        notificationService.createNotification(
-                post.getAuthor().getId(),
-                userId,
-                NotificationType.COMENTARIO_POST,
-                post.getId()
-        );
+        if (!post.getAuthor().getId().equals(userId)) {
+            notificationService.createNotification(
+                    post.getAuthor().getId(),
+                    userId,
+                    NotificationType.COMENTARIO_POST,
+                    post.getId()
+            );
+        }
 
         return savedComment;
     }

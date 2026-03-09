@@ -2,6 +2,8 @@ package com.cultureSL.CultureLog.dto;
 
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -33,7 +35,11 @@ public class MediaItemRequest {
 
     /** Género de la obra (ej: "Ciencia Ficción", "Terror"). */
     private String genre;
-    /** Puntuación personal del usuario. */
+    /** Creador principal (Autor, Director, Desarrollador). */
+    private String creator;
+    /** Puntuación personal del usuario (1-10). */
+    @Min(value = 1, message = "La puntuación mínima es 1")
+    @Max(value = 10, message = "La puntuación máxima es 10")
     private Integer rating;
     /** Reseña o notas personales. */
     private String comment;

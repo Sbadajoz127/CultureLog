@@ -37,7 +37,7 @@ public class User {
     private String password;
 
     /** Correo electrónico único para notificaciones y recuperación. */
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     /** Url de la imagen de perfil del usuario. */

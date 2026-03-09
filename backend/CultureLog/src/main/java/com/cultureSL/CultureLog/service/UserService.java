@@ -23,7 +23,7 @@ public interface UserService {
      * @return el usuario persistido con su ID generado
      * @throws Exception si el username o email ya están registrados
      */
-    User registerUser(User user) throws Exception;
+    User registerUser(User user);
 
     /**
      * Autentica a un usuario mediante sus credenciales.
@@ -63,7 +63,7 @@ public interface UserService {
      * @param email dirección de correo del usuario
      * @throws Exception si el email no está asociado a ningún usuario
      */
-    void requestPasswordReset(String email) throws Exception;
+    void requestPasswordReset(String email);
 
     /**
      * Restablece la contraseña de un usuario utilizando un token de seguridad válido.
@@ -72,5 +72,5 @@ public interface UserService {
      * @param newPassword nueva contraseña en texto plano (se cifrará antes de almacenar)
      * @throws Exception si el token es inválido o ha expirado
      */
-    void resetPassword(String token, String newPassword) throws Exception;
+    void resetPassword(String token, String newPassword);
 }

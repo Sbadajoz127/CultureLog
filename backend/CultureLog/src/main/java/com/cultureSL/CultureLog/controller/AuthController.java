@@ -38,29 +38,23 @@ public class AuthController {
      * @return HTTP 201 con {@link AuthResponse} incluyendo el token JWT, o HTTP 400 si hay error
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        try {
-            User newUser = new User();
-            newUser.setUsername(request.getUsername());
-            newUser.setPassword(request.getPassword());
-            newUser.setEmail(request.getEmail());
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        User newUser = new User();
+        newUser.setUsername(request.getUsername());
+        newUser.setPassword(request.getPassword());
+        newUser.setEmail(request.getEmail());
 
-            User createdUser = userService.registerUser(newUser);
-            String token = jwtService.generateToken(createdUser.getId(), createdUser.getUsername());
+        User createdUser = userService.registerUser(newUser);
+        String token = jwtService.generateToken(createdUser.getId(), createdUser.getUsername());
 
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new AuthResponse(
-                            createdUser.getId(),
-                            createdUser.getUsername(),
-                            createdUser.getEmail(),
-                            token,
-                            "Usuario registrado con éxito"
-                    ));
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(new AuthResponse(null, null, null, null, e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new AuthResponse(
+                        createdUser.getId(),
+                        createdUser.getUsername(),
+                        createdUser.getEmail(),
+                        token,
+                        "Usuario registrado con éxito"
+                ));
     }
 
     /**
@@ -99,12 +93,8 @@ public class AuthController {
      */
     @PostMapping("/request-reset")
     public ResponseEntity<String> requestPasswordReset(@RequestParam String email) {
-        try {
-            userService.requestPasswordReset(email);
-            return ResponseEntity.ok("Correo de recuperación enviado");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        userService.requestPasswordReset(email);
+        return ResponseEntity.ok("Correo de recuperación enviado");
     }
 
     /**
@@ -117,11 +107,7 @@ public class AuthController {
      */
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-        try {
-            userService.resetPassword(token, newPassword);
-            return ResponseEntity.ok("Contraseña actualizada correctamente");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        userService.resetPassword(token, newPassword);
+        return ResponseEntity.ok("Contraseña actualizada correctamente");
     }
 }

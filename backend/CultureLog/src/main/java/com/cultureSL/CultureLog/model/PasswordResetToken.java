@@ -14,6 +14,7 @@ import java.util.UUID;
  * </p>
  */
 @Entity
+@Table(name = "password_reset_tokens")
 @Getter
 @Setter
 @NoArgsConstructor

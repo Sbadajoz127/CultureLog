@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +47,7 @@ public class PostController {
 
         Long userId = (Long) authentication.getPrincipal();
         Post createdPost = postService.createPost(userId, request.getContent(), request.getLinkedMediaItemId());
-        return ResponseEntity.ok(postMapper.toDto(createdPost, userId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.toDto(createdPost, userId));
     }
 
     /**
@@ -64,7 +66,7 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = (Long) authentication.getPrincipal();
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Post> postPage = postService.getNewsFeed(userId, pageable);
 
         Page<PostResponse> dtoPage = postPage.map(post -> postMapper.toDto(post, userId));

@@ -9,6 +9,7 @@ import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.service.MediaItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -72,7 +73,7 @@ public class MediaItemController {
 
         Long userId = (Long) authentication.getPrincipal();
         MediaItem item = mediaItemService.addItem(userId, request);
-        return ResponseEntity.ok(mediaItemMapper.toDto(item));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mediaItemMapper.toDto(item));
     }
 
     /**

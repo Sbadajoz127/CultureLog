@@ -67,7 +67,9 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setType(request.getType());
         item.setStatus(request.getStatus());
         item.setGenre(request.getGenre());
+        item.setCreator(request.getCreator());
         item.setRating(request.getRating());
+        item.setReleaseDate(request.getReleaseDate());
         item.setComment(request.getComment());
         item.setDateAdded(LocalDate.now());
         item.setUser(user);
@@ -91,7 +93,9 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setType(request.getType());
         item.setStatus(request.getStatus());
         item.setGenre(request.getGenre());
+        item.setCreator(request.getCreator());
         item.setRating(request.getRating());
+        item.setReleaseDate(request.getReleaseDate());
         item.setComment(request.getComment());
 
         return mediaItemRepository.save(item);
