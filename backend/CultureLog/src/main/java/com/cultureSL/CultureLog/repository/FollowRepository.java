@@ -56,4 +56,26 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
      * @return Lista de relaciones donde el usuario actúa como seguido.
      */
     List<Follow> findByFollowedIdAndStatus(Long followedId, FollowStatus status);
+
+    /**
+     * Verifica si existe una relación de seguimiento entre dos usuarios excluyendo un estado concreto.
+     * Útil para impedir que un usuario bloqueado pueda re-seguir.
+     *
+     * @param followerId ID del usuario que sigue.
+     * @param followedId ID del usuario que es seguido.
+     * @param status     Estado a excluir de la búsqueda.
+     * @return {@code true} si existe una relación con estado distinto al indicado.
+     */
+    boolean existsByFollowerIdAndFollowedIdAndStatusNot(Long followerId, Long followedId, FollowStatus status);
+
+    /**
+     * Busca una relación de seguimiento específica filtrando por estado.
+     * Útil para gestionar solicitudes pendientes (aceptar/rechazar).
+     *
+     * @param followerId ID del seguidor.
+     * @param followedId ID del seguido.
+     * @param status     Estado requerido de la relación.
+     * @return Un {@link Optional} con la relación si existe con ese estado.
+     */
+    Optional<Follow> findByFollowerIdAndFollowedIdAndStatus(Long followerId, Long followedId, FollowStatus status);
 }

@@ -60,4 +60,26 @@ public interface FollowService {
      * @return lista de relaciones de seguimiento donde el usuario es seguidor
      */
     List<Follow> getFollowing(Long userId);
+
+    /**
+     * Acepta una solicitud de seguimiento pendiente.
+     * <p>
+     * Cambia el estado de la relación de PENDING a ACCEPTED y genera una notificación
+     * al usuario que envió la solicitud.
+     * </p>
+     *
+     * @param followedId ID del usuario que acepta (el que recibió la solicitud)
+     * @param followerId ID del usuario que envió la solicitud
+     * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si no existe solicitud pendiente
+     */
+    void acceptFollowRequest(Long followedId, Long followerId);
+
+    /**
+     * Rechaza una solicitud de seguimiento pendiente, eliminándola.
+     *
+     * @param followedId ID del usuario que rechaza (el que recibió la solicitud)
+     * @param followerId ID del usuario que envió la solicitud
+     * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si no existe solicitud pendiente
+     */
+    void rejectFollowRequest(Long followedId, Long followerId);
 }

@@ -48,7 +48,7 @@ public class FollowServiceImpl implements FollowService {
             throw new BadRequestException("No puedes seguirte a ti mismo");
         }
 
-        if (followRepository.existsByFollowerIdAndFollowedId(followerId, followedId)) {
+        if (followRepository.existsByFollowerIdAndFollowedIdAndStatusNot(followerId, followedId, FollowStatus.BLOCKED)) {
             throw new BadRequestException("Ya sigues a este usuario");
         }
 
@@ -96,19 +96,50 @@ public class FollowServiceImpl implements FollowService {
 
     /** {@inheritDoc} */
     @Override
+    @Transactional(readOnly = true)
     public boolean isFollowing(Long followerId, Long followedId) {
         return followRepository.existsByFollowerIdAndFollowedId(followerId, followedId);
     }
 
     /** {@inheritDoc} */
     @Override
+    @Transactional(readOnly = true)
     public List<Follow> getFollowers(Long userId) {
         return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED);
     }
 
     /** {@inheritDoc} */
     @Override
+    @Transactional(readOnly = true)
     public List<Follow> getFollowing(Long userId) {
         return followRepository.findByFollowerIdAndStatus(userId, FollowStatus.ACCEPTED);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void acceptFollowRequest(Long followedId, Long followerId) {
+        Follow follow = followRepository.findByFollowerIdAndFollowedIdAndStatus(followerId, followedId, FollowStatus.PENDING)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitud de seguimiento no encontrada"));
+
+        follow.setStatus(FollowStatus.ACCEPTED);
+        followRepository.save(follow);
+
+        notificationService.createNotification(
+                followerId,
+                followedId,
+                NotificationType.NUEVO_SEGUIDOR,
+                null
+        );
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void rejectFollowRequest(Long followedId, Long followerId) {
+        Follow follow = followRepository.findByFollowerIdAndFollowedIdAndStatus(followerId, followedId, FollowStatus.PENDING)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitud de seguimiento no encontrada"));
+
+        followRepository.delete(follow);
     }
 }

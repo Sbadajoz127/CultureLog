@@ -12,8 +12,12 @@ import com.cultureSL.CultureLog.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Implementación del servicio de notificaciones internas (In-App).
@@ -103,6 +107,44 @@ public class NotificationServiceImpl implements NotificationService {
 
         n.setRead(true);
         notificationRepository.save(n);
+    }
+
+    /**
+     * Crea y persiste notificaciones en bloque de forma asíncrona.
+     * <p>
+     * Se ejecuta en un hilo separado del pool {@code taskExecutor} para no bloquear
+     * la petición HTTP principal. Se ignoran los destinatarios que coincidan con el actor
+     * o que no existan en la base de datos.
+     * </p>
+     *
+     * @param recipientIds lista de IDs de los usuarios que recibirán la notificación.
+     * @param actorId      ID del usuario que provocó el evento.
+     * @param type         tipo de evento (NUEVO_POST, LIKE_POST, etc.).
+     * @param referenceId  ID de la entidad relacionada (ej. ID del post) para navegación.
+     */
+    @Async("taskExecutor")
+    @Transactional
+    @Override
+    public void createBulkNotificationsAsync(List<Long> recipientIds, Long actorId, NotificationType type, Long referenceId) {
+        User actor = userRepository.findById(actorId).orElse(null);
+        if (actor == null) return;
+
+        List<Notification> notifications = recipientIds.stream()
+                .filter(id -> !id.equals(actorId))
+                .map(recipientId -> {
+                    User recipient = userRepository.findById(recipientId).orElse(null);
+                    if (recipient == null) return null;
+                    Notification n = new Notification();
+                    n.setRecipient(recipient);
+                    n.setActor(actor);
+                    n.setType(type);
+                    n.setReferenceId(referenceId);
+                    return n;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        notificationRepository.saveAll(notifications);
     }
 
     /**

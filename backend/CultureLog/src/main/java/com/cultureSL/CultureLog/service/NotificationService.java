@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import com.cultureSL.CultureLog.dto.NotificationResponse;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 
+import java.util.List;
+
 /**
  * Servicio que gestiona el sistema de notificaciones internas de la aplicación.
  * <p>
@@ -51,4 +53,18 @@ public interface NotificationService {
      * @throws com.cultureSL.CultureLog.exception.UnauthorizedException     si la notificación no pertenece al usuario
      */
     void markAsRead(Long notificationId, Long userId);
+
+    /**
+     * Crea notificaciones en bloque de forma asíncrona.
+     * <p>
+     * Utilizado al crear un post para notificar a todos los seguidores sin bloquear
+     * el hilo principal de la petición.
+     * </p>
+     *
+     * @param recipientIds lista de IDs de los usuarios receptores
+     * @param actorId      ID del usuario que provocó el evento
+     * @param type         tipo de evento ({@link NotificationType})
+     * @param referenceId  ID del objeto relacionado (ej: ID del post)
+     */
+    void createBulkNotificationsAsync(List<Long> recipientIds, Long actorId, NotificationType type, Long referenceId);
 }

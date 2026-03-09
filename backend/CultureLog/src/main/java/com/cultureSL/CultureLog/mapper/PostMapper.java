@@ -7,6 +7,8 @@ import com.cultureSL.CultureLog.repository.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import org.springframework.data.domain.Page;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +37,29 @@ public class PostMapper {
     public PostResponse toDto(Post post, Long currentUserId) {
         boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
         return buildDto(post, isLiked);
+    }
+
+    /**
+     * Convierte una página de posts en DTOs de respuesta de forma optimizada.
+     * <p>
+     * Resuelve en bloque qué posts tienen like del usuario actual mediante
+     * una sola consulta, evitando el problema N+1.
+     * </p>
+     *
+     * @param postPage      página de entidades de post
+     * @param currentUserId ID del usuario que visualiza
+     * @return página de DTOs listos para el feed
+     */
+    public Page<PostResponse> toPageDto(Page<Post> postPage, Long currentUserId) {
+        List<Post> posts = postPage.getContent();
+        if (posts.isEmpty()) {
+            return postPage.map(p -> null);
+        }
+
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        Set<Long> likedPostIds = postLikeRepository.findLikedPostIds(currentUserId, postIds);
+
+        return postPage.map(post -> buildDto(post, likedPostIds.contains(post.getId())));
     }
 
     /**

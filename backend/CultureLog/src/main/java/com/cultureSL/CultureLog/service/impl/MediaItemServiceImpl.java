@@ -32,6 +32,7 @@ public class MediaItemServiceImpl implements MediaItemService {
 
     private final MediaItemRepository mediaItemRepository;
     private final UserRepository userRepository;
+    private final CloudinaryService cloudinaryService;
 
     /** {@inheritDoc} */
     @Override
@@ -112,6 +113,10 @@ public class MediaItemServiceImpl implements MediaItemService {
             throw new UnauthorizedException("No tienes permiso para eliminar este item");
         }
 
+        if (item.getItemImageUrl() != null) {
+            cloudinaryService.deleteImage(item.getItemImageUrl());
+        }
+
         mediaItemRepository.delete(item);
     }
 
@@ -124,6 +129,10 @@ public class MediaItemServiceImpl implements MediaItemService {
 
         if (!item.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("No tienes permiso para modificar este item");
+        }
+
+        if (item.getItemImageUrl() != null) {
+            cloudinaryService.deleteImage(item.getItemImageUrl());
         }
 
         item.setItemImageUrl(null);

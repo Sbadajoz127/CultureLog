@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
+import com.cultureSL.CultureLog.exception.UnauthorizedException;
 import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.repository.*;
@@ -52,20 +53,18 @@ public class PostServiceImpl implements PostService {
         if (linkedMediaItemId != null) {
             MediaItem item = mediaItemRepository.findById(linkedMediaItemId)
                     .orElseThrow(() -> new ResourceNotFoundException("Item multimedia no encontrado"));
+            if (!item.getUser().getId().equals(userId)) {
+                throw new UnauthorizedException("No puedes vincular un item que no te pertenece");
+            }
             post.setLinkedItem(item);
         }
 
         Post savedPost = postRepository.save(post);
 
-        List<Follow> followers = followService.getFollowers(userId);
-        for (Follow follow : followers) {
-            notificationService.createNotification(
-                    follow.getFollower().getId(),
-                    userId,
-                    NotificationType.NUEVO_POST,
-                    savedPost.getId()
-            );
-        }
+        List<Long> followerIds = followService.getFollowers(userId).stream()
+                .map(f -> f.getFollower().getId()).toList();
+        notificationService.createBulkNotificationsAsync(
+                followerIds, userId, NotificationType.NUEVO_POST, savedPost.getId());
 
         return savedPost;
     }
@@ -145,6 +144,7 @@ public class PostServiceImpl implements PostService {
 
     /** {@inheritDoc} */
     @Override
+    @Transactional(readOnly = true)
     public List<Comment> getCommentsForPost(Long postId) {
         return commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
     }

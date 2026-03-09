@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.cultureSL.CultureLog.exception.BadRequestException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,8 @@ import java.util.Optional;
 /**
  * Servicio para la integración con Cloudinary.
  * <p>
- * Proporciona métodos para subir imágenes a Cloudinary y obtener sus URLs públicas.
+ * Proporciona métodos para subir y eliminar imágenes en Cloudinary,
+ * gestionando el ciclo de vida completo de los recursos multimedia.
  * </p>
  */
 @Service
@@ -71,8 +73,38 @@ public class CloudinaryService {
 
         } catch (Exception e) {
             log.error("Error subiendo imagen a Cloudinary", e);
-            throw new RuntimeException("Error al subir la imagen");
+            throw new BadRequestException("Error al subir la imagen: " + e.getMessage());
         }
+    }
+
+    /**
+     * Elimina una imagen de Cloudinary a partir de su URL pública.
+     *
+     * @param imageUrl URL pública de la imagen a eliminar.
+     */
+    public void deleteImage(String imageUrl) {
+        try {
+            String publicId = extractPublicId(imageUrl);
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            log.warn("No se pudo eliminar la imagen de Cloudinary: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Extrae el publicId de Cloudinary a partir de la URL pública de la imagen.
+     *
+     * @param url URL pública de Cloudinary.
+     * @return publicId necesario para la API de Cloudinary.
+     */
+    private String extractPublicId(String url) {
+        String[] parts = url.split("/upload/");
+        if (parts.length < 2) return "";
+        String afterUpload = parts[1];
+        if (afterUpload.matches("v\\d+/.*")) {
+            afterUpload = afterUpload.substring(afterUpload.indexOf('/') + 1);
+        }
+        return afterUpload.substring(0, afterUpload.lastIndexOf('.'));
     }
 
     /**

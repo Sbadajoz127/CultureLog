@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Controlador REST para las operaciones de seguimiento entre usuarios.
  * <p>
- * Permite seguir y dejar de seguir a otros usuarios. Requiere autenticación JWT.
+ * Permite seguir, dejar de seguir y gestionar solicitudes pendientes
+ * (aceptar/rechazar) entre usuarios. Requiere autenticación JWT.
  * </p>
  */
 @RestController
@@ -53,5 +54,41 @@ public class FollowController {
         Long userId = (Long) authentication.getPrincipal();
         followService.unfollowUser(userId, targetId);
         return ResponseEntity.ok("Dejado de seguir correctamente");
+    }
+
+    /**
+     * Acepta una solicitud de seguimiento pendiente.
+     * <p>Endpoint: {@code POST /api/users/follow/accept?followerId=...}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario que acepta
+     * @param followerId     ID del usuario que envió la solicitud
+     * @return HTTP 200 con mensaje de confirmación
+     */
+    @PostMapping("/follow/accept")
+    public ResponseEntity<String> acceptFollow(
+            Authentication authentication,
+            @RequestParam Long followerId) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        followService.acceptFollowRequest(userId, followerId);
+        return ResponseEntity.ok("Solicitud de seguimiento aceptada");
+    }
+
+    /**
+     * Rechaza una solicitud de seguimiento pendiente.
+     * <p>Endpoint: {@code POST /api/users/follow/reject?followerId=...}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario que rechaza
+     * @param followerId     ID del usuario que envió la solicitud
+     * @return HTTP 200 con mensaje de confirmación
+     */
+    @PostMapping("/follow/reject")
+    public ResponseEntity<String> rejectFollow(
+            Authentication authentication,
+            @RequestParam Long followerId) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        followService.rejectFollowRequest(userId, followerId);
+        return ResponseEntity.ok("Solicitud de seguimiento rechazada");
     }
 }

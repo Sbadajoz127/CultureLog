@@ -69,7 +69,7 @@ public class PostController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Post> postPage = postService.getNewsFeed(userId, pageable);
 
-        Page<PostResponse> dtoPage = postPage.map(post -> postMapper.toDto(post, userId));
+        Page<PostResponse> dtoPage = postMapper.toPageDto(postPage, userId);
 
         return ResponseEntity.ok(dtoPage);
     }
