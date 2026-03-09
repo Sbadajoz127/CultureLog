@@ -4,9 +4,7 @@ import com.cultureSL.CultureLog.model.enums.AppTheme;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * Entidad que almacena las preferencias de configuración y personalización del usuario.
@@ -17,13 +15,16 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "user_settings")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class UserSettings {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     /**

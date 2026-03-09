@@ -6,12 +6,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controlador REST para el sistema de notificaciones In-App.
+ * Controlador REST para la gestión de notificaciones del usuario.
  * <p>
- * Permite al cliente consultar alertas y gestionar su estado de lectura.
+ * Permite consultar el historial de notificaciones paginado, obtener el
+ * contador de no leídas y marcar notificaciones como leídas.
+ * Requiere autenticación JWT.
  * </p>
  */
 @RestController
@@ -22,42 +25,47 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     /**
-     * Obtiene el historial de notificaciones de un usuario (paginado).
-     * <p>Endpoint: {@code GET /api/notifications}</p>
+     * Obtiene las notificaciones del usuario autenticado de forma paginada.
+     * <p>Endpoint: {@code GET /api/notifications?page=0&size=20}</p>
      *
-     * @param userId   ID del usuario.
-     * @param pageable Parámetros de paginación (page, size).
-     * @return Página de notificaciones.
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param pageable       configuración de paginación
+     * @return HTTP 200 con la página de {@link NotificationResponse}
      */
     @GetMapping
     public ResponseEntity<Page<NotificationResponse>> getNotifications(
-            @RequestParam Long userId,
+            Authentication authentication,
             Pageable pageable) {
+
+        Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(notificationService.getUserNotifications(userId, pageable));
     }
 
     /**
-     * Obtiene el número de notificaciones pendientes de leer.
+     * Obtiene el número de notificaciones no leídas del usuario.
      * <p>Endpoint: {@code GET /api/notifications/unread-count}</p>
      *
-     * @param userId ID del usuario.
-     * @return Cantidad de notificaciones no leídas (Long).
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 con el contador de notificaciones sin leer
      */
     @GetMapping("/unread-count")
-    public ResponseEntity<Long> getUnreadCount(@RequestParam Long userId) {
+    public ResponseEntity<Long> getUnreadCount(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(notificationService.getUnreadCount(userId));
     }
-    
+
     /**
-     * Marca una notificación específica como leída.
+     * Marca una notificación como leída.
      * <p>Endpoint: {@code POST /api/notifications/{id}/read}</p>
      *
-     * @param id ID de la notificación.
-     * @return {@code 200 OK}.
+     * @param id             ID de la notificación a marcar
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 sin contenido
      */
     @PostMapping("/{id}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
-        notificationService.markAsRead(id);
+    public ResponseEntity<Void> markAsRead(@PathVariable Long id, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        notificationService.markAsRead(id, userId);
         return ResponseEntity.ok().build();
     }
 }

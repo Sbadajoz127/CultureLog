@@ -1,8 +1,8 @@
 package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -17,24 +17,38 @@ import java.time.LocalDateTime;
 @Table(name = "post_likes", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"post_id", "user_id"})
 })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PostLike {
 
+    /** Identificador único del like. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
+    /** Publicación que recibió el like. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
+    /** Usuario que dio el like. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private LocalDateTime likedAt = LocalDateTime.now();
-    
+    /** Fecha y hora en que se registró el like. */
+    @CreationTimestamp
+    private LocalDateTime likedAt;
+
+    /**
+     * Crea un nuevo like vinculando un post con un usuario.
+     *
+     * @param post publicación que recibe el like
+     * @param user usuario que da el like
+     */
     public PostLike(Post post, User user) {
         this.post = post;
         this.user = user;

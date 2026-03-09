@@ -23,4 +23,13 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
      * @return Un {@link Optional} con la etiqueta si existe.
      */
     Optional<Tag> findByName(String name);
+
+    /**
+     * Busca una etiqueta por nombre dentro del ámbito de un usuario específico.
+     *
+     * @param name   Nombre de la etiqueta.
+     * @param userId ID del usuario propietario.
+     * @return Un {@link Optional} con la etiqueta si existe para ese usuario.
+     */
+    Optional<Tag> findByNameAndUserId(String name, Long userId);
 }

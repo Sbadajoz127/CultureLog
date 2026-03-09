@@ -1,9 +1,8 @@
 package com.cultureSL.CultureLog.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -19,19 +18,24 @@ import java.util.List;
  */
 @Entity
 @Table(name = "posts")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Post {
 
+    /** Identificador único del post. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     /** Contenido textual del post. */
     @Column(length = 2000)
     private String content;
 
+    /** Fecha y hora de creación del post (generada automáticamente). */
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -50,6 +54,7 @@ public class Post {
 
     /** Lista de comentarios recibidos. */
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     private List<Comment> comments = new ArrayList<>();
 
     /** Lista de interacciones "Me gusta". */
