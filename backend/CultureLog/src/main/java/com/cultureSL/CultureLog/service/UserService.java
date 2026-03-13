@@ -1,6 +1,9 @@
 package com.cultureSL.CultureLog.service;
 
+import com.cultureSL.CultureLog.dto.UserSettingsRequest;
 import com.cultureSL.CultureLog.model.User;
+import com.cultureSL.CultureLog.model.UserSettings;
+
 import java.util.Optional;
 
 /**
@@ -73,4 +76,8 @@ public interface UserService {
      * @throws Exception si el token es inválido o ha expirado
      */
     void resetPassword(String token, String newPassword);
+
+    UserSettings updateSettings(Long userId, UserSettingsRequest request);
+
+    UserSettings getSettings(Long userId);
 }
