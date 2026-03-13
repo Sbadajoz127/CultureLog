@@ -1,0 +1,16 @@
+# Base de datos
+DB_URL=jdbc:mysql://culturelog-mysql-culturelog-db.h.aivencloud.com:28866/defaultdb?ssl-mode=REQUIRED
+DB_USERNAME=avnadmin
+DB_PASSWORD=AVNS_dp2VfIbziSihj67AEBt
+
+# Email SMTP
+MAIL_USERNAME=culturelog.noreply@gmail.com
+MAIL_PASSWORD=opve rbtv jwlo skiu
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=dk9lx3wet
+CLOUDINARY_API_KEY=613988435677531
+CLOUDINARY_API_SECRET=_LtBPq--HdYZXoWuM8-dF_tupg4
+
+# JWT
+JWT_SECRET=0pBwkfTBlZWq+PoxV676JMZxMNIbXgiSCWzADiSKDSZbQBVMmo6YZHyzxs4/Y0CW0j1kVOsYyhw9mRheEXOSrQ==
