@@ -1,5 +1,7 @@
 package com.cultureSL.CultureLog.controller;
 
+import com.cultureSL.CultureLog.dto.UserSettingsRequest;
+import com.cultureSL.CultureLog.model.UserSettings;
 import com.cultureSL.CultureLog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -50,5 +52,30 @@ public class UserController {
         Long userId = (Long) authentication.getPrincipal();
         userService.removeProfilePicture(userId);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Obtiene la configuración actual del usuario.
+     * <p>Endpoint: {@code GET /api/users/{userId}/settings}</p>
+     * * @param userId ID del usuario.
+     * @return Objeto UserSettings con las preferencias.
+     */
+    @GetMapping("/{userId}/settings")
+    public ResponseEntity<UserSettings> getSettings(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getSettings(userId));
+    }
+
+    /**
+     * Actualiza la configuración del usuario.
+     * <p>Endpoint: {@code PUT /api/users/{userId}/settings}</p>
+     * * @param userId  ID del usuario.
+     * @param request JSON con los nuevos valores.
+     * @return La configuración actualizada.
+     */
+    @PutMapping("/{userId}/settings")
+    public ResponseEntity<UserSettings> updateSettings(
+            @PathVariable Long userId,
+            @RequestBody UserSettingsRequest request) {
+        return ResponseEntity.ok(userService.updateSettings(userId, request));
     }
 }

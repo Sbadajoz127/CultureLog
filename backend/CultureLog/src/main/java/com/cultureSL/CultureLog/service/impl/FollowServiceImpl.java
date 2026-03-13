@@ -48,9 +48,15 @@ public class FollowServiceImpl implements FollowService {
             throw new BadRequestException("No puedes seguirte a ti mismo");
         }
 
-        if (followRepository.existsByFollowerIdAndFollowedIdAndStatusNot(followerId, followedId, FollowStatus.BLOCKED)) {
-            throw new BadRequestException("Ya sigues a este usuario");
-        }
+        followRepository.findByFollowerIdAndFollowedId(followerId, followedId).ifPresent(existing -> {
+            if (existing.getStatus() == FollowStatus.ACCEPTED) {
+                throw new BadRequestException("Ya sigues a este usuario");
+            } else if (existing.getStatus() == FollowStatus.PENDING) {
+                throw new BadRequestException("Ya tienes una solicitud de seguimiento pendiente");
+            } else if (existing.getStatus() == FollowStatus.BLOCKED) {
+                throw new BadRequestException("No puedes seguir a este usuario");
+            }
+        });
 
         User follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario seguidor no encontrado"));

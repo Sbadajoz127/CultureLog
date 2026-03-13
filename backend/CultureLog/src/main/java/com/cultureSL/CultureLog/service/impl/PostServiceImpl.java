@@ -1,7 +1,9 @@
 package com.cultureSL.CultureLog.service.impl;
 
+import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.exception.UnauthorizedException;
+import com.cultureSL.CultureLog.mapper.PostMapper;
 import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.repository.*;
@@ -39,6 +41,7 @@ public class PostServiceImpl implements PostService {
     private final MediaItemRepository mediaItemRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
+    private final PostMapper postMapper;
     private final NotificationService notificationService;
     private final FollowService followService;
 
@@ -74,8 +77,9 @@ public class PostServiceImpl implements PostService {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
-    public Page<Post> getNewsFeed(Long userId, Pageable pageable) {
-        return postRepository.findNewsFeed(userId, pageable);
+    public Page<PostResponse> getNewsFeed(Long userId, Pageable pageable) {
+        Page<Post> postPage = postRepository.findNewsFeed(userId, pageable);
+        return postMapper.toPageDto(postPage, userId);
     }
 
     /** {@inheritDoc} */

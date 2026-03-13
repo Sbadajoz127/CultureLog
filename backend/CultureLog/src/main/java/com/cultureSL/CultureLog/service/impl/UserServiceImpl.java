@@ -3,6 +3,7 @@ package com.cultureSL.CultureLog.service.impl;
 import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import com.cultureSL.CultureLog.dto.UserSettingsRequest;
 import com.cultureSL.CultureLog.model.PasswordResetToken;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.model.UserSettings;
@@ -170,5 +171,63 @@ public class UserServiceImpl implements UserService {
 
         user.setProfilePictureUrl(null);
         userRepository.save(user);
+    }
+
+    /**
+     * Actualiza la configuración global del usuario.
+     *
+     * @param userId  ID del usuario.
+     * @param request DTO con las nuevas preferencias.
+     * @return El objeto UserSettings actualizado.
+     */
+    @Override
+    @Transactional
+    public UserSettings updateSettings(Long userId, UserSettingsRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        UserSettings settings = user.getSettings();
+
+        // Si por algún error de base de datos antiguo fuera null, lo creamos
+        if (settings == null) {
+            settings = new UserSettings();
+            settings.setUser(user);
+            user.setSettings(settings);
+        }
+
+        // Actualizamos campos solo si no son nulos (o sobrescribimos todo según tu
+        // lógica de UI)
+        if (request.getProfilePrivacy() != null)
+            settings.setProfilePrivacy(request.getProfilePrivacy());
+        if (request.getTheme() != null)
+            settings.setTheme(request.getTheme());
+        if (request.getAccentColor() != null)
+            settings.setAccentColor(request.getAccentColor());
+
+        // Los booleanos primitivos siempre tienen valor (true/false), así que los
+        // asignamos directamente
+        settings.setShowFutureList(request.isShowFutureList());
+        settings.setAllowComments(request.isAllowComments());
+        settings.setEmailNotifications(request.isEmailNotifications());
+
+        // Al guardar el usuario, se guardan los settings por el CascadeType.ALL
+        userRepository.save(user);
+
+        return settings;
+    }
+
+    /**
+    * Recupera la configuración actual del usuario.
+    * Útil para rellenar el formulario en el frontend antes de editar.
+    *
+    * @param userId ID del usuario.
+    * @return Sus preferencias actuales.
+    */
+    @Override
+    @Transactional(readOnly = true)
+    public UserSettings getSettings(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return user.getSettings();
     }
 }

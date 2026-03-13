@@ -87,6 +87,10 @@ public class CloudinaryService implements ImageStorageService {
     public void deleteImage(String imageUrl) {
         try {
             String publicId = extractPublicId(imageUrl);
+            if (publicId.isEmpty()) {
+                log.warn("No se pudo extraer publicId de la URL: {}", imageUrl);
+                return;
+            }
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
         } catch (Exception e) {
             log.warn("No se pudo eliminar la imagen de Cloudinary: {}", e.getMessage());
