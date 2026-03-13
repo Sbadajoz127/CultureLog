@@ -3,6 +3,7 @@ package com.cultureSL.CultureLog.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,14 @@ public class JwtService {
     /** Tiempo de expiración del token en milisegundos. */
     @Value("${jwt.expiration}")
     private long expirationMs;
+
+    @PostConstruct
+    private void validateSecret() {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "JWT_SECRET debe tener al menos 32 caracteres (256 bits) para HMAC-SHA256");
+        }
+    }
 
     /**
      * Genera un nuevo token JWT para un usuario autenticado.

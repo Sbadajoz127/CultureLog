@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.service;
 
+import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.model.Comment;
 import com.cultureSL.CultureLog.model.Post;
 import org.springframework.data.domain.Page;
@@ -31,14 +32,15 @@ public interface PostService {
      * Genera el feed de noticias personalizado para un usuario.
      * <p>
      * Incluye publicaciones propias y de usuarios seguidos con estado ACCEPTED,
-     * ordenadas de más reciente a más antigua.
+     * ordenadas de más reciente a más antigua. Devuelve DTOs ya mapeados
+     * para garantizar que las colecciones lazy se resuelven dentro de la transacción.
      * </p>
      *
      * @param userId   ID del usuario que visualiza el feed
      * @param pageable configuración de paginación
-     * @return página de posts del feed
+     * @return página de DTOs del feed
      */
-    Page<Post> getNewsFeed(Long userId, Pageable pageable);
+    Page<PostResponse> getNewsFeed(Long userId, Pageable pageable);
 
     /**
      * Obtiene las publicaciones de un usuario específico (vista de perfil).
