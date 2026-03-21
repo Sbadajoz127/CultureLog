@@ -1,0 +1,413 @@
+/* =========================================
+   CULTURELOG - HOJA DE ESTILOS PRINCIPAL
+   Tema: Oscuro Monocromático Minimalista
+========================================= */
+
+/* -----------------------------------------
+   1. RESET Y BASE
+----------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #121212; /* Fondo global oscuro */
+  color: #ffffff;
+}
+
+/* -----------------------------------------
+   2. PANTALLAS DE ACCESO (LOGIN / REGISTRO)
+----------------------------------------- */
+.culturelog-login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.login-card {
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  text-align: center;
+}
+
+.brand-section {
+  margin-bottom: 30px;
+}
+
+.brand-logo {
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -1px;
+}
+
+.brand-tagline {
+  color: #a0a0a0;
+  font-size: 1rem;
+  margin-top: 5px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  background-color: #2c2c2c;
+  color: #ffffff;
+  border: 1px solid #444444;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #888888;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.form-options {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -10px;
+}
+
+.forgot-password, .sign-up-link {
+  font-size: 0.85rem;
+  color: #a0a0a0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sign-up-link {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.forgot-password:hover, .sign-up-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.footer-section {
+  margin-top: 30px;
+  border-top: 1px solid #333333;
+  padding-top: 20px;
+  font-size: 0.9rem;
+  color: #a0a0a0;
+}
+
+/* -----------------------------------------
+   3. COMPONENTES COMUNES (Botones e Iconos)
+----------------------------------------- */
+.login-button {
+  background-color: #ffffff; 
+  color: #121212; 
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.login-button:disabled {
+  background-color: #555555;
+  color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+/* Ojito de contraseña */
+.password-group .input-with-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-group input {
+  padding-right: 45px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  opacity: 1;
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* -----------------------------------------
+   4. HEADER SUPERIOR (HOME)
+----------------------------------------- */
+.home-container {
+  min-height: 100vh;
+}
+
+.top-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333333;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  padding: 0 30px;
+  height: 70px; 
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  flex: 1; 
+}
+
+.header-right {
+  justify-content: flex-end; 
+  gap: 15px;
+}
+
+.header-center {
+  display: flex;
+  height: 100%; 
+  gap: 10px;
+}
+
+.logout-button {
+  background-color: transparent;
+  color: #a0a0a0;
+  border: 1px solid #444444;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+  color: #ffffff;
+  border-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.category-btn {
+  background-color: transparent;
+  color: #888888;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 15px;
+  height: 100%; 
+  display: flex;
+  align-items: center; 
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.category-btn:hover {
+  color: #ffffff;
+}
+
+.category-btn.active {
+  color: #ffffff;
+}
+
+.category-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; 
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #ffffff;
+  border-radius: 3px 3px 0 0;
+}
+
+/* -----------------------------------------
+   5. EL FEED Y LAS PUBLICACIONES
+----------------------------------------- */
+.feed {
+  max-width: 600px;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 20px;
+}
+
+.create-post-card {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #333333;
+  margin-bottom: 20px;
+}
+
+.create-post-card textarea {
+  width: 100%;
+  height: 80px;
+  background-color: #2c2c2c;
+  border: 1px solid #444444;
+  border-radius: 8px;
+  color: white;
+  padding: 12px;
+  resize: none;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.create-post-card textarea:focus {
+  outline: none;
+  border-color: #ffffff;
+}
+
+.post-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.post-card {
+  background-color: #1e1e1e;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #2c2c2c;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.post-card:hover {
+  border-color: #444444;
+}
+
+.post-author {
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.post-category-tag {
+  background-color: #2c2c2c;
+  color: #a0a0a0;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: 1px solid #444444;
+}
+
+.post-content {
+  color: #e0e0e0;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  white-space: pre-wrap; /* Respeta los saltos de línea al escribir */
+}
+
+.post-footer {
+  font-size: 0.9rem;
+  color: #888888;
+  border-top: 1px solid #333333;
+  padding-top: 15px;
+}
+
+.post-footer button {
+  transition: color 0.2s ease;
+}
+
+.post-footer button:hover {
+  color: #ff4b4b; /* Un toque rojo suave al pasar por encima del corazón */
+}
+
+/* --- Estilos para Ajustes de Perfil --- */
+
+.profile-pic-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 25px;
+  gap: 15px;
+}
+
+/* La imagen circular grande */
+.profile-avatar-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover; /* Asegura que la imagen no se deforme */
+  border: 3px solid #444444;
+}
+
+/* El botón simulado para subir archivo */
+.upload-btn {
+  background-color: transparent;
+  color: #a0a0a0;
+  border: 1px solid #444444;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-btn:hover {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+/* --- Foto de perfil pequeña dentro de los Posts --- */
+.post-avatar-small {
+  width: 42px; /* Forzamos a que sea pequeñita */
+  height: 42px; /* Forzamos a que sea pequeñita */
+  border-radius: 50%; /* La hace redonda */
+  object-fit: cover; /* Evita que se aplaste o deforme */
+  border: 2px solid #333333; /* Un borde gris oscuro */
+}
