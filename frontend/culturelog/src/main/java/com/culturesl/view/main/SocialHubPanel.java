@@ -2,248 +2,249 @@ package com.culturesl.view.main;
 
 import com.culturesl.api.ApiClient;
 import com.culturesl.dto.PostResponse;
-import com.culturesl.view.components.RichPostCard;
-import com.culturesl.view.components.RoundedPanel;
 import com.culturesl.view.utils.ModernStyles;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.util.List;
+import com.culturesl.view.components.RichPostCard; 
 
-public class SocialHubPanel extends JPanel {
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+
+import java.net.URL;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+public class SocialHubPanel extends BorderPane {
 
     public SocialHubPanel() {
-        setLayout(new BorderLayout());
-        setBackground(ModernStyles.BG_MAIN);
-        setBorder(null);
+        this.setStyle("-fx-background-color: " + ModernStyles.toHex(ModernStyles.BG_MAIN) + ";");
 
         // A. SIDEBAR IZQUIERDA (Navegación)
-        add(createLeftSidebar(), BorderLayout.WEST);
+        this.setLeft(createLeftSidebar());
 
         // B. CENTRO (Feed + Tendencias)
-        add(createCenterScrollable(), BorderLayout.CENTER);
+        this.setCenter(createCenterScrollable());
 
         // C. SIDEBAR DERECHA (Recomendados)
-        add(createRightSidebar(), BorderLayout.EAST);
+        this.setRight(createRightSidebar());
     }
 
     // --- A. BARRA LATERAL IZQUIERDA ---
-    private JPanel createLeftSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBackground(ModernStyles.BG_MAIN); // Fondo oscuro
-        sidebar.setBorder(new EmptyBorder(20, 10, 20, 0));
-        sidebar.setPreferredSize(new Dimension(220, 0));
+    private VBox createLeftSidebar() {
+        VBox sidebar = new VBox(5);
+        sidebar.setPadding(new Insets(20, 20, 20, 20));
+        sidebar.setPrefWidth(220);
+        sidebar.setStyle("-fx-background-color: " + ModernStyles.toHex(ModernStyles.BG_MAIN) + "; -fx-border-color: #333; -fx-border-width: 0 1 0 0;"); // Borde derecho sutil
 
         // Logo
-        JLabel logo = new JLabel("MediaHub");
-        logo.setFont(ModernStyles.FONT_TITLE);
-        logo.setForeground(Color.WHITE);
-        logo.setIconTextGap(15);
-        logo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
+        HBox logoBox = new HBox(10);
+        logoBox.setAlignment(Pos.CENTER_LEFT);
+        VBox.setMargin(logoBox, new Insets(0, 0, 40, 0));
+
         try {
-            // Ajusta "logo.png" al nombre real de tu archivo
-            java.net.URL imgUrl = getClass().getResource("/res/CultureLog_Blanco.png");            
-            // Verificamos que cargó bien (si el ancho es -1, es que no la encontró)
+            URL imgUrl = getClass().getResource("/res/CultureLog_Blanco.png");
             if (imgUrl != null) {
-                ImageIcon originalIcon = new ImageIcon(imgUrl);
-                
-                // Redimensionar a 40x40 píxeles (o el tamaño que prefieras)
-                Image scaledImg = originalIcon.getImage()
-                                    .getScaledInstance(95, 60, Image.SCALE_SMOOTH);
-                
-                logo.setIcon(new ImageIcon(scaledImg));
-                logo.setText(""); // Borramos el texto si la imagen cargó bien
+                ImageView logoImg = new ImageView(new Image(imgUrl.toString()));
+                logoImg.setFitWidth(95);
+                logoImg.setFitHeight(60);
+                logoImg.setPreserveRatio(true);
+                logoBox.getChildren().add(logoImg);
             } else {
-                System.err.println("⚠️ No se encontró la imagen: /res/CultureLog_Blanco.png");
-                // Si sale esto, asegúrate de haber movido la carpeta a src/main/resources
+                Label logoText = new Label("MediaHub");
+                logoText.setFont(ModernStyles.FONT_TITLE);
+                logoText.setTextFill(Color.WHITE);
+                logoBox.getChildren().add(logoText);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // ---------------------------------
 
-        sidebar.add(logo);
-        sidebar.add(Box.createVerticalStrut(40));
+        sidebar.getChildren().add(logoBox);
 
         // Menú
         String[] menuItems = {"Películas", "Libros", "Música", "Fotografía", "Mi Colección", "Listas", "Comunidad"};
 
         for (String item : menuItems) {
-            JButton btn = new JButton(item);
-            btn.setForeground(ModernStyles.TEXT_SECONDARY);
-            btn.setBackground(ModernStyles.BG_MAIN);
-            btn.setBorderPainted(false);
-            btn.setFocusPainted(false);
-            btn.setHorizontalAlignment(SwingConstants.LEFT);
+            Button btn = new Button(item);
             btn.setFont(ModernStyles.FONT_NORMAL);
-            btn.setMaximumSize(new Dimension(200, 40));
+            btn.setTextFill(ModernStyles.TEXT_SECONDARY);
+            btn.setStyle("-fx-background-color: transparent; -fx-alignment: center-left; -fx-cursor: hand;");
+            btn.setMaxWidth(Double.MAX_VALUE); // Para que ocupe todo el ancho
             
-            // Hover effect simple
-            btn.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    btn.setForeground(Color.WHITE);
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    btn.setForeground(ModernStyles.TEXT_SECONDARY);
-                }
+            // Efecto Hover
+            btn.setOnMouseEntered(e -> {
+                btn.setTextFill(Color.WHITE);
+                btn.setStyle("-fx-background-color: #2a2a2a; -fx-alignment: center-left; -fx-cursor: hand; -fx-background-radius: 5;");
             });
-            sidebar.add(btn);
-            sidebar.add(Box.createVerticalStrut(5));
+            btn.setOnMouseExited(e -> {
+                btn.setTextFill(ModernStyles.TEXT_SECONDARY);
+                btn.setStyle("-fx-background-color: transparent; -fx-alignment: center-left; -fx-cursor: hand;");
+            });
+
+            sidebar.getChildren().add(btn);
         }
 
         return sidebar;
     }
 
     // --- B. CENTRO (Feed y Tendencias) ---
-    private JScrollPane createCenterScrollable() {
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setBackground(ModernStyles.BG_MAIN);
-        content.setBorder(new EmptyBorder(20, 20, 0, 20)); // Márgenes laterales
+    private ScrollPane createCenterScrollable() {
+        VBox content = new VBox();
+        content.setPadding(new Insets(20, 40, 20, 40));
+        content.setStyle("-fx-background-color: " + ModernStyles.toHex(ModernStyles.BG_MAIN) + ";");
 
-        // 1. Sección "Tendencias de Hoy" (Carrusel Horizontal simulado)
-        JLabel lblTrends = new JLabel("Explora & Descubre");
+        // 1. Sección "Tendencias de Hoy"
+        Label lblTrends = new Label("Explora & Descubre");
         lblTrends.setFont(ModernStyles.FONT_TITLE);
-        lblTrends.setForeground(Color.WHITE);
-        lblTrends.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(lblTrends);
-        content.add(Box.createVerticalStrut(15));
+        lblTrends.setTextFill(Color.WHITE);
+        VBox.setMargin(lblTrends, new Insets(0, 0, 15, 0));
 
-        JPanel trendsPanel = new JPanel(new GridLayout(1, 3, 15, 0)); // 3 Columnas
-        trendsPanel.setOpaque(false);
-        trendsPanel.setMaximumSize(new Dimension(2000, 160)); // Altura fija
-        trendsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        HBox trendsPanel = new HBox(15);
+        trendsPanel.setAlignment(Pos.CENTER_LEFT);
+        
+        // Añadir tarjetas de tendencias
+        trendsPanel.getChildren().addAll(
+            createTrendCard("Dune", "4.5", Color.rgb(50, 40, 30)),
+            createTrendCard("El Gran Gatsby", "Book", Color.rgb(30, 40, 50)),
+            createTrendCard("Pink Floyd", "Music", Color.rgb(20, 20, 20))
+        );
+        VBox.setMargin(trendsPanel, new Insets(0, 0, 30, 0));
 
-        // Añadir 3 tarjetas fake de tendencias
-        trendsPanel.add(createTrendCard("Dune", "4.5", new Color(50, 40, 30)));
-        trendsPanel.add(createTrendCard("El Gran Gatsby", "Book", new Color(30, 40, 50)));
-        trendsPanel.add(createTrendCard("Pink Floyd", "Music", new Color(20, 20, 20)));
-
-        content.add(trendsPanel);
-        content.add(Box.createVerticalStrut(30));
+        content.getChildren().addAll(lblTrends, trendsPanel);
 
         // 2. Feed de Posts
-        JLabel lblFeed = new JLabel("Últimas Reseñas");
+        Label lblFeed = new Label("Últimas Reseñas");
         lblFeed.setFont(ModernStyles.FONT_HEADER);
-        lblFeed.setForeground(Color.WHITE);
-        lblFeed.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(lblFeed);
-        content.add(Box.createVerticalStrut(15));
+        lblFeed.setTextFill(Color.WHITE);
+        VBox.setMargin(lblFeed, new Insets(0, 0, 15, 0));
+        content.getChildren().add(lblFeed);
+
+        // Contenedor donde se cargarán los posts asíncronamente
+        VBox feedContainer = new VBox(20);
+        content.getChildren().add(feedContainer);
 
         // Cargar posts reales
-        loadPosts(content);
+        loadPosts(feedContainer);
 
-        JScrollPane scroll = new JScrollPane(content);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.setBorder(null);
-        scroll.setBackground(ModernStyles.BG_MAIN);
-        scroll.getViewport().setBackground(ModernStyles.BG_MAIN);
+        // Envolver en un ScrollPane
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true); // Hace que el contenido se expanda al ancho
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: " + ModernStyles.toHex(ModernStyles.BG_MAIN) + ";");
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Ocultar scroll horizontal
 
-        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
     }
 
-    private JPanel createTrendCard(String title, String subtitle, Color color) {
-        RoundedPanel p = new RoundedPanel(15);
-        p.setLayout(new BorderLayout());
-        p.setBackground(color); // Color de fondo simulando la carátula
+    private StackPane createTrendCard(String title, String subtitle, Color bgColor) {
+        StackPane card = new StackPane();
+        card.setPrefSize(200, 160);
+        card.setStyle("-fx-background-color: " + ModernStyles.toHex(bgColor) + "; -fx-background-radius: 15;");
+
+        VBox texts = new VBox(5);
+        texts.setAlignment(Pos.BOTTOM_LEFT);
+        texts.setPadding(new Insets(15));
+
+        Label lblTitle = new Label(title);
+        lblTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14px;");
         
-        JLabel lbl = new JLabel("<html><b>" + title + "</b><br><span style='font-size:9px'>" + subtitle + "</span></html>");
-        lbl.setForeground(Color.WHITE);
-        lbl.setBorder(new EmptyBorder(10, 10, 10, 10));
-        p.add(lbl, BorderLayout.SOUTH);
-        return p;
+        Label lblSub = new Label(subtitle);
+        lblSub.setStyle("-fx-text-fill: #cccccc; -fx-font-size: 10px;");
+
+        texts.getChildren().addAll(lblTitle, lblSub);
+        card.getChildren().add(texts);
+
+        return card;
     }
 
     // --- C. SIDEBAR DERECHA (Recomendados) ---
-    private JPanel createRightSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBackground(ModernStyles.BG_MAIN);
-        sidebar.setBorder(new EmptyBorder(20, 20, 20, 20));
-        sidebar.setPreferredSize(new Dimension(250, 0));
+    private VBox createRightSidebar() {
+        VBox sidebar = new VBox();
+        sidebar.setPadding(new Insets(20));
+        sidebar.setPrefWidth(280);
+        sidebar.setStyle("-fx-background-color: " + ModernStyles.toHex(ModernStyles.BG_MAIN) + ";");
 
         // Barra de búsqueda simulada
-        RoundedPanel searchBar = new RoundedPanel(20);
-        searchBar.setBackground(ModernStyles.BG_PANEL);
-        searchBar.setPreferredSize(new Dimension(200, 35));
-        searchBar.setMaximumSize(new Dimension(2000, 35));
-        searchBar.add(new JLabel("🔍 Buscar..."));
-        sidebar.add(searchBar);
-        sidebar.add(Box.createVerticalStrut(30));
+        TextField searchBar = new TextField();
+        searchBar.setPromptText("🔍 Buscar...");
+        searchBar.setPrefHeight(35);
+        searchBar.setStyle("-fx-background-color: " + ModernStyles.toHex(ModernStyles.BG_PANEL) + "; -fx-text-fill: white; -fx-background-radius: 20; -fx-border-color: transparent;");
+        VBox.setMargin(searchBar, new Insets(0, 0, 30, 0));
 
         // Lista "Recomendado para Ti"
-        JLabel lblRec = new JLabel("Recomendado para Ti");
+        Label lblRec = new Label("Recomendado para Ti");
         lblRec.setFont(ModernStyles.FONT_HEADER);
-        lblRec.setForeground(Color.WHITE);
-        sidebar.add(lblRec);
-        sidebar.add(Box.createVerticalStrut(15));
+        lblRec.setTextFill(Color.WHITE);
+        VBox.setMargin(lblRec, new Insets(0, 0, 15, 0));
+
+        sidebar.getChildren().addAll(searchBar, lblRec);
 
         // Items pequeños
-        sidebar.add(createMiniItem("Los Siete Samuráis", "Película"));
-        sidebar.add(Box.createVerticalStrut(10));
-        sidebar.add(createMiniItem("1984", "George Orwell"));
-        sidebar.add(Box.createVerticalStrut(10));
-        sidebar.add(createMiniItem("Dark Side of the Moon", "Pink Floyd"));
+        sidebar.getChildren().addAll(
+            createMiniItem("Los Siete Samuráis", "Película"),
+            createMiniItem("1984", "George Orwell"),
+            createMiniItem("Dark Side of the Moon", "Pink Floyd")
+        );
 
         return sidebar;
     }
 
-    private JPanel createMiniItem(String title, String subtitle) {
-        JPanel p = new JPanel(new BorderLayout(10, 0));
-        p.setOpaque(false);
-        p.setMaximumSize(new Dimension(2000, 50));
-        p.setAlignmentX(Component.LEFT_ALIGNMENT);
+    private HBox createMiniItem(String title, String subtitle) {
+        HBox itemBox = new HBox(10);
+        itemBox.setAlignment(Pos.CENTER_LEFT);
+        VBox.setMargin(itemBox, new Insets(0, 0, 15, 0));
 
-        RoundedPanel icon = new RoundedPanel(10);
-        icon.setPreferredSize(new Dimension(40, 40));
-        icon.setBackground(Color.DARK_GRAY);
-        
-        JPanel texts = new JPanel(new GridLayout(2, 1));
-        texts.setOpaque(false);
-        JLabel l1 = new JLabel(title);
-        l1.setForeground(Color.WHITE);
-        JLabel l2 = new JLabel(subtitle);
-        l2.setForeground(Color.GRAY);
+        // Icono cuadrado simulado
+        Rectangle icon = new Rectangle(40, 40);
+        icon.setArcWidth(10);
+        icon.setArcHeight(10);
+        icon.setFill(Color.DARKGRAY);
+
+        VBox texts = new VBox();
+        Label l1 = new Label(title);
+        l1.setTextFill(Color.WHITE);
+        l1.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+
+        Label l2 = new Label(subtitle);
+        l2.setTextFill(ModernStyles.TEXT_SECONDARY);
         l2.setFont(ModernStyles.FONT_SMALL);
-        texts.add(l1);
-        texts.add(l2);
 
-        p.add(icon, BorderLayout.WEST);
-        p.add(texts, BorderLayout.CENTER);
-        return p;
+        texts.getChildren().addAll(l1, l2);
+        itemBox.getChildren().addAll(icon, texts);
+
+        return itemBox;
     }
 
-    // Lógica de carga (Igual que antes, pero usando RichPostCard)
-    private void loadPosts(JPanel container) {
-        SwingWorker<List<PostResponse>, Void> worker = new SwingWorker<>() {
-            @Override
-            protected List<PostResponse> doInBackground() throws Exception {
+    // --- LÓGICA DE CARGA DE POSTS ---
+    private void loadPosts(VBox container) {
+        CompletableFuture.supplyAsync(() -> {
+            try {
                 // AQUÍ USAS TU API REAL.
-                // Como ejemplo devuelvo lista vacía o tu mock
                 return ApiClient.getInstance().getFeed(0);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-
-            @Override
-            protected void done() {
-                try {
-                    List<PostResponse> posts = get();
-                    for (PostResponse p : posts) {
-                        RichPostCard card = new RichPostCard(p);
-                        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-                        container.add(card);
-                        container.add(Box.createVerticalStrut(20)); // Espacio entre posts
-                    }
-                    container.revalidate();
-                    container.repaint();
-                } catch (Exception e) { e.printStackTrace(); }
-            }
-        };
-        worker.execute();
+        }).thenAccept(posts -> {
+            Platform.runLater(() -> {
+                for (PostResponse p : posts) {
+                    // TODO: Reemplazar este Label temporal por tu RichPostCard(p) cuando lo migremos a JavaFX
+                    RichPostCard card = new RichPostCard(p);
+                    container.getChildren().add(card);
+                }
+            });
+        }).exceptionally(ex -> {
+            Platform.runLater(() -> {
+                System.err.println("Error cargando el feed: " + ex.getMessage());
+            });
+            return null;
+        });
     }
 }

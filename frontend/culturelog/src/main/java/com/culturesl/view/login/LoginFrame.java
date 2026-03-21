@@ -4,141 +4,143 @@ import com.culturesl.api.AuthService;
 import com.culturesl.dto.AuthResponse;
 import com.culturesl.model.UserSession;
 import com.culturesl.view.main.MainFrame;
-import com.formdev.flatlaf.FlatClientProperties;
 
-import javax.swing.*;
-import java.awt.*;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
-public class LoginFrame extends JFrame {
+import java.util.concurrent.CompletableFuture;
 
-    private final AuthService authService;
-    private JTextField userField;
-    private JPasswordField passField;
-    private JButton loginButton;
+public class LoginFrame {
 
-    public LoginFrame() {
+    private Stage stage;
+    private AuthService authService;
+
+    private TextField userField;
+    private PasswordField passField;
+    private Button loginButton;
+
+    // Recibimos el Stage (la ventana principal) por constructor
+    public LoginFrame(Stage stage) {
+        this.stage = stage;
         this.authService = new AuthService();
         initComponents();
     }
 
     private void initComponents() {
-        setTitle("Login - CultureLog");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 500);
-        setLocationRelativeTo(null); // Centrar en pantalla
-        setResizable(false);
-
-        // Panel principal con márgenes
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
-        add(mainPanel);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 0, 10, 0); // Espacio vertical entre elementos
-        gbc.gridx = 0;
+        // Contenedor principal (Vertical Box)
+        VBox root = new VBox(15); 
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(40));
+        root.setStyle("-fx-background-color: #121212;"); // Fondo oscuro moderno
 
         // 1. TÍTULO / LOGO
-        JLabel titleLabel = new JLabel("CultureLog", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        gbc.gridy = 0;
-        mainPanel.add(titleLabel, gbc);
+        Label titleLabel = new Label("CultureLog");
+        titleLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;");
 
-        JLabel subtitleLabel = new JLabel("Tu universo multimedia", SwingConstants.CENTER);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-        subtitleLabel.setForeground(Color.GRAY);
-        gbc.gridy = 1;
-        gbc.insets = new Insets(0, 0, 30, 0); // Más espacio debajo del subtítulo
-        mainPanel.add(subtitleLabel, gbc);
+        Label subtitleLabel = new Label("Tu universo multimedia");
+        subtitleLabel.setStyle("-fx-font-size: 14px; -fx-font-style: italic; -fx-text-fill: gray;");
+        VBox.setMargin(subtitleLabel, new Insets(0, 0, 20, 0));
 
         // 2. CAMPOS DE TEXTO
-        gbc.insets = new Insets(5, 0, 5, 0); // Resetear insets
+        Label userLabel = new Label("Usuario:");
+        userLabel.setStyle("-fx-text-fill: white;");
+        
+        userField = new TextField();
+        userField.setPrefHeight(35);
+        userField.setStyle("-fx-background-radius: 10; -fx-border-radius: 10; -fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-border-color: #444;");
 
-        mainPanel.add(new JLabel("Usuario:"), resetGBC(gbc, 2));
-        userField = new JTextField();
-        // Estilo redondeado de FlatLaf
-        userField.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
-        userField.setPreferredSize(new Dimension(0, 35));
-        mainPanel.add(userField, resetGBC(gbc, 3));
+        Label passLabel = new Label("Contraseña:");
+        passLabel.setStyle("-fx-text-fill: white;");
+        VBox.setMargin(passLabel, new Insets(10, 0, 0, 0)); // Un poco de espacio extra arriba
+        
+        passField = new PasswordField();
+        passField.setPrefHeight(35);
+        passField.setStyle("-fx-background-radius: 10; -fx-border-radius: 10; -fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-border-color: #444;");
 
-        mainPanel.add(new JLabel("Contraseña:"), resetGBC(gbc, 4));
-        passField = new JPasswordField();
-        passField.putClientProperty(FlatClientProperties.STYLE, "arc: 10; showRevealButton: true");
-        passField.setPreferredSize(new Dimension(0, 35));
-        mainPanel.add(passField, resetGBC(gbc, 5));
+        // Agrupamos los campos en su propia cajita para que no se estiren al 100% de la pantalla
+        VBox formBox = new VBox(5, userLabel, userField, passLabel, passField);
+        formBox.setAlignment(Pos.CENTER_LEFT);
+        formBox.setMaxWidth(300);
 
-        JButton registerLink = new JButton("¿No tienes cuenta? Regístrate");
-        registerLink.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
-        registerLink.setBorderPainted(false);
-        registerLink.setContentAreaFilled(false); // Fondo transparente
-        registerLink.setForeground(new Color(68, 138, 255)); // Azul enlace
-        registerLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        gbc.gridy = 7; // Una fila más abajo
-        gbc.insets = new Insets(0, 0, 10, 0); // Pegado al botón de login
-        mainPanel.add(registerLink, gbc);
-
-        // Acción: Cerrar Login y abrir Registro
-        registerLink.addActionListener(e -> {
-            new RegisterFrame().setVisible(true);
-            dispose();
+        // 3. ENLACE Y BOTÓN
+        Hyperlink registerLink = new Hyperlink("¿No tienes cuenta? Regístrate");
+        registerLink.setStyle("-fx-text-fill: #448aff; -fx-border-color: transparent;");
+        registerLink.setOnAction(e -> {
+            // Aquí llamarás a tu RegisterFrame de JavaFX cuando lo crees
+            // new RegisterFrame(stage); 
+            System.out.println("Abriendo ventana de registro...");
         });
 
-        // 3. BOTÓN LOGIN
-        loginButton = new JButton("Iniciar Sesión");
-        loginButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
-        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        loginButton.setBackground(new Color(68, 138, 255)); // Azul
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginButton = new Button("Iniciar Sesión");
+        loginButton.setPrefHeight(40);
+        loginButton.setPrefWidth(Double.MAX_VALUE); // Para que ocupe el ancho del formulario
+        loginButton.setStyle("-fx-background-color: #448aff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;");
+        loginButton.setOnAction(e -> performLogin());
 
-        gbc.gridy = 6;
-        gbc.insets = new Insets(30, 0, 10, 0);
-        mainPanel.add(loginButton, gbc);
+        // Agrupamos el botón y el enlace
+        VBox buttonBox = new VBox(15, loginButton, registerLink);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setMaxWidth(300);
+        VBox.setMargin(buttonBox, new Insets(30, 0, 0, 0));
 
-        // --- ACCIONES ---
-        loginButton.addActionListener(e -> performLogin());
-    }
+        // Añadimos todo al contenedor principal
+        root.getChildren().addAll(titleLabel, subtitleLabel, formBox, buttonBox);
 
-    private GridBagConstraints resetGBC(GridBagConstraints gbc, int y) {
-        gbc.gridy = y;
-        return gbc;
+        // Configuramos la escena y la mostramos en el escenario (Stage)
+        Scene scene = new Scene(root, 400, 500);
+        stage.setTitle("Login - CultureLog");
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.show();
     }
 
     private void performLogin() {
         String user = userField.getText();
-        String pass = new String(passField.getPassword());
+        String pass = passField.getText();
 
-        loginButton.setEnabled(false); // Evitar doble clic
+        loginButton.setDisable(true);
         loginButton.setText("Conectando...");
 
-        // Ejecutar en hilo separado para no congelar la UI
-        new SwingWorker<AuthResponse, Void>() {
-            @Override
-            protected AuthResponse doInBackground() throws Exception {
+        // Ejecutamos la petición en un hilo secundario
+        CompletableFuture.supplyAsync(() -> {
+            try {
                 return authService.login(user, pass);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
+        }).thenAccept(response -> {
+            // Platform.runLater obliga a JavaFX a actualizar la interfaz gráfica de forma segura
+            Platform.runLater(() -> {
+                // GUARDAR SESIÓN
+                UserSession.getInstance().setUserId(response.getId());
+                UserSession.getInstance().setUsername(response.getUsername());
+                UserSession.getInstance().setEmail(response.getEmail());
 
-            @Override
-            protected void done() {
-                try {
-                    AuthResponse response = get();
-                    // GUARDAR SESIÓN
-                    UserSession.getInstance().setUserId(response.getId());
-                    UserSession.getInstance().setUsername(response.getUsername());
-                    UserSession.getInstance().setEmail(response.getEmail());
+                // ABRIR DASHBOARD (Le pasamos el stage actual para que cambie la vista)
+                new MainFrame(stage); 
+            });
+        }).exceptionally(ex -> {
+            Platform.runLater(() -> {
+                // Mostrar alerta de error estilo JavaFX
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error de acceso");
+                alert.setHeaderText(null);
+                
+                // Limpiar el mensaje de la excepción para que sea legible
+                String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                alert.setContentText("No se pudo iniciar sesión: " + errorMsg);
+                
+                alert.showAndWait();
 
-                    // ABRIR DASHBOARD
-                    new MainFrame().setVisible(true);
-                    dispose(); // Cerrar login
-
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(LoginFrame.this,
-                            "Error de acceso: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    loginButton.setEnabled(true);
-                    loginButton.setText("Iniciar Sesión");
-                }
-            }
-        }.execute();
+                loginButton.setDisable(false);
+                loginButton.setText("Iniciar Sesión");
+            });
+            return null;
+        });
     }
 }

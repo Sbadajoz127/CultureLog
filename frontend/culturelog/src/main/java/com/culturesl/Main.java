@@ -1,26 +1,18 @@
 package com.culturesl;
 
 import com.culturesl.view.login.LoginFrame;
-import com.formdev.flatlaf.FlatDarkLaf;
+import javafx.application.Application;
+import javafx.stage.Stage;
 
-import javax.swing.*;
+public class Main extends Application {
 
-public class Main {
+    @Override
+    public void start(Stage primaryStage) {
+        // Le pasamos el escenario principal al Login
+        new LoginFrame(primaryStage);
+    }
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                // Instalar Tema Oscuro
-                FlatDarkLaf.setup();
-                
-                // Opcional: Personalizar color de acento
-                UIManager.put("Button.arc", 10);
-                UIManager.put("Component.arc", 10);
-
-                new LoginFrame().setVisible(true);
-                
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        launch(args);
     }
 }

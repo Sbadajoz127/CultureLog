@@ -1,186 +1,203 @@
 package com.culturesl.view.profile;
 
 import com.culturesl.model.UserSession;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import javax.imageio.ImageIO;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
-public class ProfilePanel extends JPanel {
+import java.io.File;
+import java.util.concurrent.CompletableFuture;
+
+// En JavaFX, los paneles heredan de contenedores como VBox, HBox, StackPane, etc.
+public class ProfilePanel extends VBox {
+
+    private Stage stage;
 
     // Componentes UI
-    private JLabel lblAvatar;
-    private JTextField txtUsername;
-    private JTextField txtEmail;
-    private JPasswordField txtPassword;
-    private JComboBox<String> cmbTheme;
-    private JButton btnSave;
-    
+    private Circle avatarCircle;
+    private TextField txtUsername;
+    private TextField txtEmail;
+    private PasswordField txtPassword;
+    private ComboBox<String> cmbTheme;
+    private Button btnSave;
+
     private File selectedPhotoFile;
 
-    public ProfilePanel() {
-        // 1. LAYOUT PRINCIPAL: GridBagLayout para centrar el panel de contenido en la ventana
-        setLayout(new GridBagLayout());
-        setBorder(new EmptyBorder(20, 20, 20, 20));
+    public ProfilePanel(Stage stage) {
+        this.stage = stage;
+        initComponents();
+        loadUserData();
+    }
 
-        // 2. PANEL DE CONTENIDO (PILA VERTICAL)
-        // Usamos BoxLayout vertical o GridBagLayout con 1 sola columna
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Asegura que el panel se centre
+    private void initComponents() {
+        // Layout Principal: VBox centrado (ocupa el espacio de this)
+        this.setAlignment(Pos.CENTER);
+        this.setPadding(new Insets(20));
+        this.setStyle("-fx-background-color: #121212;"); // Fondo oscuro
 
-        // ==========================================
-        // 1. FOTO DE PERFIL
-        // ==========================================
-        lblAvatar = new JLabel();
-        lblAvatar.setPreferredSize(new Dimension(130, 130));
-        lblAvatar.setMaximumSize(new Dimension(130, 130)); // Evita que se estire
-        lblAvatar.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrar componente
-        lblAvatar.setIcon(createCircleIcon(null, 130));
-        
-        contentPanel.add(lblAvatar);
-        contentPanel.add(Box.createVerticalStrut(10)); // Espacio
-
-        JButton btnUpload = new JButton("Cambiar Foto");
-        btnUpload.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnUpload.setFocusPainted(false);
-        btnUpload.addActionListener(e -> selectPhoto());
-        
-        contentPanel.add(btnUpload);
-        contentPanel.add(Box.createVerticalStrut(30)); // Separación grande
+        // Contenedor del formulario interno para restringir el ancho
+        VBox contentPanel = new VBox(10); // Espaciado vertical de 10px
+        contentPanel.setAlignment(Pos.CENTER);
+        contentPanel.setMaxWidth(300); // Para que los inputs no se estiren infinitamente
 
         // ==========================================
-        // 2. CAMPOS (Etiqueta Arriba, Input Abajo, Todo Centrado)
+        // 1. FOTO DE PERFIL (Avatar Circular)
         // ==========================================
-        
-        // --- Username ---
-        addCenteredField(contentPanel, "Nombre de Usuario", txtUsername = new JTextField(20));
-        
-        // --- Email ---
-        addCenteredField(contentPanel, "Correo Electrónico", txtEmail = new JTextField(20));
+        avatarCircle = new Circle(65); // Radio de 65 = diámetro de 130
+        avatarCircle.setStroke(Color.web("#333333"));
+        avatarCircle.setStrokeWidth(2);
+        setAvatarImage(null); // Pone la inicial por defecto
 
-        // --- Password ---
-        addCenteredField(contentPanel, "Nueva Contraseña", txtPassword = new JPasswordField(20));
+        Button btnUpload = new Button("Cambiar Foto");
+        btnUpload.setStyle("-fx-background-color: transparent; -fx-text-fill: #448aff; -fx-cursor: hand;");
+        btnUpload.setOnAction(e -> selectPhoto());
+
+        VBox.setMargin(btnUpload, new Insets(5, 0, 20, 0)); // Margen inferior
+
+        contentPanel.getChildren().addAll(avatarCircle, btnUpload);
+
+        // ==========================================
+        // 2. CAMPOS
+        // ==========================================
+        txtUsername = createCenteredTextField("Nombre de Usuario", contentPanel);
+        txtEmail = createCenteredTextField("Correo Electrónico", contentPanel);
+        txtPassword = createCenteredPasswordField("Nueva Contraseña", contentPanel);
 
         // --- Tema ---
-        // El ComboBox requiere un trato especial para que no se estire feo
-        JLabel lblTheme = new JLabel("Tema Visual");
-        lblTheme.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTheme.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblTheme.setForeground(Color.GRAY);
-        contentPanel.add(lblTheme);
-        contentPanel.add(Box.createVerticalStrut(5));
+        Label lblTheme = new Label("Tema Visual");
+        lblTheme.setStyle("-fx-font-weight: bold; -fx-text-fill: gray;");
+        
+        cmbTheme = new ComboBox<>();
+        cmbTheme.getItems().addAll("Oscuro (Dark)", "Claro (Light)");
+        cmbTheme.setValue("Oscuro (Dark)"); // Valor por defecto
+        cmbTheme.setPrefWidth(Double.MAX_VALUE); // Para que ocupe todo el ancho disponible del VBox
+        cmbTheme.setStyle("-fx-background-radius: 5; -fx-background-color: #2a2a2a; -fx-text-fill: white;");
+        // Ojo: Dar estilo a la lista desplegable de un ComboBox en JavaFX es complejo mediante CSS en línea.
+        // Si no se ve perfecto el menú, es normal, se suele usar un archivo .css externo para afinarlo.
 
-        cmbTheme = new JComboBox<>(new String[]{"Oscuro (Dark)", "Claro (Light)"});
-        cmbTheme.setMaximumSize(new Dimension(225, 30)); // Ancho fijo igual que los textfields
-        cmbTheme.setAlignmentX(Component.CENTER_ALIGNMENT);
-        contentPanel.add(cmbTheme);
-        contentPanel.add(Box.createVerticalStrut(20));
+        VBox themeBox = new VBox(5, lblTheme, cmbTheme);
+        themeBox.setAlignment(Pos.CENTER);
+        VBox.setMargin(themeBox, new Insets(0, 0, 20, 0));
+        contentPanel.getChildren().add(themeBox);
 
         // ==========================================
         // 3. BOTÓN GUARDAR
         // ==========================================
-        contentPanel.add(Box.createVerticalStrut(10));
-        
-        btnSave = new JButton("Guardar Cambios");
-        btnSave.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnSave.setBackground(new Color(68, 138, 255));
-        btnSave.setForeground(Color.WHITE);
-        btnSave.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnSave.setFocusPainted(false);
-        btnSave.setMaximumSize(new Dimension(200, 40)); // Tamaño fijo
-        btnSave.setPreferredSize(new Dimension(200, 40));
-        
-        btnSave.addActionListener(e -> saveChanges());
-        
-        contentPanel.add(btnSave);
+        btnSave = new Button("Guardar Cambios");
+        btnSave.setPrefHeight(40);
+        btnSave.setPrefWidth(200);
+        btnSave.setStyle("-fx-background-color: #448aff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;");
+        btnSave.setOnAction(e -> saveChanges());
 
-        // AÑADIR AL PANEL PRINCIPAL
-        add(contentPanel);
+        contentPanel.getChildren().add(btnSave);
 
-        loadUserData();
+        // Añadir el formulario centrado al panel principal (this)
+        this.getChildren().add(contentPanel);
     }
 
-    // --- HELPER PARA AÑADIR CAMPOS CENTRADOS ---
-    private void addCenteredField(JPanel panel, String labelText, JTextField field) {
-        // 1. Etiqueta
-        JLabel label = new JLabel(labelText);
-        label.setAlignmentX(Component.CENTER_ALIGNMENT);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        label.setForeground(Color.GRAY); // Color suave para la etiqueta
-        
-        // 2. Campo
-        field.setMaximumSize(new Dimension(225, 30)); // Ancho fijo para que todos sean iguales
-        field.setHorizontalAlignment(JTextField.CENTER); // ¡TEXTO CENTRADO DENTRO DEL CAMPO!
-        field.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        panel.add(label);
-        panel.add(Box.createVerticalStrut(5)); // Espacio pequeño entre label y campo
-        panel.add(field);
-        panel.add(Box.createVerticalStrut(15)); // Espacio entre grupos
+    // --- HELPERS PARA CAMPOS DE TEXTO ---
+    private TextField createCenteredTextField(String labelText, VBox parent) {
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-weight: bold; -fx-text-fill: gray;");
+
+        TextField field = new TextField();
+        field.setPrefHeight(35);
+        field.setAlignment(Pos.CENTER); // Centra el texto escrito
+        field.setStyle("-fx-background-radius: 5; -fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-border-color: #444; -fx-border-radius: 5;");
+
+        VBox box = new VBox(5, label, field);
+        box.setAlignment(Pos.CENTER);
+        VBox.setMargin(box, new Insets(0, 0, 15, 0)); // Margen inferior
+        parent.getChildren().add(box);
+
+        return field;
+    }
+
+    private PasswordField createCenteredPasswordField(String labelText, VBox parent) {
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-weight: bold; -fx-text-fill: gray;");
+
+        PasswordField field = new PasswordField();
+        field.setPrefHeight(35);
+        field.setAlignment(Pos.CENTER);
+        field.setStyle("-fx-background-radius: 5; -fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-border-color: #444; -fx-border-radius: 5;");
+
+        VBox box = new VBox(5, label, field);
+        box.setAlignment(Pos.CENTER);
+        VBox.setMargin(box, new Insets(0, 0, 15, 0));
+        parent.getChildren().add(box);
+
+        return field;
     }
 
     // --- UTILIDADES ---
-    private Icon createCircleIcon(Image img, int size) {
-        BufferedImage avatar = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = avatar.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setClip(new Ellipse2D.Float(0, 0, size, size));
-        
-        if (img != null) {
-            g2.drawImage(img, 0, 0, size, size, null);
+    private void setAvatarImage(File file) {
+        if (file != null) {
+            Image image = new Image(file.toURI().toString());
+            avatarCircle.setFill(new ImagePattern(image));
         } else {
-            g2.setColor(Color.LIGHT_GRAY);
-            g2.fillRect(0, 0, size, size);
-            g2.setColor(Color.DARK_GRAY);
-            g2.setFont(new Font("SansSerif", Font.BOLD, size / 2));
-            String initial = UserSession.getInstance() != null ? 
-                             UserSession.getInstance().getUsername().substring(0, 1).toUpperCase() : "?";
-            FontMetrics fm = g2.getFontMetrics();
-            g2.drawString(initial, (size - fm.stringWidth(initial)) / 2, (size - fm.getHeight()) / 2 + fm.getAscent());
+            // Si no hay foto, ponemos un color de fondo plano.
+            // En JavaFX es más complejo dibujar texto dentro del círculo que en Swing.
+            // Lo más sencillo es dejar el fondo de un color.
+            avatarCircle.setFill(Color.web("#555555"));
+            // (Nota: Si quieres la letra inicial obligatoriamente, habría que usar un StackPane
+            // combinando el Círculo de fondo y un Text/Label encima).
         }
-        g2.dispose();
-        return new ImageIcon(avatar);
     }
 
     private void selectPhoto() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg"));
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            try {
-                selectedPhotoFile = fileChooser.getSelectedFile();
-                BufferedImage img = ImageIO.read(selectedPhotoFile);
-                lblAvatar.setIcon(createCircleIcon(img, 130));
-            } catch (Exception ex) { ex.printStackTrace(); }
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleccionar foto de perfil");
+        // Filtros de extensión
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Imágenes", "*.jpg", "*.png", "*.jpeg")
+        );
+
+        File file = fileChooser.showOpenDialog(stage);
+        if (file != null) {
+            selectedPhotoFile = file;
+            setAvatarImage(file);
         }
     }
 
     private void loadUserData() {
-        if(UserSession.getInstance() != null) {
+        if (UserSession.getInstance() != null && UserSession.getInstance().getUsername() != null) {
             txtUsername.setText(UserSession.getInstance().getUsername());
+            txtEmail.setText(UserSession.getInstance().getEmail() != null ? UserSession.getInstance().getEmail() : "");
         }
     }
 
     private void saveChanges() {
-        btnSave.setEnabled(false);
+        btnSave.setDisable(true);
         btnSave.setText("Guardando...");
-        SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
-            @Override
-            protected Boolean doInBackground() throws Exception {
-                Thread.sleep(1000); 
+
+        // Simulamos el guardado asíncrono
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(1000); // Simula el delay de red
                 return true;
+            } catch (InterruptedException e) {
+                return false;
             }
-            @Override
-            protected void done() {
-                btnSave.setEnabled(true);
+        }).thenAccept(result -> {
+            Platform.runLater(() -> {
+                btnSave.setDisable(false);
                 btnSave.setText("Guardar Cambios");
-                JOptionPane.showMessageDialog(ProfilePanel.this, "Perfil actualizado.");
-            }
-        };
-        worker.execute();
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Éxito");
+                alert.setHeaderText(null);
+                alert.setContentText("Perfil actualizado correctamente.");
+                alert.showAndWait();
+            });
+        });
     }
 }
