@@ -80,6 +80,28 @@ public class CloudinaryService implements ImageStorageService {
     }
 
     /**
+     * Sube una imagen a Cloudinary directamente desde su URL remota.
+     * <p>
+     * Cloudinary descarga la imagen internamente desde la URL proporcionada,
+     * sin necesidad de crear un archivo temporal en el servidor.
+     * </p>
+     *
+     * @param url URL remota de la imagen a subir.
+     * @return URL pública segura (HTTPS) de la imagen almacenada en Cloudinary.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public String uploadImageFromUrl(String url) {
+        try {
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(url, ObjectUtils.emptyMap());
+            return uploadResult.get("secure_url").toString();
+        } catch (Exception e) {
+            log.error("Error subiendo imagen desde URL a Cloudinary: {}", url, e);
+            throw new BadRequestException("Error al subir la imagen desde URL: " + e.getMessage());
+        }
+    }
+
+    /**
      * Elimina una imagen de Cloudinary a partir de su URL pública.
      *
      * @param imageUrl URL pública de la imagen a eliminar.

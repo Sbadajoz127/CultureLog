@@ -20,6 +20,14 @@ public interface ImageStorageService {
     String uploadImage(MultipartFile file);
 
     /**
+     * Sube una imagen a partir de su URL remota y devuelve la URL pública almacenada.
+     *
+     * @param url URL remota de la imagen a subir
+     * @return URL pública de la imagen almacenada
+     */
+    String uploadImageFromUrl(String url);
+
+    /**
      * Elimina una imagen a partir de su URL pública.
      *
      * @param imageUrl URL pública de la imagen a eliminar

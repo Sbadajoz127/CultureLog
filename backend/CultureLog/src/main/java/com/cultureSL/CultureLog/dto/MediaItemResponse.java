@@ -44,6 +44,12 @@ public class MediaItemResponse {
     private LocalDate dateAdded;
     /** Reseña o notas personales. */
     private String comment;
+    /** Sinopsis o descripción de la obra. */
+    private String description;
+    /** Identificador del ítem en la API externa de origen. */
+    private String externalId;
+    /** Nombre de la fuente externa (TMDB, GOOGLE_BOOKS, JIKAN, RAWG). */
+    private String externalSource;
     /** Nombres de las etiquetas asociadas al ítem. */
     private Set<String> tagNames;
 }

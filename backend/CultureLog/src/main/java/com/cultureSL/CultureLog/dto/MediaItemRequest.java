@@ -45,4 +45,10 @@ public class MediaItemRequest {
     private String comment;
     /** Fecha de lanzamiento original de la obra. */
     private LocalDate releaseDate;
+    /** Sinopsis o descripción de la obra. */
+    private String description;
+    /** Identificador del ítem en la API externa de origen. */
+    private String externalId;
+    /** Nombre de la fuente externa (TMDB, GOOGLE_BOOKS, JIKAN, RAWG). */
+    private String externalSource;
 }
