@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css'; // Asegúrate de que la ruta sea correcta según tus carpetas
 
-function Home({ userName, profilePic, onLogout, onGoToProfile }) {
+function Home({ userName, profilePic, onLogout, onGoToProfile, onGoToPortal }) {
   // 1. ESTADOS
   const [activeCategory, setActiveCategory] = useState('General');
   const [newPostContent, setNewPostContent] = useState('');
@@ -81,6 +81,14 @@ function Home({ userName, profilePic, onLogout, onGoToProfile }) {
         </nav>
 
         <div className="header-right">
+          {/* NUEVO BOTÓN PARA IR AL PORTAL */}
+          <button 
+              style={{ background: 'none', border: '1px solid #444', borderRadius: '6px', color: '#e0e0e0', padding: '6px 12px', fontSize: '0.9rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
+              onClick={onGoToPortal}
+          >
+            Mi Portal 
+          </button>
+
             <button 
                 style={{ background: 'none', border: 'none', color: '#a0a0a0', fontSize: '0.95rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
                 onClick={onGoToProfile}

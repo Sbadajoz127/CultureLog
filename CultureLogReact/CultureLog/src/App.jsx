@@ -5,6 +5,7 @@ import Register from './LoginRegister/Register';
 import Home from './Home';
 import Profile from './Profile'; // <-- IMPORTAMOS EL PERFIL
 import './App.css';
+import Portal from './Portal';
 
 function App() {
   const [currentView, setCurrentView] = useState('login');
@@ -39,6 +40,7 @@ function App() {
           profilePic={profilePic}
           onLogout={() => setCurrentView('login')} 
           onGoToProfile={() => setCurrentView('profile')} // <-- NUEVO CABLE PARA IR AL PERFIL
+          onGoToPortal={() => setCurrentView('portal')}
         />
       )}
 
@@ -55,6 +57,16 @@ function App() {
           onLogout={() => setCurrentView('login')}
         />
       )}
+
+      {/* NUEVO: PANTALLA DEL PORTAL */}
+      {currentView === 'portal' && (
+        <Portal 
+          userName={userName}
+          onBack={() => setCurrentView('home')} 
+          onLogout={() => setCurrentView('login')}
+        />
+      )}
+
     </>
   );
 }
