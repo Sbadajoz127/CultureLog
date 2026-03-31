@@ -134,4 +134,14 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
      * @return Lista de items etiquetados con ese nombre.
      */
     List<MediaItem> findByUserIdAndTags_Name(Long userId, String tagName);
+
+    /**
+     * Comprueba si ya existe un ítem de una API externa en la biblioteca de un usuario.
+     *
+     * @param userId         ID del usuario.
+     * @param externalId     identificador del recurso en la API de origen.
+     * @param externalSource nombre de la fuente externa (TMDB, JIKAN, etc.).
+     * @return {@code true} si el ítem ya existe en la biblioteca del usuario
+     */
+    boolean existsByUserIdAndExternalIdAndExternalSource(Long userId, String externalId, String externalSource);
 }

@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +59,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Maneja excepciones de recurso duplicado.
+     *
+     * @param ex excepción capturada
+     * @return respuesta HTTP 409 con detalle del conflicto
+     */
+    @ExceptionHandler(DuplicateItemException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicate(DuplicateItemException ex) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    /**
      * Maneja errores de validación de {@code @Valid} en los DTOs de entrada.
      * <p>
      * Recopila todos los errores de campo y los devuelve como un mensaje concatenado.
@@ -70,6 +82,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         String errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return buildResponse(HttpStatus.BAD_REQUEST, errors);
+    }
+
+    /**
+     * Maneja violaciones de restricciones en parámetros de método ({@code @Validated} en controladores).
+     *
+     * @param ex excepción de violación de restricciones
+     * @return respuesta HTTP 400 con los mensajes de violación
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        String errors = ex.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.joining(", "));
         return buildResponse(HttpStatus.BAD_REQUEST, errors);
     }

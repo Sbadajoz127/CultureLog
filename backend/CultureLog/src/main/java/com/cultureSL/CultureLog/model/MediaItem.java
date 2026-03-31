@@ -18,7 +18,9 @@ import com.cultureSL.CultureLog.model.enums.MediaType;
  * </p>
  */
 @Entity
-@Table(name = "media_items")
+@Table(name = "media_items", indexes = {
+    @Index(name = "idx_media_user_external", columnList = "user_id, externalId, externalSource")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -65,9 +67,19 @@ public class MediaItem {
     @Column(length = 2000)
     private String comment;
 
+    /** Sinopsis o descripción de la obra proporcionada por la API externa. */
+    @Column(length = 5000)
+    private String description;
+
     /** Url de la imagen representativa del ítem (portada, póster, etc.). */
     @Column(name = "item_imageurl")
     private String itemImageUrl;
+
+    /** Identificador del ítem en la API externa de origen (TMDB id, RAWG id, etc.). */
+    private String externalId;
+
+    /** Nombre de la fuente externa (TMDB, GOOGLE_BOOKS, JIKAN, RAWG). */
+    private String externalSource;
 
     /** Usuario propietario de este ítem. */
     @ManyToOne(fetch = FetchType.LAZY)

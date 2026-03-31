@@ -73,6 +73,9 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setRating(request.getRating());
         item.setReleaseDate(request.getReleaseDate());
         item.setComment(request.getComment());
+        item.setDescription(request.getDescription());
+        item.setExternalId(request.getExternalId());
+        item.setExternalSource(request.getExternalSource());
         item.setDateAdded(LocalDate.now());
         item.setUser(user);
 
@@ -99,6 +102,9 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setRating(request.getRating());
         item.setReleaseDate(request.getReleaseDate());
         item.setComment(request.getComment());
+        item.setDescription(request.getDescription());
+        item.setExternalId(request.getExternalId());
+        item.setExternalSource(request.getExternalSource());
 
         return mediaItemRepository.save(item);
     }
