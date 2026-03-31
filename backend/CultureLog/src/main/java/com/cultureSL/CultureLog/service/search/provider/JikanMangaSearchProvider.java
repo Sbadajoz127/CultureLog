@@ -1,7 +1,7 @@
 package com.cultureSL.CultureLog.service.search.provider;
 
 import com.cultureSL.CultureLog.model.enums.MediaType;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -20,9 +20,8 @@ import java.util.Set;
 @Component
 public class JikanMangaSearchProvider extends AbstractJikanSearchProvider {
 
-    public JikanMangaSearchProvider(RestClient restClient,
-                                    @Value("${api.jikan.base-url}") String baseUrl) {
-        super(restClient, baseUrl);
+    public JikanMangaSearchProvider(@Qualifier("jikanRestClient") RestClient restClient) {
+        super(restClient);
     }
 
     @Override

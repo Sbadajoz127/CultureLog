@@ -4,8 +4,8 @@ import com.cultureSL.CultureLog.dto.search.MediaSearchResult;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.service.search.ExternalMediaProvider;
 import tools.jackson.databind.JsonNode;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -26,7 +26,6 @@ import java.util.*;
  * @see <a href="https://developer.themoviedb.org/docs">TMDB API Docs</a>
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class TmdbSearchProvider implements ExternalMediaProvider {
 
@@ -34,12 +33,13 @@ public class TmdbSearchProvider implements ExternalMediaProvider {
     private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
     private final RestClient restClient;
+    private final String apiKey;
 
-    @Value("${api.tmdb.key}")
-    private String apiKey;
-
-    @Value("${api.tmdb.base-url}")
-    private String baseUrl;
+    public TmdbSearchProvider(@Qualifier("tmdbRestClient") RestClient restClient,
+                              @Value("${api.tmdb.key}") String apiKey) {
+        this.restClient = restClient;
+        this.apiKey = apiKey;
+    }
 
     @Override
     public Set<MediaType> getSupportedTypes() {
@@ -50,7 +50,7 @@ public class TmdbSearchProvider implements ExternalMediaProvider {
     public List<MediaSearchResult> search(String query, int page) {
         try {
             JsonNode response = restClient.get()
-                    .uri(baseUrl + "/search/multi?api_key={key}&query={q}&page={p}&language=es-ES",
+                    .uri("/search/multi?api_key={key}&query={q}&page={p}&language=es-ES",
                             apiKey, query, page + 1)
                     .retrieve()
                     .body(JsonNode.class);

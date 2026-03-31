@@ -102,7 +102,7 @@ public class MediaItemController {
      *
      * @param itemId         ID del ítem
      * @param authentication contexto de autenticación con el ID del usuario
-     * @return HTTP 200 sin contenido
+     * @return HTTP 204 sin contenido
      */
     @DeleteMapping("/{itemId}/image")
     public ResponseEntity<Void> removeImage(
@@ -111,7 +111,7 @@ public class MediaItemController {
 
         Long userId = (Long) authentication.getPrincipal();
         mediaItemService.removeMediaItemImage(itemId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -120,7 +120,7 @@ public class MediaItemController {
      *
      * @param itemId         ID del ítem a eliminar
      * @param authentication contexto de autenticación con el ID del usuario
-     * @return HTTP 200 sin contenido
+     * @return HTTP 204 sin contenido
      */
     @DeleteMapping("/{itemId}")
     public ResponseEntity<Void> deleteItem(
@@ -129,6 +129,6 @@ public class MediaItemController {
 
         Long userId = (Long) authentication.getPrincipal();
         mediaItemService.deleteItem(itemId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

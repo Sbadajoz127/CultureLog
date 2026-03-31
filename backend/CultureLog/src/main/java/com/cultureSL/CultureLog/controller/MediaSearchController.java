@@ -7,6 +7,7 @@ import com.cultureSL.CultureLog.service.search.MediaSearchService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,7 @@ public class MediaSearchController {
      */
     @GetMapping
     public ResponseEntity<List<MediaSearchResult>> search(
-            @RequestParam @NotBlank(message = "La consulta de búsqueda es obligatoria") String query,
+            @RequestParam @NotBlank(message = "La consulta de búsqueda es obligatoria") @Size(max = 200, message = "La consulta no puede exceder 200 caracteres") String query,
             @RequestParam(required = false) MediaType type,
             @RequestParam(defaultValue = "0") @Min(value = 0, message = "La página no puede ser negativa") int page) {
 

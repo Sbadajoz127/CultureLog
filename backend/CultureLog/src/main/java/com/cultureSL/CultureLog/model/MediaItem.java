@@ -18,7 +18,9 @@ import com.cultureSL.CultureLog.model.enums.MediaType;
  * </p>
  */
 @Entity
-@Table(name = "media_items")
+@Table(name = "media_items", indexes = {
+    @Index(name = "idx_media_user_external", columnList = "user_id, externalId, externalSource")
+})
 @Getter
 @Setter
 @NoArgsConstructor

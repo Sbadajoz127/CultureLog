@@ -4,8 +4,8 @@ import com.cultureSL.CultureLog.dto.search.MediaSearchResult;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.service.search.ExternalMediaProvider;
 import tools.jackson.databind.JsonNode;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -23,17 +23,17 @@ import java.util.*;
  * @see <a href="https://openlibrary.org/dev/docs/api/covers">Open Library Covers API</a>
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class OpenLibrarySearchProvider implements ExternalMediaProvider {
-
-    /** URL base de la API de búsqueda de Open Library. */
-    private static final String BASE_URL = "https://openlibrary.org";
 
     /** URL base del servicio de portadas de Open Library. */
     private static final String COVERS_URL = "https://covers.openlibrary.org";
 
     private final RestClient restClient;
+
+    public OpenLibrarySearchProvider(@Qualifier("openLibraryRestClient") RestClient restClient) {
+        this.restClient = restClient;
+    }
 
     @Override
     public Set<MediaType> getSupportedTypes() {
@@ -46,7 +46,7 @@ public class OpenLibrarySearchProvider implements ExternalMediaProvider {
             int olPage = page + 1;
 
             JsonNode response = restClient.get()
-                    .uri(BASE_URL + "/search.json?q={q}&page={p}&limit=10&lang=es",
+                    .uri("/search.json?q={q}&page={p}&limit=10&lang=es",
                             query, olPage)
                     .retrieve()
                     .body(JsonNode.class);

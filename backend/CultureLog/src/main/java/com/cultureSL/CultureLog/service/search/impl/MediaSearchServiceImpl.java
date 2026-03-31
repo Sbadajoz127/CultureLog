@@ -16,6 +16,7 @@ import com.cultureSL.CultureLog.service.search.MediaSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public class MediaSearchServiceImpl implements MediaSearchService {
 
     /** {@inheritDoc} */
     @Override
+    @Cacheable(value = "searchResults", key = "#query.toLowerCase() + '-' + #type + '-' + #page")
     public List<MediaSearchResult> search(String query, MediaType type, int page) {
         List<ExternalMediaProvider> targetProviders = resolveProviders(type);
 

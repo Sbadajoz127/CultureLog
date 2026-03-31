@@ -4,8 +4,8 @@ import com.cultureSL.CultureLog.dto.search.MediaSearchResult;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.service.search.ExternalMediaProvider;
 import tools.jackson.databind.JsonNode;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -25,17 +25,17 @@ import java.util.*;
  * @see <a href="https://rawg.io/apidocs">RAWG API Docs</a>
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class RawgSearchProvider implements ExternalMediaProvider {
 
     private final RestClient restClient;
+    private final String apiKey;
 
-    @Value("${api.rawg.key}")
-    private String apiKey;
-
-    @Value("${api.rawg.base-url}")
-    private String baseUrl;
+    public RawgSearchProvider(@Qualifier("rawgRestClient") RestClient restClient,
+                              @Value("${api.rawg.key}") String apiKey) {
+        this.restClient = restClient;
+        this.apiKey = apiKey;
+    }
 
     @Override
     public Set<MediaType> getSupportedTypes() {
@@ -46,7 +46,7 @@ public class RawgSearchProvider implements ExternalMediaProvider {
     public List<MediaSearchResult> search(String query, int page) {
         try {
             JsonNode response = restClient.get()
-                    .uri(baseUrl + "/games?key={key}&search={q}&page={p}&page_size=10",
+                    .uri("/games?key={key}&search={q}&page={p}&page_size=10",
                             apiKey, query, page + 1)
                     .retrieve()
                     .body(JsonNode.class);

@@ -11,6 +11,9 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Clase base para los proveedores de búsqueda en Jikan (wrapper de MyAnimeList).
@@ -25,12 +28,13 @@ import java.util.*;
 @Slf4j
 public abstract class AbstractJikanSearchProvider implements ExternalMediaProvider {
 
-    protected final RestClient restClient;
-    protected final String baseUrl;
+    /** Limita las peticiones concurrentes a Jikan a 3 req/s (compartido entre anime y manga). */
+    private static final Semaphore JIKAN_RATE_LIMITER = new Semaphore(3);
 
-    protected AbstractJikanSearchProvider(RestClient restClient, String baseUrl) {
+    protected final RestClient restClient;
+
+    protected AbstractJikanSearchProvider(RestClient restClient) {
         this.restClient = restClient;
-        this.baseUrl = baseUrl;
     }
 
     /**
@@ -46,8 +50,14 @@ public abstract class AbstractJikanSearchProvider implements ExternalMediaProvid
     @Override
     public List<MediaSearchResult> search(String query, int page) {
         try {
+            JIKAN_RATE_LIMITER.acquire();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Collections.emptyList();
+        }
+        try {
             JsonNode response = restClient.get()
-                    .uri(baseUrl + "/{endpoint}?q={q}&page={p}&limit=10",
+                    .uri("/{endpoint}?q={q}&page={p}&limit=10",
                             getEndpoint(), query, page + 1)
                     .retrieve()
                     .body(JsonNode.class);
@@ -97,6 +107,9 @@ public abstract class AbstractJikanSearchProvider implements ExternalMediaProvid
         } catch (Exception e) {
             log.error("Error buscando en Jikan ({}): {}", getEndpoint(), e.getMessage());
             return Collections.emptyList();
+        } finally {
+            CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS)
+                    .execute(JIKAN_RATE_LIMITER::release);
         }
     }
 
