@@ -14,6 +14,7 @@ import com.cultureSL.CultureLog.repository.UserRepository;
 import com.cultureSL.CultureLog.service.EmailService;
 import com.cultureSL.CultureLog.service.UserService;
 import com.cultureSL.CultureLog.service.ImageStorageService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
     private final ImageStorageService imageStorageService;
+    private final EntityManager entityManager;
 
     /** {@inheritDoc} */
     @Override
@@ -104,6 +106,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userOpt.get();
         tokenRepository.deleteByUser(user);
+        entityManager.flush();
 
         PasswordResetToken token = new PasswordResetToken(user);
         tokenRepository.save(token);

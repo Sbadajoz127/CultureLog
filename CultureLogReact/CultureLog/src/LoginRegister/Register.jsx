@@ -1,19 +1,32 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import '../App.css';
 
-function Register({ onSwitchToLogin }) {
-  const [name, setName] = useState('');
+function Register({ onSwitchToLogin, onRegisterSuccess }) {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { register } = useAuth();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setError('');
     setIsLoading(true);
-    setTimeout(() => {
-      alert(`¡Cuenta creada con éxito para ${name}!`);
+
+    try {
+      await register(username, password, email);
+      onRegisterSuccess();
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Error al crear la cuenta. Inténtalo de nuevo.';
+      setError(msg);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -24,9 +37,11 @@ function Register({ onSwitchToLogin }) {
       </header>
 
       <form className="login-form" onSubmit={handleSubmit}>
+        {error && <p className="auth-error">{error}</p>}
+
         <div className="input-group">
-          <label htmlFor="name">Nombre completo</label>
-          <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading} />
+          <label htmlFor="name">Nombre de usuario</label>
+          <input type="text" id="name" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={isLoading} minLength={3} maxLength={30} />
         </div>
 
         <div className="input-group">
@@ -36,7 +51,7 @@ function Register({ onSwitchToLogin }) {
 
         <div className="input-group">
           <label htmlFor="password">Crea una contraseña</label>
-          <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+          <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} minLength={6} />
         </div>
 
         <button type="submit" className="login-button" disabled={isLoading}>
