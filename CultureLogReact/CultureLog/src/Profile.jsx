@@ -1,45 +1,68 @@
-// src/Profile.jsx
 import { useState } from 'react';
-import './App.css'; 
+import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/ThemeContext';
+import { uploadImage, updateProfilePicture } from './services/api';
+import './App.css';
 
-function Profile({ userName, setUserName, userEmail, setUserEmail, profilePic, setProfilePic, onBack, onLogout }) {
-  
-  // Estados locales para editar antes de guardar
-  const [editName, setEditName] = useState(userName);
-  const [editEmail, setEditEmail] = useState(userEmail);
-  const [newPassword, setNewPassword] = useState('');
+const THEME_OPTIONS = [
+  { value: 'DARK', label: 'Oscuro' },
+  { value: 'LIGHT', label: 'Claro' },
+  { value: 'SYSTEM', label: 'Sistema' },
+];
+
+function Profile({ profilePic, setProfilePic, onBack, onLogout }) {
+  const { user } = useAuth();
+  const { theme, accentColor, updateTheme, updateAccentColor } = useTheme();
+
   const [previewPic, setPreviewPic] = useState(profilePic);
+  const [pendingFile, setPendingFile] = useState(null);
+  const [localTheme, setLocalTheme] = useState(theme);
+  const [localAccent, setLocalAccent] = useState(accentColor);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  // Función mágica para previsualizar la imagen que subes
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Crea una URL temporal en tu navegador para mostrar la foto al instante
-      const imageUrl = URL.createObjectURL(file);
-      setPreviewPic(imageUrl);
+      setPreviewPic(URL.createObjectURL(file));
+      setPendingFile(file);
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    
-    // 1. Actualizamos los estados globales en App.jsx
-    if (editName.trim()) setUserName(editName);
-    if (editEmail.trim()) setUserEmail(editEmail);
-    setProfilePic(previewPic);
-    
-    // 2. Simulamos el cambio de contraseña
-    if (newPassword.trim()) {
-      console.log('Aquí se enviaría la nueva contraseña a la base de datos:', newPassword);
-    }
+    setError('');
+    setSaving(true);
 
-    alert('¡Perfil actualizado con éxito!');
-    onBack(); // Volvemos al Home
+    try {
+      if (pendingFile) {
+        const { data: cloudinaryUrl } = await uploadImage(pendingFile);
+        await updateProfilePicture(cloudinaryUrl);
+        setProfilePic(cloudinaryUrl);
+        setPendingFile(null);
+      }
+
+      if (localTheme !== theme) {
+        updateTheme(localTheme);
+      }
+      if (localAccent !== accentColor) {
+        updateAccentColor(localAccent);
+      }
+
+      onBack();
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        'Error al guardar los cambios. Inténtalo de nuevo.';
+      setError(typeof msg === 'string' ? msg : 'Error al guardar los cambios.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="home-container">
-      
       <header className="top-header">
         <div className="header-left">
           <h2 className="brand-logo" style={{ fontSize: '1.5rem', margin: 0, cursor: 'pointer' }} onClick={onBack}>
@@ -47,64 +70,89 @@ function Profile({ userName, setUserName, userEmail, setUserEmail, profilePic, s
           </h2>
         </div>
         <div className="header-right">
-          <button className="logout-button" onClick={onLogout}>Salir</button>
+          <button className="logout-button" onClick={onLogout}>Cerrar sesión</button>
         </div>
       </header>
 
       <main className="feed" style={{ alignItems: 'center' }}>
         <div className="create-post-card" style={{ width: '100%', padding: '40px', maxWidth: '500px' }}>
-          
           <h3 style={{ marginBottom: '30px', textAlign: 'center', fontSize: '1.4rem' }}>Ajustes de Cuenta</h3>
-          
+
           <form className="login-form" onSubmit={handleSave}>
-            
-            {/* SECCIÓN 1: FOTO DE PERFIL */}
+            {error && <p className="auth-error">{error}</p>}
+
             <div className="profile-pic-section">
               <img src={previewPic} alt="Tu perfil" className="profile-avatar-large" />
-              
-              {/* Truco: Ocultamos el input de archivo feo y usamos un label bonito */}
               <label htmlFor="avatar-upload" className="upload-btn">
                 Cambiar foto
               </label>
-              <input 
-                id="avatar-upload" 
-                type="file" 
-                accept="image/*" 
-                onChange={handleImageChange} 
-                style={{ display: 'none' }} // Lo escondemos
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleImageChange}
+                style={{ display: 'none' }}
+                disabled={saving}
               />
             </div>
 
-            {/* SECCIÓN 2: DATOS DEL USUARIO */}
             <div className="input-group">
               <label>Nombre de usuario</label>
-              <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} required />
+              <div className="profile-info-readonly">{user?.username}</div>
             </div>
 
             <div className="input-group">
               <label>Correo Electrónico</label>
-              <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} required />
+              <div className="profile-info-readonly">{user?.email}</div>
+            </div>
+
+            <hr className="section-divider" />
+
+            <div className="input-group">
+              <label>Tema de la aplicación</label>
+              <div className="theme-selector">
+                {THEME_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`theme-option ${localTheme === opt.value ? 'active' : ''}`}
+                    onClick={() => setLocalTheme(opt.value)}
+                    disabled={saving}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="input-group">
-              <label>Nueva Contraseña (Opcional)</label>
-              <input 
-                type="password" 
-                placeholder="Deja en blanco para no cambiarla"
-                value={newPassword} 
-                onChange={(e) => setNewPassword(e.target.value)} 
-              />
+              <label>Color de acento</label>
+              <div className="accent-color-group">
+                <input
+                  type="color"
+                  className="accent-color-input"
+                  value={localAccent}
+                  onChange={(e) => setLocalAccent(e.target.value)}
+                  disabled={saving}
+                />
+                <span className="accent-color-hex">{localAccent}</span>
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
-              <button type="button" className="login-button" style={{ backgroundColor: 'transparent', color: '#a0a0a0', border: '1px solid #444', flex: 1 }} onClick={onBack}>
+              <button
+                type="button"
+                className="logout-button"
+                style={{ flex: 1, padding: '14px' }}
+                onClick={onBack}
+                disabled={saving}
+              >
                 Cancelar
               </button>
-              <button type="submit" className="login-button" style={{ flex: 1 }}>
-                Guardar cambios
+              <button type="submit" className="login-button" style={{ flex: 1 }} disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>
-
           </form>
         </div>
       </main>

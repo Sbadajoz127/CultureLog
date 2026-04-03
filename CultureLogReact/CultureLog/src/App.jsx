@@ -1,61 +1,98 @@
-// src/App.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Login from './LoginRegister/Login';
 import Register from './LoginRegister/Register';
+import ForgotPassword from './LoginRegister/ForgotPassword';
+import ResetPassword from './LoginRegister/ResetPassword';
 import Home from './Home';
-import Profile from './Profile'; // <-- IMPORTAMOS EL PERFIL
+import Profile from './Profile';
 import './App.css';
 
-function App() {
-  const [currentView, setCurrentView] = useState('login');
-  const [userName, setUserName] = useState('');
+const AUTH_VIEWS = ['login', 'register', 'forgot-password', 'reset-password'];
 
-  const [userEmail, setUserEmail] = useState(''); // Guardamos el correo
-  // Ponemos una imagen por defecto (un círculo gris)
-  const [profilePic, setProfilePic] = useState('https://www.pngarts.com/files/3/Monkey-Transparent-Background-PNG.png');
+function AppContent() {
+  const { user, isAuthenticated, loading, logout } = useAuth();
+  const [currentView, setCurrentView] = useState('login');
+  const [profilePic, setProfilePic] = useState(
+    'https://www.pngarts.com/files/3/Monkey-Transparent-Background-PNG.png'
+  );
+
+  useEffect(() => {
+    if (!loading && isAuthenticated && AUTH_VIEWS.includes(currentView)) {
+      setCurrentView('home');
+    }
+  }, [loading, isAuthenticated, currentView]);
+
+  if (loading) return null;
+
+  const handleLogout = () => {
+    logout();
+    setCurrentView('login');
+  };
+
   return (
     <>
-      {(currentView === 'login' || currentView === 'register') && (
+      {AUTH_VIEWS.includes(currentView) && (
         <div className="culturelog-login-container">
           {currentView === 'login' && (
-            <Login 
-              onSwitchToRegister={() => setCurrentView('register')} 
-              onLoginSuccess={(email) => {
-                setUserName(email.split('@')[0]); 
-                setCurrentView('home'); 
-              }} 
+            <Login
+              onSwitchToRegister={() => setCurrentView('register')}
+              onLoginSuccess={() => setCurrentView('home')}
+              onForgotPassword={() => setCurrentView('forgot-password')}
             />
           )}
-          
+
           {currentView === 'register' && (
-            <Register onSwitchToLogin={() => setCurrentView('login')} />
+            <Register
+              onSwitchToLogin={() => setCurrentView('login')}
+              onRegisterSuccess={() => setCurrentView('home')}
+            />
+          )}
+
+          {currentView === 'forgot-password' && (
+            <ForgotPassword
+              onSwitchToLogin={() => setCurrentView('login')}
+              onSwitchToReset={() => setCurrentView('reset-password')}
+            />
+          )}
+
+          {currentView === 'reset-password' && (
+            <ResetPassword
+              onSwitchToLogin={() => setCurrentView('login')}
+            />
           )}
         </div>
       )}
 
-      {currentView === 'home' && (
-        <Home 
-          userName={userName} 
+      {currentView === 'home' && isAuthenticated && (
+        <Home
+          userName={user.username}
           profilePic={profilePic}
-          onLogout={() => setCurrentView('login')} 
-          onGoToProfile={() => setCurrentView('profile')} // <-- NUEVO CABLE PARA IR AL PERFIL
+          onLogout={handleLogout}
+          onGoToProfile={() => setCurrentView('profile')}
         />
       )}
 
-      {/* NUEVA PANTALLA DE PERFIL */}
-      {currentView === 'profile' && (
-        <Profile 
-          userName={userName}
-          setUserName={setUserName}
-          userEmail={userEmail}            // Pasamos el correo
-          setUserEmail={setUserEmail}      // Pasamos el poder de cambiar el correo
-          profilePic={profilePic}          // Pasamos la foto actual
-          setProfilePic={setProfilePic}    // Pasamos el poder de cambiar la foto
-          onBack={() => setCurrentView('home')} 
-          onLogout={() => setCurrentView('login')}
+      {currentView === 'profile' && isAuthenticated && (
+        <Profile
+          profilePic={profilePic}
+          setProfilePic={setProfilePic}
+          onBack={() => setCurrentView('home')}
+          onLogout={handleLogout}
         />
       )}
     </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

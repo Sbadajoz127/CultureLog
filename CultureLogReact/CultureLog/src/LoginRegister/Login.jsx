@@ -1,18 +1,31 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import '../App.css';
 
-function Login({ onSwitchToRegister, onLoginSuccess }) {
-  const [email, setEmail] = useState('');
+function Login({ onSwitchToRegister, onLoginSuccess, onForgotPassword }) {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { login } = useAuth();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setError('');
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      await login(username, password);
+      onLoginSuccess();
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Error al iniciar sesión. Inténtalo de nuevo.';
+      setError(msg);
+    } finally {
       setIsLoading(false);
-      onLoginSuccess(email)
-    }, 2000);
+    }
   };
 
   return (
@@ -23,9 +36,11 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
       </header>
 
       <form className="login-form" onSubmit={handleSubmit}>
+        {error && <p className="auth-error">{error}</p>}
+
         <div className="input-group">
-          <label htmlFor="email">Correo electrónico</label>
-          <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+          <label htmlFor="username">Nombre de usuario</label>
+          <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={isLoading} />
         </div>
 
         <div className="input-group">
@@ -39,6 +54,11 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
       </form>
 
       <footer className="footer-section">
+        <p>
+          <a href="#" className="sign-up-link" onClick={(e) => { e.preventDefault(); onForgotPassword(); }}>
+            ¿Olvidaste tu contraseña?
+          </a>
+        </p>
         <p>
           ¿Eres nuevo en CultureLog?{' '}
           <a href="#" className="sign-up-link" onClick={(e) => { e.preventDefault(); onSwitchToRegister(); }}>

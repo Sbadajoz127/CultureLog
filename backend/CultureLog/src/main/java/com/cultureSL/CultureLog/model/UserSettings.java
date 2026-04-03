@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.model;
 
 import com.cultureSL.CultureLog.model.enums.AppTheme;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -74,6 +75,7 @@ public class UserSettings {
      * Usuario propietario de esta configuración.
      * Relación Uno-a-Uno.
      */
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
