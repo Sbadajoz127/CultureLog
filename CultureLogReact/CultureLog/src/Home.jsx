@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 
-function Home({ userName, profilePic, onLogout, onGoToProfile }) {
+function Home({ userName, profilePic, onLogout, onGoToProfile, onGoToPortal }) {
   const [activeCategory, setActiveCategory] = useState('General');
   const [newPostContent, setNewPostContent] = useState('');
 
@@ -67,6 +67,9 @@ function Home({ userName, profilePic, onLogout, onGoToProfile }) {
         </nav>
 
         <div className="header-right">
+          <button className="logout-button" onClick={onGoToPortal}>
+            Mi Portal
+          </button>
           <button className="header-user-btn" onClick={onGoToProfile}>
             @{userName}
           </button>

@@ -7,6 +7,7 @@ import ForgotPassword from './LoginRegister/ForgotPassword';
 import ResetPassword from './LoginRegister/ResetPassword';
 import Home from './Home';
 import Profile from './Profile';
+import Portal from './Portal';
 import './App.css';
 
 const AUTH_VIEWS = ['login', 'register', 'forgot-password', 'reset-password'];
@@ -71,6 +72,7 @@ function AppContent() {
           profilePic={profilePic}
           onLogout={handleLogout}
           onGoToProfile={() => setCurrentView('profile')}
+          onGoToPortal={() => setCurrentView('portal')}
         />
       )}
 
@@ -78,6 +80,14 @@ function AppContent() {
         <Profile
           profilePic={profilePic}
           setProfilePic={setProfilePic}
+          onBack={() => setCurrentView('home')}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {currentView === 'portal' && isAuthenticated && (
+        <Portal
+          userName={user.username}
           onBack={() => setCurrentView('home')}
           onLogout={handleLogout}
         />
