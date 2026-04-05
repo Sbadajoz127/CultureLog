@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useTheme } from './context/ThemeContext';
+import { AppHeader } from './components/AppHeader';
+import { UserAvatar } from './components/UserAvatar';
 import { uploadImage, updateProfilePicture } from './services/api';
 import './App.css';
 
@@ -10,7 +12,15 @@ const THEME_OPTIONS = [
   { value: 'SYSTEM', label: 'Sistema' },
 ];
 
-function Profile({ profilePic, setProfilePic, onBack, onLogout }) {
+function Profile({
+  userName,
+  profilePic,
+  setProfilePic,
+  onGoHome,
+  onGoLibrary,
+  onGoProfile,
+  onLogout,
+}) {
   const { user } = useAuth();
   const { theme, accentColor, updateTheme, updateAccentColor } = useTheme();
 
@@ -20,6 +30,10 @@ function Profile({ profilePic, setProfilePic, onBack, onLogout }) {
   const [localAccent, setLocalAccent] = useState(accentColor);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!pendingFile) setPreviewPic(profilePic);
+  }, [profilePic, pendingFile]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -49,7 +63,7 @@ function Profile({ profilePic, setProfilePic, onBack, onLogout }) {
         updateAccentColor(localAccent);
       }
 
-      onBack();
+      onGoHome();
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -63,26 +77,29 @@ function Profile({ profilePic, setProfilePic, onBack, onLogout }) {
 
   return (
     <div className="home-container">
-      <header className="top-header">
-        <div className="header-left">
-          <h2 className="brand-logo" style={{ fontSize: '1.5rem', margin: 0, cursor: 'pointer' }} onClick={onBack}>
-            Culture<span>Log</span>
-          </h2>
-        </div>
-        <div className="header-right">
-          <button className="logout-button" onClick={onLogout}>Cerrar sesión</button>
-        </div>
-      </header>
+      <AppHeader
+        active="profile"
+        userName={userName}
+        profilePic={profilePic}
+        onGoHome={onGoHome}
+        onGoLibrary={onGoLibrary}
+        onGoProfile={onGoProfile}
+        onLogout={onLogout}
+      />
 
-      <main className="feed" style={{ alignItems: 'center' }}>
-        <div className="create-post-card" style={{ width: '100%', padding: '40px', maxWidth: '500px' }}>
-          <h3 style={{ marginBottom: '30px', textAlign: 'center', fontSize: '1.4rem' }}>Ajustes de Cuenta</h3>
+      <main className="feed profile-feed">
+        <div className="create-post-card profile-card">
+          <h3 className="profile-card-title">Ajustes de cuenta</h3>
 
           <form className="login-form" onSubmit={handleSave}>
             {error && <p className="auth-error">{error}</p>}
 
             <div className="profile-pic-section">
-              <img src={previewPic} alt="Tu perfil" className="profile-avatar-large" />
+              {previewPic ? (
+                <img src={previewPic} alt="Tu perfil" className="profile-avatar-large" />
+              ) : (
+                <UserAvatar name={user?.username} size="large" className="profile-avatar-large" />
+              )}
               <label htmlFor="avatar-upload" className="upload-btn">
                 Cambiar foto
               </label>
@@ -102,7 +119,7 @@ function Profile({ profilePic, setProfilePic, onBack, onLogout }) {
             </div>
 
             <div className="input-group">
-              <label>Correo Electrónico</label>
+              <label>Correo electrónico</label>
               <div className="profile-info-readonly">{user?.email}</div>
             </div>
 
@@ -139,17 +156,16 @@ function Profile({ profilePic, setProfilePic, onBack, onLogout }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+            <div className="profile-form-actions">
               <button
                 type="button"
-                className="logout-button"
-                style={{ flex: 1, padding: '14px' }}
-                onClick={onBack}
+                className="logout-button profile-action-btn"
+                onClick={onGoHome}
                 disabled={saving}
               >
                 Cancelar
               </button>
-              <button type="submit" className="login-button" style={{ flex: 1 }} disabled={saving}>
+              <button type="submit" className="login-button profile-action-btn" disabled={saving}>
                 {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>

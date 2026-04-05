@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Login from './LoginRegister/Login';
@@ -7,36 +7,35 @@ import ForgotPassword from './LoginRegister/ForgotPassword';
 import ResetPassword from './LoginRegister/ResetPassword';
 import Home from './Home';
 import Profile from './Profile';
-import Portal from './Portal';
+import Library from './Library';
 import './App.css';
 
 const AUTH_VIEWS = ['login', 'register', 'forgot-password', 'reset-password'];
 
 function AppContent() {
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [currentView, setCurrentView] = useState('login');
-  const [profilePic, setProfilePic] = useState(
-    'https://www.pngarts.com/files/3/Monkey-Transparent-Background-PNG.png'
-  );
+  const [profilePic, setProfilePic] = useState(null);
 
-  useEffect(() => {
-    if (!loading && isAuthenticated && AUTH_VIEWS.includes(currentView)) {
-      setCurrentView('home');
-    }
-  }, [loading, isAuthenticated, currentView]);
-
-  if (loading) return null;
+  const routedView =
+    isAuthenticated && AUTH_VIEWS.includes(currentView)
+      ? 'home'
+      : currentView;
 
   const handleLogout = () => {
     logout();
     setCurrentView('login');
   };
 
+  const goHome = () => setCurrentView('home');
+  const goLibrary = () => setCurrentView('library');
+  const goProfile = () => setCurrentView('profile');
+
   return (
     <>
-      {AUTH_VIEWS.includes(currentView) && (
+      {AUTH_VIEWS.includes(routedView) && (
         <div className="culturelog-login-container">
-          {currentView === 'login' && (
+          {routedView === 'login' && (
             <Login
               onSwitchToRegister={() => setCurrentView('register')}
               onLoginSuccess={() => setCurrentView('home')}
@@ -44,21 +43,21 @@ function AppContent() {
             />
           )}
 
-          {currentView === 'register' && (
+          {routedView === 'register' && (
             <Register
               onSwitchToLogin={() => setCurrentView('login')}
               onRegisterSuccess={() => setCurrentView('home')}
             />
           )}
 
-          {currentView === 'forgot-password' && (
+          {routedView === 'forgot-password' && (
             <ForgotPassword
               onSwitchToLogin={() => setCurrentView('login')}
               onSwitchToReset={() => setCurrentView('reset-password')}
             />
           )}
 
-          {currentView === 'reset-password' && (
+          {routedView === 'reset-password' && (
             <ResetPassword
               onSwitchToLogin={() => setCurrentView('login')}
             />
@@ -66,29 +65,36 @@ function AppContent() {
         </div>
       )}
 
-      {currentView === 'home' && isAuthenticated && (
+      {routedView === 'home' && isAuthenticated && (
         <Home
           userName={user.username}
           profilePic={profilePic}
           onLogout={handleLogout}
-          onGoToProfile={() => setCurrentView('profile')}
-          onGoToPortal={() => setCurrentView('portal')}
+          onGoHome={goHome}
+          onGoLibrary={goLibrary}
+          onGoProfile={goProfile}
         />
       )}
 
-      {currentView === 'profile' && isAuthenticated && (
+      {routedView === 'profile' && isAuthenticated && (
         <Profile
+          userName={user.username}
           profilePic={profilePic}
           setProfilePic={setProfilePic}
-          onBack={() => setCurrentView('home')}
+          onGoHome={goHome}
+          onGoLibrary={goLibrary}
+          onGoProfile={goProfile}
           onLogout={handleLogout}
         />
       )}
 
-      {currentView === 'portal' && isAuthenticated && (
-        <Portal
+      {routedView === 'library' && isAuthenticated && (
+        <Library
           userName={user.username}
-          onBack={() => setCurrentView('home')}
+          profilePic={profilePic}
+          onGoHome={goHome}
+          onGoLibrary={goLibrary}
+          onGoProfile={goProfile}
           onLogout={handleLogout}
         />
       )}

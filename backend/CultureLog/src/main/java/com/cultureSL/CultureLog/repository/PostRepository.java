@@ -86,4 +86,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.commentCount = CASE WHEN p.commentCount + :delta < 0 THEN 0 ELSE p.commentCount + :delta END WHERE p.id = :postId")
     void updateCommentCount(@Param("postId") Long postId, @Param("delta") int delta);
+
+    /**
+     * Quita la referencia al ítem multimedia antes de borrarlo (evita violación de FK en media_item_id).
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Post p SET p.linkedItem = null WHERE p.linkedItem.id = :mediaItemId")
+    void unlinkMediaItem(@Param("mediaItemId") Long mediaItemId);
 }

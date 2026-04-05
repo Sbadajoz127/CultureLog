@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.service;
 
+import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.model.Comment;
 import com.cultureSL.CultureLog.model.Post;
@@ -60,9 +61,10 @@ public interface PostService {
      *
      * @param postId ID de la publicación
      * @param userId ID del usuario que interactúa
+     * @return respuesta con el conteo real de likes y si el usuario actual tiene like
      * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si el post no existe
      */
-    void toggleLike(Long postId, Long userId);
+    LikeResponse toggleLike(Long postId, Long userId);
 
     /**
      * Añade un comentario a una publicación.

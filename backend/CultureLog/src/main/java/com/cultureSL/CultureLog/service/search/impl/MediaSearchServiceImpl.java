@@ -1,16 +1,16 @@
 package com.cultureSL.CultureLog.service.search.impl;
 
+import com.cultureSL.CultureLog.dto.AddToLibraryResult;
 import com.cultureSL.CultureLog.dto.MediaItemRequest;
-import com.cultureSL.CultureLog.dto.MediaItemResponse;
 import com.cultureSL.CultureLog.dto.search.MediaSearchResult;
 import com.cultureSL.CultureLog.exception.DuplicateItemException;
 import com.cultureSL.CultureLog.mapper.MediaItemMapper;
 import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
-import com.cultureSL.CultureLog.repository.MediaItemRepository;
 import com.cultureSL.CultureLog.service.ImageStorageService;
 import com.cultureSL.CultureLog.service.MediaItemService;
+import com.cultureSL.CultureLog.service.MediaLibraryDuplicateFinder;
 import com.cultureSL.CultureLog.service.search.ExternalMediaProvider;
 import com.cultureSL.CultureLog.service.search.MediaSearchService;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class MediaSearchServiceImpl implements MediaSearchService {
 
     private final List<ExternalMediaProvider> providers;
     private final MediaItemService mediaItemService;
-    private final MediaItemRepository mediaItemRepository;
+    private final MediaLibraryDuplicateFinder duplicateFinder;
     private final ImageStorageService imageStorageService;
     private final MediaItemMapper mediaItemMapper;
 
@@ -85,11 +85,16 @@ public class MediaSearchServiceImpl implements MediaSearchService {
 
     /** {@inheritDoc} */
     @Override
-    public MediaItemResponse addToLibrary(Long userId, MediaSearchResult searchResult) {
-        if (searchResult.getExternalId() != null && searchResult.getSource() != null
-                && mediaItemRepository.existsByUserIdAndExternalIdAndExternalSource(
-                        userId, searchResult.getExternalId(), searchResult.getSource())) {
-            throw new DuplicateItemException("Este ítem ya está en tu biblioteca");
+    public AddToLibraryResult addToLibrary(Long userId, MediaSearchResult searchResult) {
+        var existing =
+                duplicateFinder.findDuplicate(
+                        userId,
+                        searchResult.getType(),
+                        searchResult.getTitle(),
+                        searchResult.getExternalId(),
+                        searchResult.getSource());
+        if (existing.isPresent()) {
+            return new AddToLibraryResult(false, mediaItemMapper.toDto(existing.get()));
         }
 
         String cloudinaryUrl = null;
@@ -116,7 +121,16 @@ public class MediaSearchServiceImpl implements MediaSearchService {
 
         try {
             MediaItem savedItem = mediaItemService.addItem(userId, request);
-            return mediaItemMapper.toDto(savedItem);
+            return new AddToLibraryResult(true, mediaItemMapper.toDto(savedItem));
+        } catch (DuplicateItemException race) {
+            log.debug("Race condition: el ítem se insertó entre la comprobación y el addItem – se devuelve el existente");
+            if (cloudinaryUrl != null) {
+                try { imageStorageService.deleteImage(cloudinaryUrl); } catch (Exception ignored) { }
+            }
+            var fallback = duplicateFinder.findDuplicate(
+                    userId, searchResult.getType(), searchResult.getTitle(),
+                    searchResult.getExternalId(), searchResult.getSource());
+            return new AddToLibraryResult(false, mediaItemMapper.toDto(fallback.orElseThrow()));
         } catch (Exception e) {
             if (cloudinaryUrl != null) {
                 try {
