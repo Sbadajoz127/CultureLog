@@ -21,7 +21,7 @@ const PRIVACY_OPTIONS = [
 ];
 
 function Profile() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { theme, accentColor, settings, updateTheme, updateAccentColor, updateSettings } = useTheme();
   const { profilePic, setProfilePic } = useProfilePic();
   const navigate = useNavigate();
@@ -68,6 +68,9 @@ function Profile() {
         const { data: cloudinaryUrl } = await uploadImage(pendingFile);
         await updateProfilePicture(cloudinaryUrl);
         setProfilePic(cloudinaryUrl);
+        const updated = { ...user, profilePictureUrl: cloudinaryUrl };
+        setUser(updated);
+        localStorage.setItem('user', JSON.stringify(updated));
         setPendingFile(null);
       }
 

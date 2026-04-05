@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 const ProfilePicContext = createContext(null);
 
@@ -9,7 +10,13 @@ export function useProfilePic() {
 }
 
 export function ProfilePicProvider({ children }) {
-  const [profilePic, setProfilePic] = useState(null);
+  const { user } = useAuth();
+  const [profilePic, setProfilePic] = useState(user?.profilePictureUrl ?? null);
+
+  useEffect(() => {
+    setProfilePic(user?.profilePictureUrl ?? null);
+  }, [user?.profilePictureUrl]);
+
   return (
     <ProfilePicContext.Provider value={{ profilePic, setProfilePic }}>
       {children}

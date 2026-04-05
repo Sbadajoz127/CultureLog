@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { loginUser as apiLogin, registerUser as apiRegister } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -42,13 +41,13 @@ function readUserFromStorage() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readUserFromStorage);
-  const navigate = useNavigate();
 
   const saveSession = useCallback((data) => {
     const userData = {
       id: data.id,
       username: data.username,
       email: data.email,
+      profilePictureUrl: data.profilePictureUrl ?? null,
     };
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -76,11 +75,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const handleExpired = () => {
       logout();
-      navigate('/login');
+      window.dispatchEvent(new Event('auth:navigate-login'));
     };
     window.addEventListener('auth:expired', handleExpired);
     return () => window.removeEventListener('auth:expired', handleExpired);
-  }, [logout, navigate]);
+  }, [logout]);
 
   const value = {
     user,

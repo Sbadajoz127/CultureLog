@@ -283,6 +283,8 @@ function Home() {
     try {
       await followUser(targetId);
       setFollowingIds((prev) => new Set(prev).add(targetId));
+      loadFeed(0, false);
+      setFeedPage(0);
     } catch {
       /* ignore */
     }

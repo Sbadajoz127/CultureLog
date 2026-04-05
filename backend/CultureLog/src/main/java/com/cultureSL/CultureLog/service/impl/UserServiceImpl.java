@@ -26,7 +26,6 @@ import com.cultureSL.CultureLog.service.ImageStorageService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -296,7 +295,7 @@ public class UserServiceImpl implements UserService {
         if (hasAccess) {
             List<Post> userPosts = postRepository.findByAuthorIdOrderByCreatedAtDesc(
                     targetUserId,
-                    PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "createdAt"))
+                    PageRequest.of(0, 50)
             ).getContent();
             posts = postMapper.toDtoList(userPosts, viewerUserId);
 

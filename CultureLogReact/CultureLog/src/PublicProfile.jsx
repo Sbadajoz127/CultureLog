@@ -113,23 +113,27 @@ function PublicProfile() {
   const [libraryStatus, setLibraryStatus] = useState('VISTO');
   const [followLoading, setFollowLoading] = useState(false);
 
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (signal) => {
     setLoading(true);
     setError('');
     try {
       const { data } = await getUserProfile(userId);
-      setProfile(data);
+      if (!signal?.aborted) setProfile(data);
     } catch (e) {
-      setError(
-        e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar el perfil.'
-      );
+      if (!signal?.aborted) {
+        setError(
+          e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar el perfil.'
+        );
+      }
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [userId]);
 
   useEffect(() => {
-    loadProfile();
+    const controller = new AbortController();
+    loadProfile(controller.signal);
+    return () => controller.abort();
   }, [loadProfile]);
 
   const handleFollow = async () => {
@@ -141,8 +145,7 @@ function PublicProfile() {
         setProfile((p) => ({ ...p, followStatus: 'NONE', followerCount: Math.max(0, p.followerCount - (p.followStatus === 'ACCEPTED' ? 1 : 0)) }));
       } else {
         await followUser(userId);
-        const isPrivate = profile.profilePrivacy === 'PRIVADO' || profile.profilePrivacy === 'SOLO_AMIGOS';
-        if (isPrivate) {
+        if (profile.profilePrivacy === 'PRIVADO') {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
         } else {
           setProfile((p) => ({ ...p, followStatus: 'ACCEPTED', followerCount: p.followerCount + 1 }));
