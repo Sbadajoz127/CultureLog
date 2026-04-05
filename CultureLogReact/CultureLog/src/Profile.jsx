@@ -110,7 +110,7 @@ function Profile() {
           <button
             type="button"
             className="profile-view-public-link"
-            onClick={() => navigate(`/user/${user.id}`)}
+            onClick={() => navigate(`/user/${user.username}`)}
           >
             Ver mi perfil público
           </button>

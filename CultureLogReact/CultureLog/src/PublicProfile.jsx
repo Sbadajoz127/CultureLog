@@ -102,7 +102,7 @@ function SkeletonProfilePage() {
 }
 
 function PublicProfile() {
-  const { userId } = useParams();
+  const { username } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -117,7 +117,7 @@ function PublicProfile() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await getUserProfile(userId);
+      const { data } = await getUserProfile(username);
       if (!signal?.aborted) setProfile(data);
     } catch (e) {
       if (!signal?.aborted) {
@@ -128,7 +128,7 @@ function PublicProfile() {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [userId]);
+  }, [username]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -141,10 +141,10 @@ function PublicProfile() {
     setFollowLoading(true);
     try {
       if (profile.followStatus === 'ACCEPTED' || profile.followStatus === 'PENDING') {
-        await unfollowUser(userId);
+        await unfollowUser(profile.id);
         setProfile((p) => ({ ...p, followStatus: 'NONE', followerCount: Math.max(0, p.followerCount - (p.followStatus === 'ACCEPTED' ? 1 : 0)) }));
       } else {
-        await followUser(userId);
+        await followUser(profile.id);
         if (profile.profilePrivacy === 'PRIVADO') {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
         } else {

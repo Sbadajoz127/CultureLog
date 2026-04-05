@@ -93,11 +93,11 @@ public interface UserService {
     List<UserSuggestionResponse> getSuggestedUsers(Long userId);
 
     /**
-     * Obtiene el perfil público de un usuario, respetando la configuración de privacidad.
+     * Obtiene el perfil público de un usuario por username, respetando la configuración de privacidad.
      *
-     * @param targetUserId ID del usuario cuyo perfil se consulta
+     * @param username     nombre de usuario cuyo perfil se consulta
      * @param viewerUserId ID del usuario que visualiza el perfil
      * @return DTO con stats, estado de follow, y contenido según permisos
      */
-    UserProfileResponse getUserProfile(Long targetUserId, Long viewerUserId);
+    UserProfileResponse getUserProfileByUsername(String username, Long viewerUserId);
 }

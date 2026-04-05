@@ -264,9 +264,10 @@ public class UserServiceImpl implements UserService {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
-    public UserProfileResponse getUserProfile(Long targetUserId, Long viewerUserId) {
-        User target = userRepository.findById(targetUserId)
+    public UserProfileResponse getUserProfileByUsername(String username, Long viewerUserId) {
+        User target = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        Long targetUserId = target.getId();
 
         UserSettings settings = target.getSettings();
         ProfilePrivacy privacy = (settings != null) ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;
