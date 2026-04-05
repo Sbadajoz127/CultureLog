@@ -24,7 +24,7 @@ import com.cultureSL.CultureLog.model.enums.MediaType;
     },
     uniqueConstraints = {
         @UniqueConstraint(name = "uq_media_user_external_type",
-                columnList = "user_id, externalId, externalSource, type")
+                columnNames = {"user_id", "externalId", "externalSource", "type"})
     }
 )
 @Getter

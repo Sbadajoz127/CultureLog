@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { useAuth } from './context/AuthContext';
 import { AppHeader } from './components/AppHeader';
 import {
   MEDIA_STATUS_TABS,
@@ -15,6 +16,49 @@ import {
   deleteMediaItem,
 } from './services/api';
 import './App.css';
+
+function SkeletonLibraryItem() {
+  return (
+    <article className="library-item-card">
+      <div className="library-item-main">
+        <div className="skeleton library-item-cover library-item-cover-placeholder" />
+        <div className="library-item-body">
+          <div className="skeleton skeleton-line" style={{ width: '55%', height: 16 }} />
+          <div className="skeleton skeleton-line" style={{ width: '80%', height: 13 }} />
+          <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+            <div className="skeleton" style={{ width: 50, height: 18, borderRadius: 12 }} />
+            <div className="skeleton" style={{ width: 40, height: 18, borderRadius: 12 }} />
+          </div>
+        </div>
+      </div>
+      <div className="library-item-actions">
+        <div className="library-item-status-group">
+          <div className="skeleton" style={{ width: 45, height: 12, marginBottom: 6 }} />
+          <div className="library-item-status-pills">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="skeleton" style={{ width: 70, height: 30, borderRadius: 16 }} />
+            ))}
+          </div>
+        </div>
+        <div className="skeleton" style={{ width: 72, height: 34, borderRadius: 6 }} />
+      </div>
+    </article>
+  );
+}
+
+function SkeletonSearchSection() {
+  return (
+    <section className="create-post-card library-search-section">
+      <div className="skeleton" style={{ width: '30%', height: 18, marginBottom: 10 }} />
+      <div className="skeleton" style={{ width: '70%', height: 13, marginBottom: 16 }} />
+      <div className="library-search-form">
+        <div className="skeleton skeleton-input library-search-input" style={{ height: 44 }} />
+        <div className="skeleton" style={{ width: 130, height: 44, borderRadius: 8 }} />
+        <div className="skeleton" style={{ width: 90, height: 44, borderRadius: 8 }} />
+      </div>
+    </section>
+  );
+}
 
 function LibraryItemCard({ item, onStatusChange, onDelete, busyId }) {
   const busy = busyId === item.id;
@@ -76,11 +120,15 @@ function LibraryItemCard({ item, onStatusChange, onDelete, busyId }) {
   );
 }
 
-function Library({ userName, profilePic, onGoHome, onGoLibrary, onGoProfile, onLogout }) {
+function Library() {
+  const { user } = useAuth();
+
   const [activeStatus, setActiveStatus] = useState('POR_VER');
   const [items, setItems] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState('');
+  const [initialReady, setInitialReady] = useState(false);
+  const initialDone = useRef(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('');
@@ -104,6 +152,10 @@ function Library({ userName, profilePic, onGoHome, onGoLibrary, onGoProfile, onL
       setItems([]);
     } finally {
       setListLoading(false);
+      if (!initialDone.current) {
+        initialDone.current = true;
+        setInitialReady(true);
+      }
     }
   }, []);
 
@@ -202,19 +254,36 @@ function Library({ userName, profilePic, onGoHome, onGoLibrary, onGoProfile, onL
     }
   };
 
+  if (!initialReady) {
+    return (
+      <div className="home-container">
+        <AppHeader active="library" userName={user.username} />
+        <main className="library-main">
+          <div className="skeleton" style={{ width: '40%', height: 28, marginBottom: 24, borderRadius: 8 }} />
+          <SkeletonSearchSection />
+          <section className="library-tabs-section">
+            <div className="library-status-tabs">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="skeleton" style={{ width: 100, height: 42, borderRadius: 8 }} />
+              ))}
+            </div>
+            <div className="library-items-list">
+              <SkeletonLibraryItem />
+              <SkeletonLibraryItem />
+              <SkeletonLibraryItem />
+              <SkeletonLibraryItem />
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="home-container">
-      <AppHeader
-        active="library"
-        userName={userName}
-        profilePic={profilePic}
-        onGoHome={onGoHome}
-        onGoLibrary={onGoLibrary}
-        onGoProfile={onGoProfile}
-        onLogout={onLogout}
-      />
+      <AppHeader active="library" userName={user.username} />
 
-      <main className="library-main">
+      <main className="library-main feed-loaded">
         <h1 className="library-page-title">Mi biblioteca</h1>
 
         <section className="create-post-card library-search-section" aria-labelledby="library-search-heading">
@@ -318,11 +387,15 @@ function Library({ userName, profilePic, onGoHome, onGoLibrary, onGoProfile, onL
           {listError && <p className="auth-error library-inline-msg">{listError}</p>}
 
           {listLoading ? (
-            <p className="text-muted library-empty">Cargando…</p>
+            <div className="library-items-list">
+              <SkeletonLibraryItem />
+              <SkeletonLibraryItem />
+              <SkeletonLibraryItem />
+            </div>
           ) : items.length === 0 ? (
             <p className="text-muted library-empty">No hay ítems en esta lista.</p>
           ) : (
-            <div className="library-items-list">
+            <div className="library-items-list feed-loaded">
               {items.map((item) => (
                 <LibraryItemCard
                   key={item.id}

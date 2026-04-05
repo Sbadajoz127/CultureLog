@@ -1,27 +1,40 @@
 package com.cultureSL.CultureLog.service.impl;
 
+import com.cultureSL.CultureLog.dto.MediaItemResponse;
+import com.cultureSL.CultureLog.dto.PostResponse;
+import com.cultureSL.CultureLog.dto.UserProfileResponse;
 import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import com.cultureSL.CultureLog.dto.UserSettingsRequest;
-import com.cultureSL.CultureLog.model.PasswordResetToken;
-import com.cultureSL.CultureLog.model.User;
-import com.cultureSL.CultureLog.model.UserSettings;
+import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
+import com.cultureSL.CultureLog.mapper.MediaItemMapper;
+import com.cultureSL.CultureLog.mapper.PostMapper;
+import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.AppTheme;
+import com.cultureSL.CultureLog.model.enums.FollowStatus;
+import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
+import com.cultureSL.CultureLog.repository.FollowRepository;
+import com.cultureSL.CultureLog.repository.MediaItemRepository;
 import com.cultureSL.CultureLog.repository.PasswordResetTokenRepository;
+import com.cultureSL.CultureLog.repository.PostRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
 import com.cultureSL.CultureLog.service.EmailService;
 import com.cultureSL.CultureLog.service.UserService;
 import com.cultureSL.CultureLog.service.ImageStorageService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -47,6 +60,11 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final ImageStorageService imageStorageService;
     private final EntityManager entityManager;
+    private final FollowRepository followRepository;
+    private final PostRepository postRepository;
+    private final MediaItemRepository mediaItemRepository;
+    private final PostMapper postMapper;
+    private final MediaItemMapper mediaItemMapper;
 
     /** {@inheritDoc} */
     @Override
@@ -232,5 +250,78 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         return user.getSettings();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserSuggestionResponse> getSuggestedUsers(Long userId) {
+        return userRepository.findSuggestedUsers(userId, PageRequest.of(0, 5))
+                .stream()
+                .map(u -> new UserSuggestionResponse(u.getId(), u.getUsername(), u.getProfilePictureUrl()))
+                .toList();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public UserProfileResponse getUserProfile(Long targetUserId, Long viewerUserId) {
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        UserSettings settings = target.getSettings();
+        ProfilePrivacy privacy = (settings != null) ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;
+        boolean showFuture = (settings != null) && settings.isShowFutureList();
+        boolean isOwn = targetUserId.equals(viewerUserId);
+
+        long followerCount = followRepository.countByFollowedIdAndStatus(targetUserId, FollowStatus.ACCEPTED);
+        long followingCount = followRepository.countByFollowerIdAndStatus(targetUserId, FollowStatus.ACCEPTED);
+        long postCnt = postRepository.countByAuthorId(targetUserId);
+
+        String followStatus = "NONE";
+        if (!isOwn) {
+            Optional<Follow> relation = followRepository.findByFollowerIdAndFollowedId(viewerUserId, targetUserId);
+            if (relation.isPresent()) {
+                followStatus = relation.get().getStatus().name();
+            }
+        }
+
+        boolean hasAccess = isOwn
+                || privacy == ProfilePrivacy.PUBLICO
+                || (followStatus.equals("ACCEPTED"));
+
+        List<PostResponse> posts = Collections.emptyList();
+        List<MediaItemResponse> libraryItems = Collections.emptyList();
+
+        if (hasAccess) {
+            List<Post> userPosts = postRepository.findByAuthorIdOrderByCreatedAtDesc(
+                    targetUserId,
+                    PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "createdAt"))
+            ).getContent();
+            posts = postMapper.toDtoList(userPosts, viewerUserId);
+
+            List<MediaItem> items = mediaItemRepository.findByUserIdWithTags(targetUserId);
+            if (!isOwn && !showFuture) {
+                items = items.stream()
+                        .filter(i -> i.getStatus() != MediaStatus.POR_VER)
+                        .toList();
+            }
+            libraryItems = mediaItemMapper.toDtoList(items);
+        }
+
+        return UserProfileResponse.builder()
+                .id(target.getId())
+                .username(target.getUsername())
+                .profilePictureUrl(target.getProfilePictureUrl())
+                .profilePrivacy(privacy.name())
+                .postCount((int) postCnt)
+                .followerCount((int) followerCount)
+                .followingCount((int) followingCount)
+                .followStatus(followStatus)
+                .ownProfile(isOwn)
+                .showFutureList(showFuture)
+                .posts(posts)
+                .libraryItems(libraryItems)
+                .build();
     }
 }

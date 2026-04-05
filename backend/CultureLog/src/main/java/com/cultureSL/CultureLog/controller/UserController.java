@@ -1,12 +1,16 @@
 package com.cultureSL.CultureLog.controller;
 
+import com.cultureSL.CultureLog.dto.UserProfileResponse;
 import com.cultureSL.CultureLog.dto.UserSettingsRequest;
+import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.model.UserSettings;
 import com.cultureSL.CultureLog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Controlador REST para la gestión del perfil de usuario.
@@ -21,6 +25,19 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    /**
+     * Devuelve una lista de usuarios sugeridos para seguir (máx. 5).
+     * <p>Endpoint: {@code GET /api/users/suggestions}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 con la lista de sugerencias
+     */
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<UserSuggestionResponse>> getSuggestions(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(userService.getSuggestedUsers(userId));
+    }
 
     /**
      * Actualiza la foto de perfil del usuario autenticado.
@@ -52,6 +69,18 @@ public class UserController {
         Long userId = (Long) authentication.getPrincipal();
         userService.removeProfilePicture(userId);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Obtiene el perfil público de un usuario con stats, posts y biblioteca (según privacidad).
+     * <p>Endpoint: {@code GET /api/users/{userId}/profile}</p>
+     */
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<UserProfileResponse> getUserProfile(
+            @PathVariable Long userId,
+            Authentication authentication) {
+        Long viewerId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(userService.getUserProfile(userId, viewerId));
     }
 
     /**

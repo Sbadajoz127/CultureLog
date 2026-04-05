@@ -1,9 +1,13 @@
 package com.cultureSL.CultureLog.repository;
 
 import com.cultureSL.CultureLog.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -51,4 +55,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return {@code true} si ya existe.
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Devuelve usuarios que el usuario actual no sigue (sin relación en follows),
+     * excluyéndose a sí mismo. Útil para el widget de sugerencias.
+     *
+     * @param userId   ID del usuario autenticado.
+     * @param pageable configuración de paginación para limitar resultados.
+     * @return lista de usuarios sugeridos.
+     */
+    @Query("SELECT u FROM User u WHERE u.id <> :userId AND u.id NOT IN " +
+           "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId)")
+    List<User> findSuggestedUsers(@Param("userId") Long userId, Pageable pageable);
 }
