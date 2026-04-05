@@ -1,6 +1,6 @@
 package com.cultureSL.CultureLog.service.search;
 
-import com.cultureSL.CultureLog.dto.MediaItemResponse;
+import com.cultureSL.CultureLog.dto.AddToLibraryResult;
 import com.cultureSL.CultureLog.dto.search.MediaSearchResult;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 
@@ -41,7 +41,7 @@ public interface MediaSearchService {
      *
      * @param userId       ID del usuario autenticado
      * @param searchResult resultado de búsqueda a convertir en ítem de biblioteca
-     * @return el ítem creado en formato {@link MediaItemResponse}
+     * @return resultado con {@code created=true} si se insertó fila nueva, {@code false} si ya existía (mismo ítem devuelto)
      */
-    MediaItemResponse addToLibrary(Long userId, MediaSearchResult searchResult);
+    AddToLibraryResult addToLibrary(Long userId, MediaSearchResult searchResult);
 }

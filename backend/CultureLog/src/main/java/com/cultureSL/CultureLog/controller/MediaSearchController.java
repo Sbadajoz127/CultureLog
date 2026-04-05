@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.controller;
 
+import com.cultureSL.CultureLog.dto.AddToLibraryResult;
 import com.cultureSL.CultureLog.dto.MediaItemResponse;
 import com.cultureSL.CultureLog.dto.search.MediaSearchResult;
 import com.cultureSL.CultureLog.model.enums.MediaType;
@@ -58,7 +59,7 @@ public class MediaSearchController {
      *
      * @param authentication contexto de autenticación con el ID del usuario
      * @param searchResult   resultado de búsqueda a convertir en ítem de biblioteca
-     * @return HTTP 201 con el ítem creado en formato {@link MediaItemResponse}
+     * @return HTTP 201 si se creó el ítem; HTTP 200 si ya existía (mismo cuerpo {@link MediaItemResponse})
      */
     @PostMapping("/add-to-library")
     public ResponseEntity<MediaItemResponse> addToLibrary(
@@ -66,7 +67,11 @@ public class MediaSearchController {
             @Valid @RequestBody MediaSearchResult searchResult) {
 
         Long userId = (Long) authentication.getPrincipal();
-        MediaItemResponse response = mediaSearchService.addToLibrary(userId, searchResult);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        AddToLibraryResult result = mediaSearchService.addToLibrary(userId, searchResult);
+        MediaItemResponse body = result.item();
+        if (result.created()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        }
+        return ResponseEntity.ok(body);
     }
 }

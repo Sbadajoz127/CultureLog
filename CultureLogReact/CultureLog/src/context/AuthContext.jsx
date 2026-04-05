@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { loginUser as apiLogin, registerUser as apiRegister } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -24,22 +24,23 @@ function isTokenExpired(token) {
   return Date.now() >= payload.exp * 1000;
 }
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
-
-    if (token && stored && !isTokenExpired(token)) {
-      setUser(JSON.parse(stored));
-    } else {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+function readUserFromStorage() {
+  const token = localStorage.getItem('token');
+  const stored = localStorage.getItem('user');
+  if (token && stored && !isTokenExpired(token)) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      /* fall through */
     }
-    setLoading(false);
-  }, []);
+  }
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  return null;
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(readUserFromStorage);
 
   const saveSession = useCallback((data) => {
     const userData = {
@@ -79,7 +80,6 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     isAuthenticated: !!user,
-    loading,
     login,
     register,
     logout,

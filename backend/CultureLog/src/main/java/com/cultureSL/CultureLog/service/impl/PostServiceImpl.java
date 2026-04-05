@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.service.impl;
 
+import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.exception.UnauthorizedException;
@@ -92,24 +93,28 @@ public class PostServiceImpl implements PostService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public void toggleLike(Long postId, Long userId) {
+    public LikeResponse toggleLike(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId, userId);
+        boolean liked;
+        int delta;
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());
-            postRepository.updateLikeCount(postId, -1);
+            liked = false;
+            delta = -1;
         } else {
             try {
                 postLikeRepository.save(new PostLike(post, user));
-                postRepository.updateLikeCount(postId, 1);
+                liked = true;
+                delta = 1;
             } catch (DataIntegrityViolationException e) {
                 log.debug("Like duplicado ignorado para post {} y usuario {}", postId, userId);
-                return;
+                return new LikeResponse(post.getLikeCount(), true);
             }
 
             if (!post.getAuthor().getId().equals(userId)) {
@@ -121,6 +126,11 @@ public class PostServiceImpl implements PostService {
                 );
             }
         }
+
+        postRepository.updateLikeCount(postId, delta);
+        int newCount = Math.max(0, post.getLikeCount() + delta);
+
+        return new LikeResponse(newCount, liked);
     }
 
     /** {@inheritDoc} */

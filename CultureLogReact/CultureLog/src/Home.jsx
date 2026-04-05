@@ -1,194 +1,285 @@
-import { useState } from 'react';
-<<<<<<< HEAD
+import { useCallback, useEffect, useState } from 'react';
+import { AppHeader } from './components/AppHeader';
+import { UserAvatar } from './components/UserAvatar';
+import { FEED_TABS, MEDIA_TYPE_LABELS, postMatchesFeedTab } from './constants/media';
+import { searchResultToPayload } from './utils/mediaItem';
+import {
+  getFeed,
+  createPost,
+  togglePostLike,
+  searchMedia,
+  addToLibraryFromSearch,
+  getMediaItems,
+} from './services/api';
 import './App.css';
-=======
-import './App.css'; 
->>>>>>> dev_Daniel
 
-function Home({ userName, profilePic, onLogout, onGoToProfile, onGoToPortal }) {
-  const [activeCategory, setActiveCategory] = useState('General');
+const FEED_PAGE_SIZE = 10;
+const MAX_POST_LENGTH = 2000;
+
+function formatFeedDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function Home({
+  userName,
+  profilePic,
+  onLogout,
+  onGoHome,
+  onGoLibrary,
+  onGoProfile,
+}) {
+  const [activeTab, setActiveTab] = useState('GENERAL');
+  const [posts, setPosts] = useState([]);
+  const [feedPage, setFeedPage] = useState(0);
+  const [feedLast, setFeedLast] = useState(true);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [feedError, setFeedError] = useState('');
+
   const [newPostContent, setNewPostContent] = useState('');
-<<<<<<< HEAD
-=======
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedWork, setSelectedWork] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [libraryItems, setLibraryItems] = useState([]);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [linkedItem, setLinkedItem] = useState(null);
+  const [composerError, setComposerError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const fakeDatabase = [
-    { id: 101, title: 'Interstellar', type: 'Películas', year: '2014', creator: 'Christopher Nolan' },
-    { id: 102, title: 'El Padrino', type: 'Películas', year: '1972', creator: 'Francis Ford Coppola' },
-    { id: 103, title: '1984', type: 'Libros', year: '1949', creator: 'George Orwell' },
-    { id: 104, title: 'Cien Años de Soledad', type: 'Libros', year: '1967', creator: 'G. García Márquez' },
-    { id: 105, title: 'Abbey Road', type: 'Música', year: '1969', creator: 'The Beatles' },
-    { id: 106, title: 'Thriller', type: 'Música', year: '1982', creator: 'Michael Jackson' },
-  ];
-
-  const searchResults = searchTerm.length > 1 
-    ? fakeDatabase.filter(work => 
-        (activeCategory === 'General' || work.type === activeCategory) &&
-        work.title.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
->>>>>>> dev_Daniel
-
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      author: 'Equipo CultureLog',
-      authorPic: 'https://www.pngarts.com/files/3/Monkey-Transparent-Background-PNG.png',
-      content: '¡Bienvenido a tu nuevo espacio! Aquí puedes llevar el registro de todas tus aventuras culturales. Mira este ejemplo de reseña vinculada:',
-      category: 'Películas',
-      linkedWork: { title: 'Interstellar', year: '2014', type: 'Películas' }, 
-      
-      // 1. CAMBIO: Pasamos de un número a un array con los nombres de quienes han dado like
-      likedBy: ['Carlos', 'Maria'], 
-      date: 'Hace un momento'
+  const loadFeed = useCallback(async (page, append) => {
+    setFeedLoading(true);
+    setFeedError('');
+    try {
+      const { data } = await getFeed({ page, size: FEED_PAGE_SIZE });
+      const content = data?.content ?? [];
+      setFeedLast(data?.last ?? true);
+      setPosts((prev) => (append ? [...prev, ...content] : content));
+    } catch (e) {
+      setFeedError(
+        e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar el muro.'
+      );
+      if (!append) setPosts([]);
+    } finally {
+      setFeedLoading(false);
     }
-  ]);
+  }, []);
 
-  const handlePostSubmit = (e) => {
+  useEffect(() => {
+    setFeedPage(0);
+    loadFeed(0, false);
+  }, [loadFeed]);
+
+  const loadLibraryPicker = useCallback(async () => {
+    try {
+      const { data } = await getMediaItems({});
+      setLibraryItems(Array.isArray(data) ? data : []);
+    } catch {
+      setLibraryItems([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (libraryOpen) loadLibraryPicker();
+  }, [libraryOpen, loadLibraryPicker]);
+
+  const runWorkSearch = useCallback(async () => {
+    const q = searchTerm.trim();
+    if (q.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchLoading(true);
+    try {
+      const { data } = await searchMedia({ query: q, page: 0 });
+      setSearchResults(Array.isArray(data) ? data : []);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (searchTerm.trim().length >= 2 && !linkedItem) runWorkSearch();
+      else setSearchResults([]);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchTerm, linkedItem, runWorkSearch]);
+
+  const attachSearchResultAsLinked = async (result) => {
+    setComposerError('');
+    try {
+      const { data: item } = await addToLibraryFromSearch(searchResultToPayload(result));
+      setLinkedItem({
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        releaseDate: item.releaseDate,
+      });
+      setSearchTerm('');
+      setSearchResults([]);
+    } catch (err) {
+      setComposerError(
+        err.response?.data?.message || err.response?.data?.error || 'No se pudo vincular la obra.'
+      );
+    }
+  };
+
+  const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!newPostContent.trim()) return;
-
-    const newPost = {
-      id: Date.now(),
-<<<<<<< HEAD
-      author: userName || 'Usuario',
-      authorPic: profilePic,
-      content: newPostContent,
-      category: activeCategory === 'General' ? 'General' : activeCategory,
-      likes: 0,
-=======
-      author: userName || 'Usuario', 
-      authorPic: profilePic,         
-      content: newPostContent,
-      category: activeCategory === 'General' ? 'General' : activeCategory, 
-      linkedWork: selectedWork, 
-      
-      // 2. CAMBIO: Al crear un post, nace con 0 likes (un array vacío)
-      likedBy: [], 
->>>>>>> dev_Daniel
-      date: 'Ahora mismo'
-    };
-
-    setPosts([newPost, ...posts]);
-    setNewPostContent('');
-    setSelectedWork(null); 
-    setSearchTerm('');     
+    setSubmitting(true);
+    setComposerError('');
+    try {
+      await createPost({
+        content: newPostContent.trim(),
+        linkedMediaItemId: linkedItem?.id ?? null,
+      });
+      setNewPostContent('');
+      setLinkedItem(null);
+      setFeedPage(0);
+      await loadFeed(0, false);
+    } catch (err) {
+      setComposerError(
+        err.response?.data?.message || err.response?.data?.error || 'No se pudo publicar.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-<<<<<<< HEAD
-  const handleLike = (postId) => {
-    setPosts(posts.map((post) =>
-      post.id === postId ? { ...post, likes: post.likes + 1 } : post
-    ));
+  const handleLike = async (post) => {
+    try {
+      const { data } = await togglePostLike(post.id);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === post.id
+            ? {
+                ...p,
+                likedByCurrentUser: data.liked,
+                likeCount: data.likeCount,
+              }
+            : p
+        )
+      );
+    } catch {
+      /* ignore */
+    }
   };
 
-  const filteredPosts = activeCategory === 'General'
-    ? posts
-=======
-  // 3. CAMBIO: La nueva función súper inteligente de Likes
-  const handleLike = (postId) => {
-    const updatedPosts = posts.map((post) => {
-      if (post.id === postId) {
-        // ¿El usuario actual ya está en la lista de likes de este post?
-        const hasLiked = post.likedBy.includes(userName);
-
-        if (hasLiked) {
-          // Si ya le dio like, lo quitamos de la lista (Unlike)
-          const newLikedBy = post.likedBy.filter(name => name !== userName);
-          return { ...post, likedBy: newLikedBy };
-        } else {
-          // Si no le ha dado like, lo añadimos a la lista (Like)
-          return { ...post, likedBy: [...post.likedBy, userName] };
-        }
-      }
-      return post;
-    });
-    setPosts(updatedPosts);
+  const loadMore = () => {
+    const next = feedPage + 1;
+    setFeedPage(next);
+    loadFeed(next, true);
   };
 
-  const filteredPosts = activeCategory === 'General' 
-    ? posts 
->>>>>>> dev_Daniel
-    : posts.filter(post => post.category === activeCategory);
+  const filteredPosts = posts.filter((p) => postMatchesFeedTab(p, activeTab));
 
   return (
     <div className="home-container">
-<<<<<<< HEAD
-=======
-      
->>>>>>> dev_Daniel
-      <header className="top-header">
-        <div className="header-left">
-          <h2 className="brand-logo" style={{ fontSize: '1.5rem', margin: 0 }}>
-            Culture<span>Log</span>
-          </h2>
-        </div>
-
-        <nav className="header-center">
-          {['General', 'Libros', 'Películas', 'Música'].map((category) => (
-            <button
-              key={category}
-              className={`category-btn ${activeCategory === category ? 'active' : ''}`}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </nav>
-
-        <div className="header-right">
-<<<<<<< HEAD
-          <button className="logout-button" onClick={onGoToPortal}>
-            Mi Portal
-          </button>
-          <button className="header-user-btn" onClick={onGoToProfile}>
-            @{userName}
-=======
-          <button 
-              style={{ background: 'none', border: '1px solid #444', borderRadius: '6px', color: '#e0e0e0', padding: '6px 12px', fontSize: '0.9rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-              onClick={onGoToPortal}
-          >
-            Mi Portal 
->>>>>>> dev_Daniel
-          </button>
-          <button className="logout-button" onClick={onLogout}>
-            Cerrar sesión
-          </button>
-        </div>
-      </header>
+      <AppHeader
+        active="home"
+        userName={userName}
+        profilePic={profilePic}
+        onGoHome={onGoHome}
+        onGoLibrary={onGoLibrary}
+        onGoProfile={onGoProfile}
+        onLogout={onLogout}
+      />
 
       <main className="feed">
         <div className="create-post-card">
           <form onSubmit={handlePostSubmit}>
-<<<<<<< HEAD
-            <textarea
-              placeholder={`¿Qué quieres compartir en ${activeCategory}?`}
-=======
-            <div style={{ position: 'relative', marginBottom: '15px' }}>
-              {!selectedWork ? (
+            {composerError && <p className="auth-error">{composerError}</p>}
+
+            <div className="composer-work-wrap">
+              {!linkedItem ? (
                 <>
-                  <input 
-                    type="text" 
-                    placeholder={`🔍 Buscar obra para reseñar...`}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="portal-input"
-                    style={{ width: '100%', padding: '10px 15px', backgroundColor: '#252525', border: '1px solid #444', borderRadius: '8px', color: '#fff' }}
-                  />
+                  <div className="composer-work-row">
+                    <input
+                      type="text"
+                      placeholder="Buscar obra para vincular (API)…"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="portal-input composer-search-input"
+                      aria-label="Buscar obra en catálogos externos"
+                    />
+                    <button
+                      type="button"
+                      className="logout-button composer-library-toggle"
+                      onClick={() => setLibraryOpen((o) => !o)}
+                    >
+                      {libraryOpen ? 'Ocultar biblioteca' : 'Desde mi biblioteca'}
+                    </button>
+                  </div>
+                  {libraryOpen && (
+                    <div className="library-picker-panel">
+                      <p className="text-muted library-picker-label">Tus ítems</p>
+                      {libraryItems.length === 0 ? (
+                        <p className="text-muted library-picker-empty">No tienes ítems en tu biblioteca.</p>
+                      ) : (
+                        <div className="library-picker-grid">
+                          {libraryItems.map((it) => (
+                            <button
+                              key={it.id}
+                              type="button"
+                              className="library-picker-item"
+                              onClick={() => {
+                                setLinkedItem({
+                                  id: it.id,
+                                  title: it.title,
+                                  type: it.type,
+                                  releaseDate: it.releaseDate,
+                                });
+                                setSearchTerm('');
+                                setSearchResults([]);
+                                setLibraryOpen(false);
+                              }}
+                            >
+                              <span className="library-picker-item-title">{it.title}</span>
+                              <span className="library-picker-item-badge">
+                                {MEDIA_TYPE_LABELS[it.type] || it.type}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {searchLoading && <p className="text-muted composer-hint">Buscando…</p>}
                   {searchResults.length > 0 && (
-                    <div className="search-dropdown">
-                      {searchResults.map(result => (
-                        <div 
-                          key={result.id} 
+                    <div className="search-dropdown composer-search-dropdown">
+                      {searchResults.map((result, idx) => (
+                        <div
+                          key={`${result.source}-${result.externalId}-${idx}`}
                           className="search-result-item"
-                          onClick={() => { setSelectedWork(result); setSearchTerm(''); }}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => attachSearchResultAsLinked(result)}
+                          onKeyDown={(ev) => {
+                            if (ev.key === 'Enter' || ev.key === ' ') {
+                              ev.preventDefault();
+                              attachSearchResultAsLinked(result);
+                            }
+                          }}
                         >
-                          <strong>{result.title}</strong> 
-                          <span style={{color: '#888', fontSize: '0.85rem', marginLeft: '10px'}}>
-                            ({result.year}) - {result.creator}
+                          <strong>{result.title}</strong>
+                          <span className="search-result-meta">
+                            {result.releaseDate ? `${result.releaseDate} · ` : ''}
+                            {result.creator || ''}
                           </span>
-                          <span className="post-category-tag" style={{float: 'right'}}>{result.type}</span>
+                          <span className="post-category-tag search-result-type">
+                            {MEDIA_TYPE_LABELS[result.type] || result.type}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -196,119 +287,121 @@ function Home({ userName, profilePic, onLogout, onGoToProfile, onGoToPortal }) {
                 </>
               ) : (
                 <div className="selected-work-box">
-                  <span>Vinculado a: <strong>{selectedWork.title}</strong> <span style={{color: '#888'}}>({selectedWork.year})</span></span>
-                  <button type="button" onClick={() => setSelectedWork(null)} className="remove-work-btn">❌</button>
+                  <span>
+                    Vinculado a: <strong>{linkedItem.title}</strong>
+                    {linkedItem.releaseDate && (
+                      <span className="text-muted"> ({linkedItem.releaseDate})</span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setLinkedItem(null)}
+                    className="remove-work-btn"
+                    aria-label="Quitar obra vinculada"
+                  >
+                    Quitar
+                  </button>
                 </div>
               )}
             </div>
 
-            <textarea 
-              placeholder={`¿Qué te ha parecido?`}
->>>>>>> dev_Daniel
+            <textarea
+              placeholder="¿Qué te ha parecido?"
               value={newPostContent}
               onChange={(e) => setNewPostContent(e.target.value)}
-              maxLength={280}
+              maxLength={MAX_POST_LENGTH}
             />
             <div className="post-actions">
-              <span className="text-dim" style={{ fontSize: '0.8rem', marginRight: '15px' }}>
-                {newPostContent.length}/280
+              <span className="text-dim post-char-count">
+                {newPostContent.length}/{MAX_POST_LENGTH}
               </span>
-              <button type="submit" className="login-button" style={{ padding: '8px 25px', fontSize: '0.9rem', width: 'auto' }}>
-                Publicar en {activeCategory}
+              <button type="submit" className="login-button post-submit-btn" disabled={submitting}>
+                {submitting ? 'Publicando…' : 'Publicar'}
               </button>
             </div>
           </form>
         </div>
 
+        <nav className="feed-category-nav" aria-label="Filtrar muro por tipo de obra vinculada">
+          {FEED_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`category-btn ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {feedError && <p className="auth-error">{feedError}</p>}
+
         <div className="posts-list">
-          {filteredPosts.length > 0 ? (
-<<<<<<< HEAD
-            filteredPosts.map((post) => (
-              <div key={post.id} className="post-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'flex-start' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={post.authorPic} alt={post.author} className="post-avatar-small" />
-                    <div>
-                      <h4 className="post-author" style={{ marginBottom: '2px' }}>{post.author}</h4>
-                      <span className="post-category-tag">{post.category}</span>
-=======
+          {feedLoading && posts.length === 0 ? (
+            <p className="text-muted bg-card feed-placeholder">Cargando publicaciones…</p>
+          ) : filteredPosts.length > 0 ? (
             filteredPosts.map((post) => {
-              
-              // 4. CAMBIO: Comprobamos si TU nombre está en la lista de likes de ESTA publicación
-              const isLikedByMe = post.likedBy.includes(userName);
-              
+              const isLiked = post.likedByCurrentUser;
               return (
-                <div key={post.id} className="post-card">
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'flex-start' }}>  
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <img src={post.authorPic} alt={post.author} className="post-avatar-small" />
+                <article key={post.id} className="post-card">
+                  <div className="post-card-header">
+                    <div className="post-card-author">
+                      <UserAvatar name={post.authorName} size="small" />
                       <div>
-                        <h4 className="post-author" style={{ marginBottom: '2px' }}>{post.author}</h4>
-                        <span className="post-category-tag">{post.category}</span>
+                        <h4 className="post-author">{post.authorName}</h4>
+                        {post.linkedItemType && (
+                          <span className="post-category-tag">
+                            {MEDIA_TYPE_LABELS[post.linkedItemType] || post.linkedItemType}
+                          </span>
+                        )}
                       </div>
->>>>>>> dev_Daniel
                     </div>
-                    <span style={{ color: '#555', fontSize: '0.8rem' }}>{post.date}</span>
+                    <span className="text-dim post-date">{formatFeedDate(post.createdAt)}</span>
                   </div>
-                  
-                  {post.linkedWork && (
+
+                  {(post.linkedItemTitle || post.linkedItemId) && (
                     <div className="post-linked-work">
-                      Reseña de: <strong>{post.linkedWork.title}</strong> <span style={{color: '#a0a0a0'}}>({post.linkedWork.year})</span>
+                      Reseña de: <strong>{post.linkedItemTitle}</strong>
+                      {post.linkedItemRating != null && (
+                        <span className="text-muted"> · {post.linkedItemRating}/10</span>
+                      )}
                     </div>
                   )}
-                  
+
                   <p className="post-content">{post.content}</p>
-                  
+
                   <div className="post-footer">
-                    <button 
-                      // Si te gusta, lo pintamos de rojo suave (#ff4b4b). Si no, gris (#888)
-                      style={{ 
-                        background: 'none', 
-                        border: 'none', 
-                        color: isLikedByMe ? '#ff4b4b' : '#888', 
-                        cursor: 'pointer', 
-                        padding: 0, 
-                        fontSize: '0.95rem', 
-                        fontWeight: '600',
-                        transition: 'color 0.2s'
-                      }}
-                      onClick={() => handleLike(post.id)}
+                    <button
+                      type="button"
+                      className={`post-like-btn ${isLiked ? 'liked' : ''}`}
+                      onClick={() => handleLike(post)}
                     >
-                      {/* 5. CAMBIO: Corazón dinámico y contamos cuánta gente hay en el array */}
-                      {isLikedByMe ? '❤️' : '🤍'} {post.likedBy.length} Me gusta
+                      {isLiked ? '❤️' : '🤍'} {post.likeCount} Me gusta
                     </button>
+                    {post.commentCount > 0 && (
+                      <span className="text-muted post-comment-count">{post.commentCount} comentarios</span>
+                    )}
                   </div>
-<<<<<<< HEAD
-                  <span className="text-dim" style={{ fontSize: '0.8rem' }}>{post.date}</span>
-                </div>
-
-                <p className="post-content">{post.content}</p>
-
-                <div className="post-footer">
-                  <button
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '0.95rem', fontWeight: '600' }}
-                    className="text-faint"
-                    onClick={() => handleLike(post.id)}
-                  >
-                    🤍 {post.likes} Me gusta
-                  </button>
-                </div>
-              </div>
-            ))
-=======
-
-                </div>
+                </article>
               );
             })
->>>>>>> dev_Daniel
           ) : (
-            <div className="bg-card" style={{ textAlign: 'center', marginTop: '40px', padding: '40px', borderRadius: '12px' }}>
-              <p className="text-faint" style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Aún no hay publicaciones de {activeCategory}.</p>
-              <p style={{ fontSize: '0.9rem' }}>¡Sé el primero en compartir algo interesante!</p>
+            <div className="bg-card feed-placeholder">
+              <p className="text-faint">No hay publicaciones en esta vista.</p>
+              <p className="text-muted feed-placeholder-sub">Prueba otra pestaña o publica algo nuevo.</p>
             </div>
           )}
         </div>
+
+        {!feedLast && !feedLoading && filteredPosts.length > 0 && (
+          <button type="button" className="logout-button feed-load-more" onClick={loadMore}>
+            Cargar más
+          </button>
+        )}
+        {feedLoading && posts.length > 0 && (
+          <p className="text-muted feed-loading-more">Cargando…</p>
+        )}
       </main>
     </div>
   );

@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.controller;
 
 import com.cultureSL.CultureLog.dto.CommentRequest;
+import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostRequest;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.mapper.PostMapper;
@@ -79,13 +80,13 @@ public class PostController {
      *
      * @param postId         ID del post
      * @param authentication contexto de autenticación con el ID del usuario
-     * @return HTTP 200 sin contenido
+     * @return HTTP 200 con el conteo real de likes y estado actual
      */
     @PostMapping("/{postId}/like")
-    public ResponseEntity<Void> toggleLike(@PathVariable Long postId, Authentication authentication) {
+    public ResponseEntity<LikeResponse> toggleLike(@PathVariable Long postId, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
-        postService.toggleLike(postId, userId);
-        return ResponseEntity.ok().build();
+        LikeResponse response = postService.toggleLike(postId, userId);
+        return ResponseEntity.ok(response);
     }
 
     /**

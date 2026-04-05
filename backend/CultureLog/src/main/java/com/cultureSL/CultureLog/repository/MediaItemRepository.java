@@ -144,4 +144,10 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
      * @return {@code true} si el ítem ya existe en la biblioteca del usuario
      */
     boolean existsByUserIdAndExternalIdAndExternalSource(Long userId, String externalId, String externalSource);
+
+    Optional<MediaItem> findFirstByUserIdAndExternalIdAndExternalSourceAndType(
+            Long userId, String externalId, String externalSource, MediaType type);
+
+    Optional<MediaItem> findFirstByUserIdAndTypeAndTitleIgnoreCase(
+            Long userId, MediaType type, String title);
 }

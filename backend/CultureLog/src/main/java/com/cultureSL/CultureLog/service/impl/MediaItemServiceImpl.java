@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.dto.MediaItemRequest;
+import com.cultureSL.CultureLog.exception.DuplicateItemException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.exception.UnauthorizedException;
 import com.cultureSL.CultureLog.model.MediaItem;
@@ -8,9 +9,11 @@ import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.repository.MediaItemRepository;
+import com.cultureSL.CultureLog.repository.PostRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
 import com.cultureSL.CultureLog.service.ImageStorageService;
 import com.cultureSL.CultureLog.service.MediaItemService;
+import com.cultureSL.CultureLog.service.MediaLibraryDuplicateFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +36,9 @@ public class MediaItemServiceImpl implements MediaItemService {
 
     private final MediaItemRepository mediaItemRepository;
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
     private final ImageStorageService imageStorageService;
+    private final MediaLibraryDuplicateFinder duplicateFinder;
 
     /** {@inheritDoc} */
     @Override
@@ -62,6 +67,17 @@ public class MediaItemServiceImpl implements MediaItemService {
     public MediaItem addItem(Long userId, MediaItemRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        if (duplicateFinder
+                .findDuplicate(
+                        userId,
+                        request.getType(),
+                        request.getTitle(),
+                        request.getExternalId(),
+                        request.getExternalSource())
+                .isPresent()) {
+            throw new DuplicateItemException("Este ítem ya está en tu biblioteca");
+        }
 
         MediaItem item = new MediaItem();
         item.setTitle(request.getTitle());
@@ -119,6 +135,8 @@ public class MediaItemServiceImpl implements MediaItemService {
         if (!item.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("No tienes permiso para eliminar este item");
         }
+
+        postRepository.unlinkMediaItem(itemId);
 
         if (item.getItemImageUrl() != null) {
             imageStorageService.deleteImage(item.getItemImageUrl());

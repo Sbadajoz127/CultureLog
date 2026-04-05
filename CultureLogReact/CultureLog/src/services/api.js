@@ -66,4 +66,42 @@ export function removeProfilePicture() {
   return api.delete('/users/profile-picture');
 }
 
+export function searchMedia({ query, type, page = 0 }) {
+  const params = new URLSearchParams({ query, page: String(page) });
+  if (type) params.set('type', type);
+  return api.get(`/search?${params.toString()}`);
+}
+
+export function addToLibraryFromSearch(body) {
+  return api.post('/search/add-to-library', body);
+}
+
+export function getMediaItems({ type, status } = {}) {
+  const params = new URLSearchParams();
+  if (type) params.set('type', type);
+  if (status) params.set('status', status);
+  const q = params.toString();
+  return api.get(q ? `/items?${q}` : '/items');
+}
+
+export function updateMediaItem(id, body) {
+  return api.put(`/items/${id}`, body);
+}
+
+export function deleteMediaItem(id) {
+  return api.delete(`/items/${id}`);
+}
+
+export function getFeed({ page = 0, size = 10 } = {}) {
+  return api.get('/posts/feed', { params: { page, size } });
+}
+
+export function createPost(body) {
+  return api.post('/posts', body);
+}
+
+export function togglePostLike(postId) {
+  return api.post(`/posts/${postId}/like`);
+}
+
 export default api;
