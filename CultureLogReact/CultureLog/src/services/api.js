@@ -116,8 +116,8 @@ export function unfollowUser(targetId) {
   return api.delete(`/follows?targetId=${targetId}`);
 }
 
-export function getUserProfile(userId) {
-  return api.get(`/users/${userId}/profile`);
+export function getUserProfile(username) {
+  return api.get(`/users/profile/${encodeURIComponent(username)}`);
 }
 
 export default api;

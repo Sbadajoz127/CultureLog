@@ -480,8 +480,8 @@ function Home() {
                             className="post-author post-author-link"
                             role="button"
                             tabIndex={0}
-                            onClick={() => navigate(`/user/${post.authorId}`)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorId}`); }}
+                            onClick={() => navigate(`/user/${post.authorName}`)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
                           >
                             {post.authorName}
                           </h4>
@@ -552,8 +552,8 @@ function Home() {
                         className="suggestion-user suggestion-user-link"
                         role="button"
                         tabIndex={0}
-                        onClick={() => navigate(`/user/${u.id}`)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${u.id}`); }}
+                        onClick={() => navigate(`/user/${u.username}`)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${u.username}`); }}
                       >
                         <UserAvatar src={u.profilePictureUrl} name={u.username} size="small" />
                         <span className="suggestion-username">@{u.username}</span>

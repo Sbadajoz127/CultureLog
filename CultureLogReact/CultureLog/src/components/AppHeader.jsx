@@ -43,14 +43,14 @@ export function AppHeader({ active = 'home', userName }) {
         <button
           type="button"
           className={`nav-link ${active === 'profile' ? 'active' : ''}`}
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate(`/user/${userName}`)}
         >
           Perfil
         </button>
       </nav>
 
       <div className="header-right header-user-cluster">
-        <button type="button" className="header-user-btn" onClick={() => navigate('/profile')}>
+        <button type="button" className="header-user-btn" onClick={() => navigate(`/user/${userName}`)}>
           <UserAvatar src={profilePic} name={userName} size="small" />
           <span>@{userName}</span>
         </button>

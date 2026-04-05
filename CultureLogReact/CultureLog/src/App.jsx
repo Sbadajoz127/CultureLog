@@ -48,7 +48,7 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/user/:userId" element={<PublicProfile />} />
+                <Route path="/user/:username" element={<PublicProfile />} />
               </Route>
 
               {/* Fallback */}

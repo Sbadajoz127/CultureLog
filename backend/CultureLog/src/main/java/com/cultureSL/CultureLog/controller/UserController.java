@@ -73,14 +73,14 @@ public class UserController {
 
     /**
      * Obtiene el perfil público de un usuario con stats, posts y biblioteca (según privacidad).
-     * <p>Endpoint: {@code GET /api/users/{userId}/profile}</p>
+     * <p>Endpoint: {@code GET /api/users/profile/{username}}</p>
      */
-    @GetMapping("/{userId}/profile")
+    @GetMapping("/profile/{username}")
     public ResponseEntity<UserProfileResponse> getUserProfile(
-            @PathVariable Long userId,
+            @PathVariable String username,
             Authentication authentication) {
         Long viewerId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(userService.getUserProfile(userId, viewerId));
+        return ResponseEntity.ok(userService.getUserProfileByUsername(username, viewerId));
     }
 
     /**
