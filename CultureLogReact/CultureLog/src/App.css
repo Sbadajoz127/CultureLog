@@ -1166,15 +1166,16 @@ input[type="password"]::-ms-clear {
 }
 
 /* Perfil */
-.profile-feed {
+ .profile-feed {
   max-width: 700px;
   width: 100%;
-}
+} 
 
 .profile-card {
   width: 100%;
   max-width: 500px;
   padding: 40px;
+  align-self: center;
 }
 
 .profile-card-title {
