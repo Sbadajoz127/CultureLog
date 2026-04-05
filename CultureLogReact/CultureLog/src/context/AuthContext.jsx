@@ -47,6 +47,7 @@ export function AuthProvider({ children }) {
       id: data.id,
       username: data.username,
       email: data.email,
+      profilePictureUrl: data.profilePictureUrl ?? null,
     };
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -72,7 +73,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const handleExpired = () => logout();
+    const handleExpired = () => {
+      logout();
+      window.dispatchEvent(new Event('auth:navigate-login'));
+    };
     window.addEventListener('auth:expired', handleExpired);
     return () => window.removeEventListener('auth:expired', handleExpired);
   }, [logout]);

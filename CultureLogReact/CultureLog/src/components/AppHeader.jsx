@@ -1,22 +1,26 @@
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useProfilePic } from '../context/ProfilePicContext';
 import { UserAvatar } from './UserAvatar';
 import '../App.css';
 
 /**
  * @param {'home'|'library'|'profile'} active
  */
-export function AppHeader({
-  active = 'home',
-  userName,
-  profilePic,
-  onGoHome,
-  onGoLibrary,
-  onGoProfile,
-  onLogout,
-}) {
+export function AppHeader({ active = 'home', userName }) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { profilePic } = useProfilePic();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <header className="top-header">
       <div className="header-left">
-        <h2 className="brand-logo brand-logo-clickable" onClick={onGoHome}>
+        <h2 className="brand-logo brand-logo-clickable" onClick={() => navigate('/home')}>
           Culture<span>Log</span>
         </h2>
       </div>
@@ -25,32 +29,32 @@ export function AppHeader({
         <button
           type="button"
           className={`nav-link ${active === 'home' ? 'active' : ''}`}
-          onClick={onGoHome}
+          onClick={() => navigate('/home')}
         >
           Inicio
         </button>
         <button
           type="button"
           className={`nav-link ${active === 'library' ? 'active' : ''}`}
-          onClick={onGoLibrary}
+          onClick={() => navigate('/library')}
         >
           Mi biblioteca
         </button>
         <button
           type="button"
           className={`nav-link ${active === 'profile' ? 'active' : ''}`}
-          onClick={onGoProfile}
+          onClick={() => navigate('/profile')}
         >
           Perfil
         </button>
       </nav>
 
       <div className="header-right header-user-cluster">
-        <button type="button" className="header-user-btn" onClick={onGoProfile}>
+        <button type="button" className="header-user-btn" onClick={() => navigate('/profile')}>
           <UserAvatar src={profilePic} name={userName} size="small" />
           <span>@{userName}</span>
         </button>
-        <button type="button" className="logout-button" onClick={onLogout}>
+        <button type="button" className="logout-button" onClick={handleLogout}>
           Cerrar sesión
         </button>
       </div>

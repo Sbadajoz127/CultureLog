@@ -21,6 +21,8 @@ public class AuthResponse {
     private String username;
     /** Correo electrónico registrado. */
     private String email;
+    /** URL de la foto de perfil del usuario (puede ser null). */
+    private String profilePictureUrl;
     /** Token JWT para autenticación en endpoints protegidos. */
     private String token;
     /** Mensaje informativo sobre el resultado de la operación (ej. "Login exitoso"). */

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useTheme } from './context/ThemeContext';
+import { useProfilePic } from './context/ProfilePicContext';
 import { AppHeader } from './components/AppHeader';
 import { UserAvatar } from './components/UserAvatar';
 import { uploadImage, updateProfilePicture } from './services/api';
@@ -12,28 +14,41 @@ const THEME_OPTIONS = [
   { value: 'SYSTEM', label: 'Sistema' },
 ];
 
-function Profile({
-  userName,
-  profilePic,
-  setProfilePic,
-  onGoHome,
-  onGoLibrary,
-  onGoProfile,
-  onLogout,
-}) {
-  const { user } = useAuth();
-  const { theme, accentColor, updateTheme, updateAccentColor } = useTheme();
+const PRIVACY_OPTIONS = [
+  { value: 'PUBLICO', label: 'Público' },
+  { value: 'SOLO_AMIGOS', label: 'Solo amigos' },
+  { value: 'PRIVADO', label: 'Privado' },
+];
+
+function Profile() {
+  const { user, setUser } = useAuth();
+  const { theme, accentColor, settings, updateTheme, updateAccentColor, updateSettings } = useTheme();
+  const { profilePic, setProfilePic } = useProfilePic();
+  const navigate = useNavigate();
 
   const [previewPic, setPreviewPic] = useState(profilePic);
   const [pendingFile, setPendingFile] = useState(null);
   const [localTheme, setLocalTheme] = useState(theme);
   const [localAccent, setLocalAccent] = useState(accentColor);
+  const [localPrivacy, setLocalPrivacy] = useState(settings?.profilePrivacy || 'PUBLICO');
+  const [localAllowComments, setLocalAllowComments] = useState(settings?.allowComments ?? true);
+  const [localShowFutureList, setLocalShowFutureList] = useState(settings?.showFutureList ?? true);
+  const [localEmailNotifications, setLocalEmailNotifications] = useState(settings?.emailNotifications ?? true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!pendingFile) setPreviewPic(profilePic);
   }, [profilePic, pendingFile]);
+
+  useEffect(() => {
+    if (settings) {
+      setLocalPrivacy(settings.profilePrivacy || 'PUBLICO');
+      setLocalAllowComments(settings.allowComments ?? true);
+      setLocalShowFutureList(settings.showFutureList ?? true);
+      setLocalEmailNotifications(settings.emailNotifications ?? true);
+    }
+  }, [settings]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -53,6 +68,9 @@ function Profile({
         const { data: cloudinaryUrl } = await uploadImage(pendingFile);
         await updateProfilePicture(cloudinaryUrl);
         setProfilePic(cloudinaryUrl);
+        const updated = { ...user, profilePictureUrl: cloudinaryUrl };
+        setUser(updated);
+        localStorage.setItem('user', JSON.stringify(updated));
         setPendingFile(null);
       }
 
@@ -63,7 +81,14 @@ function Profile({
         updateAccentColor(localAccent);
       }
 
-      onGoHome();
+      await updateSettings({
+        profilePrivacy: localPrivacy,
+        allowComments: localAllowComments,
+        showFutureList: localShowFutureList,
+        emailNotifications: localEmailNotifications,
+      });
+
+      navigate('/home');
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -77,19 +102,18 @@ function Profile({
 
   return (
     <div className="home-container">
-      <AppHeader
-        active="profile"
-        userName={userName}
-        profilePic={profilePic}
-        onGoHome={onGoHome}
-        onGoLibrary={onGoLibrary}
-        onGoProfile={onGoProfile}
-        onLogout={onLogout}
-      />
+      <AppHeader active="profile" userName={user.username} />
 
       <main className="feed profile-feed">
         <div className="create-post-card profile-card">
           <h3 className="profile-card-title">Ajustes de cuenta</h3>
+          <button
+            type="button"
+            className="profile-view-public-link"
+            onClick={() => navigate(`/user/${user.id}`)}
+          >
+            Ver mi perfil público
+          </button>
 
           <form className="login-form" onSubmit={handleSave}>
             {error && <p className="auth-error">{error}</p>}
@@ -124,6 +148,7 @@ function Profile({
             </div>
 
             <hr className="section-divider" />
+            <h4 className="settings-section-title">Apariencia</h4>
 
             <div className="input-group">
               <label>Tema de la aplicación</label>
@@ -156,11 +181,76 @@ function Profile({
               </div>
             </div>
 
+            <hr className="section-divider" />
+            <h4 className="settings-section-title">Privacidad y social</h4>
+
+            <div className="input-group">
+              <label>Privacidad del perfil</label>
+              <div className="theme-selector">
+                {PRIVACY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`theme-option ${localPrivacy === opt.value ? 'active' : ''}`}
+                    onClick={() => setLocalPrivacy(opt.value)}
+                    disabled={saving}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label>Permitir comentarios</label>
+              <button
+                type="button"
+                className={`toggle-switch ${localAllowComments ? 'active' : ''}`}
+                onClick={() => setLocalAllowComments((v) => !v)}
+                disabled={saving}
+                role="switch"
+                aria-checked={localAllowComments}
+              >
+                <span className="toggle-knob" />
+              </button>
+            </div>
+
+            <div className="input-group">
+              <label>Mostrar lista &quot;Por ver&quot;</label>
+              <button
+                type="button"
+                className={`toggle-switch ${localShowFutureList ? 'active' : ''}`}
+                onClick={() => setLocalShowFutureList((v) => !v)}
+                disabled={saving}
+                role="switch"
+                aria-checked={localShowFutureList}
+              >
+                <span className="toggle-knob" />
+              </button>
+            </div>
+
+            <hr className="section-divider" />
+            <h4 className="settings-section-title">Notificaciones</h4>
+
+            <div className="input-group">
+              <label>Notificaciones por email</label>
+              <button
+                type="button"
+                className={`toggle-switch ${localEmailNotifications ? 'active' : ''}`}
+                onClick={() => setLocalEmailNotifications((v) => !v)}
+                disabled={saving}
+                role="switch"
+                aria-checked={localEmailNotifications}
+              >
+                <span className="toggle-knob" />
+              </button>
+            </div>
+
             <div className="profile-form-actions">
               <button
                 type="button"
                 className="logout-button profile-action-btn"
-                onClick={onGoHome}
+                onClick={() => navigate('/home')}
                 disabled={saving}
               >
                 Cancelar

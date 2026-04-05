@@ -104,4 +104,20 @@ export function togglePostLike(postId) {
   return api.post(`/posts/${postId}/like`);
 }
 
+export function getSuggestedUsers() {
+  return api.get('/users/suggestions');
+}
+
+export function followUser(targetId) {
+  return api.post(`/follows?targetId=${targetId}`);
+}
+
+export function unfollowUser(targetId) {
+  return api.delete(`/follows?targetId=${targetId}`);
+}
+
+export function getUserProfile(userId) {
+  return api.get(`/users/${userId}/profile`);
+}
+
 export default api;

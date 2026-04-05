@@ -1,9 +1,12 @@
 package com.cultureSL.CultureLog.service;
 
+import com.cultureSL.CultureLog.dto.UserProfileResponse;
 import com.cultureSL.CultureLog.dto.UserSettingsRequest;
+import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.model.UserSettings;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -80,4 +83,21 @@ public interface UserService {
     UserSettings updateSettings(Long userId, UserSettingsRequest request);
 
     UserSettings getSettings(Long userId);
+
+    /**
+     * Devuelve una lista de usuarios sugeridos para seguir.
+     *
+     * @param userId ID del usuario autenticado
+     * @return lista de sugerencias con datos básicos (id, username, foto)
+     */
+    List<UserSuggestionResponse> getSuggestedUsers(Long userId);
+
+    /**
+     * Obtiene el perfil público de un usuario, respetando la configuración de privacidad.
+     *
+     * @param targetUserId ID del usuario cuyo perfil se consulta
+     * @param viewerUserId ID del usuario que visualiza el perfil
+     * @return DTO con stats, estado de follow, y contenido según permisos
+     */
+    UserProfileResponse getUserProfile(Long targetUserId, Long viewerUserId);
 }

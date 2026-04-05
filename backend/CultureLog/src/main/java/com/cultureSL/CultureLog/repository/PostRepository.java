@@ -93,4 +93,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Post p SET p.linkedItem = null WHERE p.linkedItem.id = :mediaItemId")
     void unlinkMediaItem(@Param("mediaItemId") Long mediaItemId);
+
+    long countByAuthorId(Long authorId);
 }

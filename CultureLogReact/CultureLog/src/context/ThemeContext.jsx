@@ -89,6 +89,10 @@ export function ThemeProvider({ children }) {
     persistSettings({ accentColor: newColor });
   }, [persistSettings]);
 
+  const updateSettings = useCallback((patch) => {
+    return persistSettings(patch);
+  }, [persistSettings]);
+
   const value = {
     theme,
     accentColor,
@@ -96,6 +100,7 @@ export function ThemeProvider({ children }) {
     loading,
     updateTheme,
     updateAccentColor,
+    updateSettings,
   };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
