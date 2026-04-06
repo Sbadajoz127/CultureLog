@@ -126,6 +126,7 @@ function Home() {
   const [suggestions, setSuggestions] = useState([]);
   const [followingIds, setFollowingIds] = useState(new Set());
 
+  const [likingPostId, setLikingPostId] = useState(null);
   const [initialReady, setInitialReady] = useState(false);
   const feedDone = useRef(false);
   const suggestionsDone = useRef(false);
@@ -260,6 +261,8 @@ function Home() {
   };
 
   const handleLike = async (post) => {
+    if (likingPostId === post.id) return;
+    setLikingPostId(post.id);
     try {
       const { data } = await togglePostLike(post.id);
       setPosts((prev) =>
@@ -275,6 +278,8 @@ function Home() {
       );
     } catch {
       /* ignore */
+    } finally {
+      setLikingPostId(null);
     }
   };
 
@@ -474,7 +479,7 @@ function Home() {
                   <article key={post.id} className="post-card">
                     <div className="post-card-header">
                       <div className="post-card-author">
-                        <UserAvatar name={post.authorName} size="small" />
+                        <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
                         <div>
                           <h4
                             className="post-author post-author-link"
@@ -511,6 +516,7 @@ function Home() {
                         type="button"
                         className={`post-like-btn ${isLiked ? 'liked' : ''}`}
                         onClick={() => handleLike(post)}
+                        disabled={likingPostId === post.id}
                       >
                         {isLiked ? '❤️' : '🤍'} {post.likeCount} Me gusta
                       </button>

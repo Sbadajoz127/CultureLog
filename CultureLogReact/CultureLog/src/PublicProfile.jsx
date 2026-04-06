@@ -112,6 +112,7 @@ function PublicProfile() {
   const [activeTab, setActiveTab] = useState('posts');
   const [libraryStatus, setLibraryStatus] = useState('VISTO');
   const [followLoading, setFollowLoading] = useState(false);
+  const [likingPostId, setLikingPostId] = useState(null);
 
   const loadProfile = useCallback(async (signal) => {
     setLoading(true);
@@ -160,6 +161,8 @@ function PublicProfile() {
   };
 
   const handleLike = async (post) => {
+    if (likingPostId === post.id) return;
+    setLikingPostId(post.id);
     try {
       const { data } = await togglePostLike(post.id);
       setProfile((p) => ({
@@ -172,6 +175,8 @@ function PublicProfile() {
       }));
     } catch {
       /* ignore */
+    } finally {
+      setLikingPostId(null);
     }
   };
 
@@ -360,6 +365,7 @@ function PublicProfile() {
                                 type="button"
                                 className={`post-like-btn ${post.likedByCurrentUser ? 'liked' : ''}`}
                                 onClick={() => handleLike(post)}
+                                disabled={likingPostId === post.id}
                               >
                                 {post.likedByCurrentUser ? '❤️' : '🤍'} {post.likeCount} Me gusta
                               </button>

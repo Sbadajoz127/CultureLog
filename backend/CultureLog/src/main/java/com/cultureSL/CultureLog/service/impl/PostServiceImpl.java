@@ -105,6 +105,7 @@ public class PostServiceImpl implements PostService {
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());
+            postLikeRepository.flush();
             liked = false;
             delta = -1;
         } else {
@@ -128,7 +129,9 @@ public class PostServiceImpl implements PostService {
         }
 
         postRepository.updateLikeCount(postId, delta);
-        int newCount = Math.max(0, post.getLikeCount() + delta);
+        int newCount = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"))
+                .getLikeCount();
 
         return new LikeResponse(newCount, liked);
     }
