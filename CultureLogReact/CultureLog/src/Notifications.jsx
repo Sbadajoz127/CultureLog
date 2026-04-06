@@ -15,6 +15,8 @@ const ICON_MAP = {
   LIKE_POST: Heart,
   COMENTARIO_POST: MessageCircle,
   NUEVO_SEGUIDOR: UserPlus,
+  SOLICITUD_SEGUIMIENTO: UserPlus,
+  SOLICITUD_ACEPTADA: UserPlus,
   NUEVO_POST: BookOpen,
 };
 
@@ -22,6 +24,8 @@ const TYPE_LABELS = {
   LIKE_POST: 'Me gusta',
   COMENTARIO_POST: 'Comentario',
   NUEVO_SEGUIDOR: 'Nuevo seguidor',
+  SOLICITUD_SEGUIMIENTO: 'Solicitud de seguimiento',
+  SOLICITUD_ACEPTADA: 'Solicitud aceptada',
   NUEVO_POST: 'Nueva publicación',
 };
 
@@ -192,7 +196,7 @@ export default function Notifications() {
         prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
       );
     }
-    if (notif.type === 'NUEVO_SEGUIDOR') {
+    if (notif.type === 'NUEVO_SEGUIDOR' || notif.type === 'SOLICITUD_SEGUIMIENTO' || notif.type === 'SOLICITUD_ACEPTADA') {
       navigate(`/user/${notif.actorName}`);
     } else if (notif.referenceId) {
       navigate('/home');

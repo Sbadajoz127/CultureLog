@@ -54,6 +54,8 @@ public class FollowServiceImpl implements FollowService {
                 throw new BadRequestException("Ya sigues a este usuario");
             } else if (existing.getStatus() == FollowStatus.PENDING) {
                 throw new BadRequestException("Ya tienes una solicitud de seguimiento pendiente");
+            } else if (existing.getStatus() == FollowStatus.REJECTED) {
+                throw new BadRequestException("Tu solicitud de seguimiento fue rechazada");
             } else if (existing.getStatus() == FollowStatus.BLOCKED) {
                 throw new BadRequestException("No puedes seguir a este usuario");
             }
@@ -69,7 +71,7 @@ public class FollowServiceImpl implements FollowService {
         follow.setFollowed(followed);
 
         UserSettings settings = followed.getSettings();
-        if (settings != null && settings.getProfilePrivacy() == ProfilePrivacy.PRIVADO) {
+        if (settings != null && settings.getProfilePrivacy() != ProfilePrivacy.PUBLICO) {
             follow.setStatus(FollowStatus.PENDING);
         } else {
             follow.setStatus(FollowStatus.ACCEPTED);
@@ -77,16 +79,21 @@ public class FollowServiceImpl implements FollowService {
 
         followRepository.save(follow);
 
-        if (settings != null && settings.isEmailNotifications()) {
+        if (follow.getStatus() == FollowStatus.ACCEPTED
+                && settings != null && settings.isEmailNotifications()) {
             emailService.sendNewFollowerNotification(
                     followed.getEmail(),
                     follower.getUsername());
         }
 
+        NotificationType notifType = (follow.getStatus() == FollowStatus.PENDING)
+                ? NotificationType.SOLICITUD_SEGUIMIENTO
+                : NotificationType.NUEVO_SEGUIDOR;
+
         notificationService.createNotification(
                 followedId,
                 followerId,
-                NotificationType.NUEVO_SEGUIDOR,
+                notifType,
                 null
         );
     }
@@ -95,7 +102,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     @Transactional
     public void unfollowUser(Long followerId, Long followedId) {
-        Follow follow = followRepository.findByFollowerIdAndFollowedId(followerId, followedId)
+        Follow follow = followRepository.findByFollowerIdAndFollowedIdAndStatus(followerId, followedId, FollowStatus.ACCEPTED)
                 .orElseThrow(() -> new ResourceNotFoundException("No sigues a este usuario"));
 
         followRepository.delete(follow);
@@ -142,7 +149,7 @@ public class FollowServiceImpl implements FollowService {
         notificationService.createNotification(
                 followerId,
                 followedId,
-                NotificationType.NUEVO_SEGUIDOR,
+                NotificationType.SOLICITUD_ACEPTADA,
                 null
         );
     }
@@ -154,7 +161,8 @@ public class FollowServiceImpl implements FollowService {
         Follow follow = followRepository.findByFollowerIdAndFollowedIdAndStatus(followerId, followedId, FollowStatus.PENDING)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud de seguimiento no encontrada"));
 
-        followRepository.delete(follow);
+        follow.setStatus(FollowStatus.REJECTED);
+        followRepository.save(follow);
     }
 
     /** {@inheritDoc} */

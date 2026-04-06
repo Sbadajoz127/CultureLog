@@ -9,6 +9,8 @@ const ICON_MAP = {
   LIKE_POST: Heart,
   COMENTARIO_POST: MessageCircle,
   NUEVO_SEGUIDOR: UserPlus,
+  SOLICITUD_SEGUIMIENTO: UserPlus,
+  SOLICITUD_ACEPTADA: UserPlus,
   NUEVO_POST: BookOpen,
 };
 
@@ -66,7 +68,7 @@ export function NotificationBell() {
   function handleNotificationClick(notif) {
     if (!notif.read) markRead(notif.id);
     setOpen(false);
-    if (notif.type === 'NUEVO_SEGUIDOR') {
+    if (notif.type === 'NUEVO_SEGUIDOR' || notif.type === 'SOLICITUD_SEGUIMIENTO' || notif.type === 'SOLICITUD_ACEPTADA') {
       navigate(`/user/${notif.actorName}`);
     } else if (notif.referenceId) {
       navigate('/home');

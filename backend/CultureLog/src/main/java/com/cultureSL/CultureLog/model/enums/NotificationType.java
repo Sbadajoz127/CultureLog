@@ -14,5 +14,9 @@ public enum NotificationType {
     /** Alguien ha comentado en una publicación del usuario. */
     COMENTARIO_POST,
     /** Una persona a la que el usuario sigue ha publicado nuevo contenido. */
-    NUEVO_POST
+    NUEVO_POST,
+    /** Alguien ha solicitado seguir al usuario (cuenta privada o solo amigos). */
+    SOLICITUD_SEGUIMIENTO,
+    /** El usuario destino ha aceptado la solicitud de seguimiento. */
+    SOLICITUD_ACEPTADA
 }

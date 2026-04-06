@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import { useProfilePic } from './context/ProfilePicContext';
 import { AppHeader } from './components/AppHeader';
 import { UserAvatar } from './components/UserAvatar';
+import { Heart } from 'lucide-react';
 import { FEED_TABS, MEDIA_TYPE_LABELS, postMatchesFeedTab } from './constants/media';
 import { searchResultToPayload } from './utils/mediaItem';
 import {
@@ -518,7 +519,7 @@ function Home() {
                         onClick={() => handleLike(post)}
                         disabled={likingPostId === post.id}
                       >
-                        {isLiked ? '❤️' : '🤍'} {post.likeCount} Me gusta
+                        <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} /> {post.likeCount} Me gusta
                       </button>
                       {post.commentCount > 0 && (
                         <span className="text-muted post-comment-count">{post.commentCount} comentarios</span>
