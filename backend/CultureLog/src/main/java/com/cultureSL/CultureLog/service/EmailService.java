@@ -27,6 +27,22 @@ public interface EmailService {
     void sendNewFollowerNotification(String toEmail, String followerUsername);
 
     /**
+     * Envía una notificación por email informando de un like en una publicación.
+     *
+     * @param toEmail       dirección de correo del autor del post
+     * @param likerUsername nombre de usuario que dio like
+     */
+    void sendLikeNotification(String toEmail, String likerUsername);
+
+    /**
+     * Envía una notificación por email informando de un comentario en una publicación.
+     *
+     * @param toEmail            dirección de correo del autor del post
+     * @param commenterUsername  nombre de usuario que comentó
+     */
+    void sendCommentNotification(String toEmail, String commenterUsername);
+
+    /**
      * Envía un email con el enlace para restablecer la contraseña.
      *
      * @param to    dirección de correo del usuario

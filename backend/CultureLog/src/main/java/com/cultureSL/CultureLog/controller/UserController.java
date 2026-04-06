@@ -73,38 +73,42 @@ public class UserController {
 
     /**
      * Obtiene el perfil público de un usuario con stats, posts y biblioteca (según privacidad).
-     * <p>Endpoint: {@code GET /api/users/{userId}/profile}</p>
+     * <p>Endpoint: {@code GET /api/users/profile/{username}}</p>
      */
-    @GetMapping("/{userId}/profile")
+    @GetMapping("/profile/{username}")
     public ResponseEntity<UserProfileResponse> getUserProfile(
-            @PathVariable Long userId,
+            @PathVariable String username,
             Authentication authentication) {
         Long viewerId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(userService.getUserProfile(userId, viewerId));
+        return ResponseEntity.ok(userService.getUserProfileByUsername(username, viewerId));
     }
 
     /**
-     * Obtiene la configuración actual del usuario.
-     * <p>Endpoint: {@code GET /api/users/{userId}/settings}</p>
-     * * @param userId ID del usuario.
+     * Obtiene la configuración actual del usuario autenticado.
+     * <p>Endpoint: {@code GET /api/users/settings}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
      * @return Objeto UserSettings con las preferencias.
      */
-    @GetMapping("/{userId}/settings")
-    public ResponseEntity<UserSettings> getSettings(@PathVariable Long userId) {
+    @GetMapping("/settings")
+    public ResponseEntity<UserSettings> getSettings(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(userService.getSettings(userId));
     }
 
     /**
-     * Actualiza la configuración del usuario.
-     * <p>Endpoint: {@code PUT /api/users/{userId}/settings}</p>
-     * * @param userId  ID del usuario.
+     * Actualiza la configuración del usuario autenticado.
+     * <p>Endpoint: {@code PUT /api/users/settings}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
      * @param request JSON con los nuevos valores.
      * @return La configuración actualizada.
      */
-    @PutMapping("/{userId}/settings")
+    @PutMapping("/settings")
     public ResponseEntity<UserSettings> updateSettings(
-            @PathVariable Long userId,
+            Authentication authentication,
             @RequestBody UserSettingsRequest request) {
+        Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(userService.updateSettings(userId, request));
     }
 }

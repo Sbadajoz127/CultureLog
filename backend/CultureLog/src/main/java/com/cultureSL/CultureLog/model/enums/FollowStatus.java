@@ -14,6 +14,11 @@ public enum FollowStatus {
      */
     ACCEPTED,
     /**
+     * La solicitud de seguimiento fue rechazada por el usuario destino.
+     * El solicitante no puede volver a enviar una solicitud.
+     */
+    REJECTED,
+    /**
      * El usuario ha sido bloqueado y no puede interactuar ni ver el perfil.
      */
     BLOCKED

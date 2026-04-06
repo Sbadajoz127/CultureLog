@@ -204,7 +204,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserSettings updateSettings(Long userId, UserSettingsRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         UserSettings settings = user.getSettings();
 
@@ -247,7 +247,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserSettings getSettings(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         return user.getSettings();
     }
 
@@ -264,9 +264,10 @@ public class UserServiceImpl implements UserService {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
-    public UserProfileResponse getUserProfile(Long targetUserId, Long viewerUserId) {
-        User target = userRepository.findById(targetUserId)
+    public UserProfileResponse getUserProfileByUsername(String username, Long viewerUserId) {
+        User target = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        Long targetUserId = target.getId();
 
         UserSettings settings = target.getSettings();
         ProfilePrivacy privacy = (settings != null) ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;

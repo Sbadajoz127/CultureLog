@@ -7,6 +7,19 @@
     <title>CultureLog</title>
   </head>
   <body>
+    <script>
+      (function() {
+        var theme = localStorage.getItem('culturelog-theme');
+        var accent = localStorage.getItem('culturelog-accent');
+        var effective = 'dark';
+        if (theme === 'LIGHT') effective = 'light';
+        else if (theme === 'SYSTEM') {
+          effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = effective;
+        if (accent) document.documentElement.style.setProperty('--accent-color', accent);
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProfilePic } from '../context/ProfilePicContext';
 import { UserAvatar } from './UserAvatar';
+import { NotificationBell } from './NotificationBell';
 import '../App.css';
 
 /**
@@ -43,14 +44,15 @@ export function AppHeader({ active = 'home', userName }) {
         <button
           type="button"
           className={`nav-link ${active === 'profile' ? 'active' : ''}`}
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate(`/user/${userName}`)}
         >
           Perfil
         </button>
       </nav>
 
       <div className="header-right header-user-cluster">
-        <button type="button" className="header-user-btn" onClick={() => navigate('/profile')}>
+        <NotificationBell />
+        <button type="button" className="header-user-btn" onClick={() => navigate(`/user/${userName}`)}>
           <UserAvatar src={profilePic} name={userName} size="small" />
           <span>@{userName}</span>
         </button>

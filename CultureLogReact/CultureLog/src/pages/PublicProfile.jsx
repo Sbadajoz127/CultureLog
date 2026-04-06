@@ -4,6 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
+import { Heart, Lock } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
+import { AppHeader } from './components/AppHeader';
+import { UserAvatar } from './components/UserAvatar';
+import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from './constants/media';
 import {
   getUserProfile,
   followUser,
@@ -102,7 +107,7 @@ function SkeletonProfilePage() {
 }
 
 function PublicProfile() {
-  const { userId } = useParams();
+  const { username } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -112,12 +117,13 @@ function PublicProfile() {
   const [activeTab, setActiveTab] = useState('posts');
   const [libraryStatus, setLibraryStatus] = useState('VISTO');
   const [followLoading, setFollowLoading] = useState(false);
+  const [likingPostId, setLikingPostId] = useState(null);
 
   const loadProfile = useCallback(async (signal) => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await getUserProfile(userId);
+      const { data } = await getUserProfile(username);
       if (!signal?.aborted) setProfile(data);
     } catch (e) {
       if (!signal?.aborted) {
@@ -128,7 +134,7 @@ function PublicProfile() {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [userId]);
+  }, [username]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -140,12 +146,12 @@ function PublicProfile() {
     if (followLoading || !profile) return;
     setFollowLoading(true);
     try {
-      if (profile.followStatus === 'ACCEPTED' || profile.followStatus === 'PENDING') {
-        await unfollowUser(userId);
-        setProfile((p) => ({ ...p, followStatus: 'NONE', followerCount: Math.max(0, p.followerCount - (p.followStatus === 'ACCEPTED' ? 1 : 0)) }));
-      } else {
-        await followUser(userId);
-        if (profile.profilePrivacy === 'PRIVADO') {
+      if (profile.followStatus === 'ACCEPTED') {
+        await unfollowUser(profile.id);
+        setProfile((p) => ({ ...p, followStatus: 'NONE', followerCount: Math.max(0, p.followerCount - 1) }));
+      } else if (profile.followStatus === 'NONE') {
+        await followUser(profile.id);
+        if (profile.profilePrivacy !== 'PUBLICO') {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
         } else {
           setProfile((p) => ({ ...p, followStatus: 'ACCEPTED', followerCount: p.followerCount + 1 }));
@@ -160,6 +166,8 @@ function PublicProfile() {
   };
 
   const handleLike = async (post) => {
+    if (likingPostId === post.id) return;
+    setLikingPostId(post.id);
     try {
       const { data } = await togglePostLike(post.id);
       setProfile((p) => ({
@@ -172,6 +180,8 @@ function PublicProfile() {
       }));
     } catch {
       /* ignore */
+    } finally {
+      setLikingPostId(null);
     }
   };
 
@@ -196,6 +206,10 @@ function PublicProfile() {
         return 'Siguiendo';
       case 'PENDING':
         return 'Solicitud pendiente';
+      case 'REJECTED':
+        return 'Solicitud rechazada';
+      case 'BLOCKED':
+        return 'Bloqueado';
       default:
         return 'Seguir';
     }
@@ -208,6 +222,10 @@ function PublicProfile() {
         return 'pub-profile-follow-btn following';
       case 'PENDING':
         return 'pub-profile-follow-btn pending';
+      case 'REJECTED':
+        return 'pub-profile-follow-btn rejected';
+      case 'BLOCKED':
+        return 'pub-profile-follow-btn blocked';
       default:
         return 'pub-profile-follow-btn';
     }
@@ -250,7 +268,7 @@ function PublicProfile() {
                       type="button"
                       className={followBtnClass()}
                       onClick={handleFollow}
-                      disabled={followLoading}
+                      disabled={followLoading || profile.followStatus === 'PENDING' || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
                     >
                       {followLoading ? '...' : followBtnLabel()}
                     </button>
@@ -360,8 +378,9 @@ function PublicProfile() {
                                 type="button"
                                 className={`post-like-btn ${post.likedByCurrentUser ? 'liked' : ''}`}
                                 onClick={() => handleLike(post)}
+                                disabled={likingPostId === post.id}
                               >
-                                {post.likedByCurrentUser ? '❤️' : '🤍'} {post.likeCount} Me gusta
+                                <Heart size={16} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} /> {post.likeCount} Me gusta
                               </button>
                             </div>
                           </article>
@@ -438,7 +457,7 @@ function PublicProfile() {
               </>
             ) : (
               <div className="pub-profile-private">
-                <div className="pub-profile-private-icon">🔒</div>
+                <div className="pub-profile-private-icon"><Lock size={48} /></div>
                 <h3 className="pub-profile-private-title">Esta cuenta es privada</h3>
                 <p className="pub-profile-private-text">
                   Sigue a este usuario para ver sus publicaciones y biblioteca.

@@ -2,12 +2,14 @@ package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
+import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.exception.UnauthorizedException;
 import com.cultureSL.CultureLog.mapper.PostMapper;
 import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.repository.*;
+import com.cultureSL.CultureLog.service.EmailService;
 import com.cultureSL.CultureLog.service.FollowService;
 import com.cultureSL.CultureLog.service.NotificationService;
 import com.cultureSL.CultureLog.service.PostService;
@@ -45,6 +47,7 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final NotificationService notificationService;
     private final FollowService followService;
+    private final EmailService emailService;
 
     /** {@inheritDoc} */
     @Override
@@ -105,6 +108,7 @@ public class PostServiceImpl implements PostService {
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());
+            postLikeRepository.flush();
             liked = false;
             delta = -1;
         } else {
@@ -124,11 +128,17 @@ public class PostServiceImpl implements PostService {
                         NotificationType.LIKE_POST,
                         post.getId()
                 );
+                UserSettings authorSettings = post.getAuthor().getSettings();
+                if (authorSettings != null && authorSettings.isEmailNotifications()) {
+                    emailService.sendLikeNotification(post.getAuthor().getEmail(), user.getUsername());
+                }
             }
         }
 
         postRepository.updateLikeCount(postId, delta);
-        int newCount = Math.max(0, post.getLikeCount() + delta);
+        int newCount = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"))
+                .getLikeCount();
 
         return new LikeResponse(newCount, liked);
     }
@@ -141,6 +151,11 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        UserSettings postAuthorSettings = post.getAuthor().getSettings();
+        if (postAuthorSettings != null && !postAuthorSettings.isAllowComments()) {
+            throw new BadRequestException("El autor ha deshabilitado los comentarios en sus publicaciones");
+        }
 
         Comment comment = new Comment();
         comment.setPost(post);
@@ -158,6 +173,10 @@ public class PostServiceImpl implements PostService {
                     NotificationType.COMENTARIO_POST,
                     post.getId()
             );
+            UserSettings authorSettings = post.getAuthor().getSettings();
+            if (authorSettings != null && authorSettings.isEmailNotifications()) {
+                emailService.sendCommentNotification(post.getAuthor().getEmail(), author.getUsername());
+            }
         }
 
         return savedComment;

@@ -31,6 +31,8 @@ public class PostResponse {
     private Long authorId;
     /** Nombre de usuario del autor. */
     private String authorName;
+    /** URL de la imagen de perfil del autor ({@code null} si no tiene). */
+    private String authorProfilePictureUrl;
 
     /** ID del ítem multimedia vinculado ({@code null} si no hay). */
     private Long linkedItemId;

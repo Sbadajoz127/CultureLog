@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ProfilePicProvider } from './context/ProfilePicContext';
+import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -35,25 +36,28 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <ProfilePicProvider>
-            <AuthNavigationGuard />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+            <NotificationProvider>
+              <AuthNavigationGuard />
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Protected routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/home" element={<Home />} />
-                <Route path="/library" element={<Library />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/user/:userId" element={<PublicProfile />} />
-              </Route>
+                {/* Protected routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/library" element={<Library />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/user/:username" element={<PublicProfile />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                </Route>
 
-              {/* Fallback */}
-              <Route path="*" element={<SmartFallback />} />
-            </Routes>
+                {/* Fallback */}
+                <Route path="*" element={<SmartFallback />} />
+              </Routes>
+            </NotificationProvider>
           </ProfilePicProvider>
         </ThemeProvider>
       </AuthProvider>
