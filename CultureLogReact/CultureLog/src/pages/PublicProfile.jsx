@@ -13,6 +13,7 @@ import {
   getPostComments,
   addPostComment,
 } from '../services/api';
+import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import '../App.css';
 
 const LIBRARY_TABS = [
@@ -122,21 +123,24 @@ function PublicProfile() {
   const [loadingCommentsPostId, setLoadingCommentsPostId] = useState(null);
   const [submittingCommentPostId, setSubmittingCommentPostId] = useState(null);
   const [commentsErrorByPost, setCommentsErrorByPost] = useState({});
+  const [selectedItem, setSelectedItem] = useState(null);
 
-  const loadProfile = useCallback(async (signal) => {
-    setLoading(true);
-    setError('');
+  const loadProfile = useCallback(async (signal, { silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true);
+      setError('');
+    }
     try {
       const { data } = await getUserProfile(username);
       if (!signal?.aborted) setProfile(data);
     } catch (e) {
-      if (!signal?.aborted) {
+      if (!signal?.aborted && !silent) {
         setError(
           e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar el perfil.'
         );
       }
     } finally {
-      if (!signal?.aborted) setLoading(false);
+      if (!signal?.aborted && !silent) setLoading(false);
     }
   }, [username]);
 
@@ -159,7 +163,7 @@ function PublicProfile() {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
         } else {
           setProfile((p) => ({ ...p, followStatus: 'ACCEPTED', followerCount: p.followerCount + 1 }));
-          loadProfile();
+          loadProfile(undefined, { silent: true });
         }
       }
     } catch {
@@ -320,11 +324,11 @@ function PublicProfile() {
                   ) : (
                     <button
                       type="button"
-                      className={followBtnClass()}
+                      className={`${followBtnClass()}${followLoading ? ' loading' : ''}`}
                       onClick={handleFollow}
                       disabled={followLoading || profile.followStatus === 'PENDING' || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
                     >
-                      {followLoading ? '...' : followBtnLabel()}
+                      {followBtnLabel()}
                     </button>
                   )}
                 </div>
@@ -552,7 +556,14 @@ function PublicProfile() {
                     ) : (
                       <div className="pub-profile-library-grid">
                         {filteredLibrary.map((item) => (
-                          <div key={item.id} className="pub-profile-library-card">
+                          <div
+                            key={item.id}
+                            className="pub-profile-library-card"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedItem(item)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') setSelectedItem(item); }}
+                          >
                             {item.itemImageUrl ? (
                               <img
                                 src={item.itemImageUrl}
@@ -590,6 +601,11 @@ function PublicProfile() {
           </div>
         )}
       </main>
+
+      <MediaItemDetailModal
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
     </div>
   );
 }

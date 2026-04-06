@@ -41,7 +41,7 @@ public class Notification {
 
     /** Tipo de evento (NUEVO_SEGUIDOR, LIKE_POST, etc.). */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(30)")
     private NotificationType type;
 
     /**

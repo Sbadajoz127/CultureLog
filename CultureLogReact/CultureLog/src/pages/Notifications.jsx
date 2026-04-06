@@ -199,8 +199,16 @@ export default function Notifications() {
     if (notif.type === 'NUEVO_SEGUIDOR' || notif.type === 'SOLICITUD_SEGUIMIENTO' || notif.type === 'SOLICITUD_ACEPTADA') {
       navigate(`/user/${notif.actorName}`);
     } else if (notif.referenceId) {
-      navigate('/home');
+      navigate(`/posts/${notif.referenceId}`);
     }
+  }
+
+  function handleMarkReadOnly(e, notifId) {
+    e.stopPropagation();
+    markRead(notifId);
+    setAllNotifs((prev) =>
+      prev.map((n) => (n.id === notifId ? { ...n, read: true } : n))
+    );
   }
 
   function handleMarkAllRead() {
@@ -293,7 +301,17 @@ export default function Notifications() {
                             <span className="nc-notif-time">{timeAgo(notif.createdAt)}</span>
                           </div>
                         </div>
-                        {!notif.read && <span className="nc-notif-dot" />}
+                        {!notif.read && (
+                          <button
+                            type="button"
+                            className="nc-mark-read-btn"
+                            title="Marcar como leída"
+                            aria-label="Marcar como leída"
+                            onClick={(e) => handleMarkReadOnly(e, notif.id)}
+                          >
+                            <Check size={14} />
+                          </button>
+                        )}
                       </button>
                     );
                   })}

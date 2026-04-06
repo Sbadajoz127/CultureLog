@@ -71,8 +71,13 @@ export function NotificationBell() {
     if (notif.type === 'NUEVO_SEGUIDOR' || notif.type === 'SOLICITUD_SEGUIMIENTO' || notif.type === 'SOLICITUD_ACEPTADA') {
       navigate(`/user/${notif.actorName}`);
     } else if (notif.referenceId) {
-      navigate('/home');
+      navigate(`/posts/${notif.referenceId}`);
     }
+  }
+
+  function handleMarkReadOnly(e, notifId) {
+    e.stopPropagation();
+    markRead(notifId);
   }
 
   function handleGoToCenter() {
@@ -149,7 +154,15 @@ export function NotificationBell() {
                         </p>
                         <span className="notification-item-time">{timeAgo(notif.createdAt)}</span>
                       </div>
-                      <span className="notification-unread-dot" />
+                      <button
+                        type="button"
+                        className="notification-mark-read-btn"
+                        title="Marcar como leída"
+                        aria-label="Marcar como leída"
+                        onClick={(e) => handleMarkReadOnly(e, notif.id)}
+                      >
+                        <Check size={14} />
+                      </button>
                     </button>
                   );
                 })}
