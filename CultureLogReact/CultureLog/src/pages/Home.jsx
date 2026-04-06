@@ -637,32 +637,13 @@ function Home() {
                             <button
                               type="button"
                               className="login-button"
-                              onClick={() => handleInlineCommentSubmit(post.id)}
+                              onClick={() => handleInlineCommentSubmit(post.id)}  
                               disabled={submittingCommentPostId === post.id || !(commentDrafts[post.id] || '').trim()}
                             >
                               {submittingCommentPostId === post.id ? 'Enviando...' : 'Comentar'}
                             </button>
                           </div>
                         </div>
-                      </div>
-                    )}
-                    {Array.isArray(post.recentComments) && post.recentComments.length > 0 && (
-                      <div className="post-recent-comments">
-                        {post.recentComments.map((c) => (
-                          <p key={c.id} className="post-recent-comment-row">
-                            <strong
-                              role="button"
-                              tabIndex={0}
-                              className="post-author-link"
-                              onClick={() => navigate(`/user/${c.authorName}`)}
-                              onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${c.authorName}`); }}
-                            >
-                              {c.authorName}
-                            </strong>
-                            {' '}
-                            {c.text}
-                          </p>
-                        ))}
                       </div>
                     )}
                   </article>
