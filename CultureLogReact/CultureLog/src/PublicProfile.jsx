@@ -115,20 +115,22 @@ function PublicProfile() {
   const [followLoading, setFollowLoading] = useState(false);
   const [likingPostId, setLikingPostId] = useState(null);
 
-  const loadProfile = useCallback(async (signal) => {
-    setLoading(true);
-    setError('');
+  const loadProfile = useCallback(async (signal, { silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true);
+      setError('');
+    }
     try {
       const { data } = await getUserProfile(username);
       if (!signal?.aborted) setProfile(data);
     } catch (e) {
-      if (!signal?.aborted) {
+      if (!signal?.aborted && !silent) {
         setError(
           e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar el perfil.'
         );
       }
     } finally {
-      if (!signal?.aborted) setLoading(false);
+      if (!signal?.aborted && !silent) setLoading(false);
     }
   }, [username]);
 
@@ -151,7 +153,7 @@ function PublicProfile() {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
         } else {
           setProfile((p) => ({ ...p, followStatus: 'ACCEPTED', followerCount: p.followerCount + 1 }));
-          loadProfile();
+          loadProfile(undefined, { silent: true });
         }
       }
     } catch {
@@ -262,11 +264,11 @@ function PublicProfile() {
                   ) : (
                     <button
                       type="button"
-                      className={followBtnClass()}
+                      className={`${followBtnClass()}${followLoading ? ' loading' : ''}`}
                       onClick={handleFollow}
                       disabled={followLoading || profile.followStatus === 'PENDING' || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
                     >
-                      {followLoading ? '...' : followBtnLabel()}
+                      {followBtnLabel()}
                     </button>
                   )}
                 </div>
