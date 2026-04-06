@@ -1631,6 +1631,11 @@ input[type="password"]::-ms-clear {
   cursor: default;
 }
 
+.pub-profile-follow-btn.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* --- STATS --- */
 
 .pub-profile-stats {
