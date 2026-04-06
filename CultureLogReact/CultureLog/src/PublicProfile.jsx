@@ -204,6 +204,8 @@ function PublicProfile() {
         return 'Solicitud pendiente';
       case 'REJECTED':
         return 'Solicitud rechazada';
+      case 'BLOCKED':
+        return 'Bloqueado';
       default:
         return 'Seguir';
     }
@@ -218,6 +220,8 @@ function PublicProfile() {
         return 'pub-profile-follow-btn pending';
       case 'REJECTED':
         return 'pub-profile-follow-btn rejected';
+      case 'BLOCKED':
+        return 'pub-profile-follow-btn blocked';
       default:
         return 'pub-profile-follow-btn';
     }
@@ -260,7 +264,7 @@ function PublicProfile() {
                       type="button"
                       className={followBtnClass()}
                       onClick={handleFollow}
-                      disabled={followLoading || profile.followStatus === 'PENDING' || profile.followStatus === 'REJECTED'}
+                      disabled={followLoading || profile.followStatus === 'PENDING' || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
                     >
                       {followLoading ? '...' : followBtnLabel()}
                     </button>

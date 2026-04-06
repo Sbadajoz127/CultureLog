@@ -204,7 +204,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserSettings updateSettings(Long userId, UserSettingsRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         UserSettings settings = user.getSettings();
 
@@ -247,7 +247,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserSettings getSettings(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         return user.getSettings();
     }
 

@@ -189,9 +189,9 @@ public class NotificationServiceImpl implements NotificationService {
             case NUEVO_SEGUIDOR -> "ha comenzado a seguirte.";
             case SOLICITUD_SEGUIMIENTO -> "ha solicitado seguirte.";
             case SOLICITUD_ACEPTADA -> "ha aceptado tu solicitud de seguimiento.";
-            case LIKE_POST -> "le ha gustado tu publicación.";
+            case LIKE_POST -> "ha dado me gusta a tu publicación.";
             case COMENTARIO_POST -> "ha comentado en tu publicación.";
-            case NUEVO_POST -> "ha publicado un nuevo post.";
+            case NUEVO_POST -> "ha creado una nueva publicación.";
         };
 
         return NotificationResponse.builder()

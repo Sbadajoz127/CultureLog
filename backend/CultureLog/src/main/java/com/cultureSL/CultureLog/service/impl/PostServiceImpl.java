@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
+import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.exception.UnauthorizedException;
 import com.cultureSL.CultureLog.mapper.PostMapper;
@@ -150,6 +151,11 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        UserSettings postAuthorSettings = post.getAuthor().getSettings();
+        if (postAuthorSettings != null && !postAuthorSettings.isAllowComments()) {
+            throw new BadRequestException("El autor ha deshabilitado los comentarios en sus publicaciones");
+        }
 
         Comment comment = new Comment();
         comment.setPost(post);

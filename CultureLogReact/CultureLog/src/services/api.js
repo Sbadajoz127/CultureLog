@@ -42,19 +42,19 @@ export function resetPassword(token, newPassword) {
   return api.post('/auth/reset-password', { token, newPassword });
 }
 
-export function getUserSettings(userId) {
-  return api.get(`/users/${userId}/settings`);
+export function getUserSettings() {
+  return api.get('/users/settings');
 }
 
-export function updateUserSettings(userId, settings) {
-  return api.put(`/users/${userId}/settings`, settings);
+export function updateUserSettings(settings) {
+  return api.put('/users/settings', settings);
 }
 
 export function uploadImage(file) {
   const formData = new FormData();
   formData.append('file', file);
   return api.post('/images/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { 'Content-Type': undefined },
   });
 }
 

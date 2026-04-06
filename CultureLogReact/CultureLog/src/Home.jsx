@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { useProfilePic } from './context/ProfilePicContext';
 import { AppHeader } from './components/AppHeader';
 import { UserAvatar } from './components/UserAvatar';
 import { Heart } from 'lucide-react';
@@ -104,7 +103,6 @@ function SkeletonSidebar() {
 
 function Home() {
   const { user } = useAuth();
-  const { profilePic } = useProfilePic();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('GENERAL');

@@ -85,7 +85,11 @@ public interface FollowService {
     void acceptFollowRequest(Long followedId, Long followerId);
 
     /**
-     * Rechaza una solicitud de seguimiento pendiente, eliminándola.
+     * Rechaza una solicitud de seguimiento pendiente, actualizando su estado a REJECTED.
+     * <p>
+     * La relación se conserva en la base de datos para impedir que el usuario
+     * vuelva a enviar una solicitud.
+     * </p>
      *
      * @param followedId ID del usuario que rechaza (el que recibió la solicitud)
      * @param followerId ID del usuario que envió la solicitud
