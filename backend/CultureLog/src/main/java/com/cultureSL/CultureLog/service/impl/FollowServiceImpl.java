@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.service.impl;
 
+import com.cultureSL.CultureLog.dto.FollowRequestResponse;
 import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.model.Follow;
@@ -154,5 +155,20 @@ public class FollowServiceImpl implements FollowService {
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud de seguimiento no encontrada"));
 
         followRepository.delete(follow);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public List<FollowRequestResponse> getPendingRequests(Long userId) {
+        return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.PENDING)
+                .stream()
+                .map(f -> FollowRequestResponse.builder()
+                        .followerId(f.getFollower().getId())
+                        .followerUsername(f.getFollower().getUsername())
+                        .followerProfilePicture(f.getFollower().getProfilePictureUrl())
+                        .createdAt(f.getCreatedAt())
+                        .build())
+                .toList();
     }
 }

@@ -1,10 +1,13 @@
 package com.cultureSL.CultureLog.controller;
 
+import com.cultureSL.CultureLog.dto.FollowRequestResponse;
 import com.cultureSL.CultureLog.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Controlador REST para las operaciones de seguimiento entre usuarios.
@@ -54,6 +57,19 @@ public class FollowController {
         Long userId = (Long) authentication.getPrincipal();
         followService.unfollowUser(userId, targetId);
         return ResponseEntity.ok("Dejado de seguir correctamente");
+    }
+
+    /**
+     * Obtiene las solicitudes de seguimiento pendientes recibidas por el usuario.
+     * <p>Endpoint: {@code GET /api/follows/pending}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 con la lista de solicitudes pendientes
+     */
+    @GetMapping("/pending")
+    public ResponseEntity<List<FollowRequestResponse>> getPendingRequests(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(followService.getPendingRequests(userId));
     }
 
     /**

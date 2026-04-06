@@ -120,4 +120,36 @@ export function getUserProfile(username) {
   return api.get(`/users/profile/${encodeURIComponent(username)}`);
 }
 
+export function getNotifications({ page = 0, size = 10 } = {}) {
+  return api.get('/notifications', { params: { page, size } });
+}
+
+export function getUnreadNotifications({ page = 0, size = 5 } = {}) {
+  return api.get('/notifications/unread', { params: { page, size } });
+}
+
+export function getUnreadCount() {
+  return api.get('/notifications/unread-count');
+}
+
+export function markAsRead(notificationId) {
+  return api.post(`/notifications/${notificationId}/read`);
+}
+
+export function markAllAsRead() {
+  return api.post('/notifications/read-all');
+}
+
+export function getPendingFollowRequests() {
+  return api.get('/follows/pending');
+}
+
+export function acceptFollowRequest(followerId) {
+  return api.post(`/follows/accept?followerId=${followerId}`);
+}
+
+export function rejectFollowRequest(followerId) {
+  return api.post(`/follows/reject?followerId=${followerId}`);
+}
+
 export default api;

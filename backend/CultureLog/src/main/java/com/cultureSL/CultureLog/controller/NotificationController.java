@@ -42,6 +42,23 @@ public class NotificationController {
     }
 
     /**
+     * Obtiene solo las notificaciones no leídas del usuario autenticado de forma paginada.
+     * <p>Endpoint: {@code GET /api/notifications/unread?page=0&size=5}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param pageable       configuración de paginación
+     * @return HTTP 200 con la página de {@link NotificationResponse} no leídas
+     */
+    @GetMapping("/unread")
+    public ResponseEntity<Page<NotificationResponse>> getUnreadNotifications(
+            Authentication authentication,
+            Pageable pageable) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId, pageable));
+    }
+
+    /**
      * Obtiene el número de notificaciones no leídas del usuario.
      * <p>Endpoint: {@code GET /api/notifications/unread-count}</p>
      *
@@ -66,6 +83,20 @@ public class NotificationController {
     public ResponseEntity<Void> markAsRead(@PathVariable Long id, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         notificationService.markAsRead(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Marca todas las notificaciones del usuario como leídas.
+     * <p>Endpoint: {@code POST /api/notifications/read-all}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 sin contenido
+     */
+    @PostMapping("/read-all")
+    public ResponseEntity<Void> markAllAsRead(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        notificationService.markAllAsRead(userId);
         return ResponseEntity.ok().build();
     }
 }

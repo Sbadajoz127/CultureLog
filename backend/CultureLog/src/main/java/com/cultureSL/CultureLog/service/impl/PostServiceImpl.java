@@ -8,6 +8,7 @@ import com.cultureSL.CultureLog.mapper.PostMapper;
 import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.repository.*;
+import com.cultureSL.CultureLog.service.EmailService;
 import com.cultureSL.CultureLog.service.FollowService;
 import com.cultureSL.CultureLog.service.NotificationService;
 import com.cultureSL.CultureLog.service.PostService;
@@ -45,6 +46,7 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final NotificationService notificationService;
     private final FollowService followService;
+    private final EmailService emailService;
 
     /** {@inheritDoc} */
     @Override
@@ -125,6 +127,10 @@ public class PostServiceImpl implements PostService {
                         NotificationType.LIKE_POST,
                         post.getId()
                 );
+                UserSettings authorSettings = post.getAuthor().getSettings();
+                if (authorSettings != null && authorSettings.isEmailNotifications()) {
+                    emailService.sendLikeNotification(post.getAuthor().getEmail(), user.getUsername());
+                }
             }
         }
 
@@ -161,6 +167,10 @@ public class PostServiceImpl implements PostService {
                     NotificationType.COMENTARIO_POST,
                     post.getId()
             );
+            UserSettings authorSettings = post.getAuthor().getSettings();
+            if (authorSettings != null && authorSettings.isEmailNotifications()) {
+                emailService.sendCommentNotification(post.getAuthor().getEmail(), author.getUsername());
+            }
         }
 
         return savedComment;
