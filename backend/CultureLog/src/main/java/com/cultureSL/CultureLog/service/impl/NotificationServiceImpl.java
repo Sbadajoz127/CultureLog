@@ -82,6 +82,13 @@ public class NotificationServiceImpl implements NotificationService {
                 .map(this::mapToDto);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NotificationResponse> getUnreadNotifications(Long userId, Pageable pageable) {
+        return notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId, pageable)
+                .map(this::mapToDto);
+    }
+
     /**
      * Cuenta el número de notificaciones que el usuario aún no ha marcado como leídas.
      * Útil para mostrar badges o contadores en la interfaz.
@@ -112,6 +119,12 @@ public class NotificationServiceImpl implements NotificationService {
 
         n.setRead(true);
         notificationRepository.save(n);
+    }
+
+    @Override
+    @Transactional
+    public void markAllAsRead(Long userId) {
+        notificationRepository.markAllAsReadByRecipientId(userId);
     }
 
     /**
@@ -174,9 +187,11 @@ public class NotificationServiceImpl implements NotificationService {
     private NotificationResponse mapToDto(Notification n) {
         String text = switch (n.getType()) {
             case NUEVO_SEGUIDOR -> "ha comenzado a seguirte.";
-            case LIKE_POST -> "le ha gustado tu publicación.";
+            case SOLICITUD_SEGUIMIENTO -> "ha solicitado seguirte.";
+            case SOLICITUD_ACEPTADA -> "ha aceptado tu solicitud de seguimiento.";
+            case LIKE_POST -> "ha dado me gusta a tu publicación.";
             case COMENTARIO_POST -> "ha comentado en tu publicación.";
-            case NUEVO_POST -> "ha publicado un nuevo post.";
+            case NUEVO_POST -> "ha creado una nueva publicación.";
         };
 
         return NotificationResponse.builder()

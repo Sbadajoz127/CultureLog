@@ -42,19 +42,19 @@ export function resetPassword(token, newPassword) {
   return api.post('/auth/reset-password', { token, newPassword });
 }
 
-export function getUserSettings(userId) {
-  return api.get(`/users/${userId}/settings`);
+export function getUserSettings() {
+  return api.get('/users/settings');
 }
 
-export function updateUserSettings(userId, settings) {
-  return api.put(`/users/${userId}/settings`, settings);
+export function updateUserSettings(settings) {
+  return api.put('/users/settings', settings);
 }
 
 export function uploadImage(file) {
   const formData = new FormData();
   formData.append('file', file);
   return api.post('/images/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { 'Content-Type': undefined },
   });
 }
 
@@ -118,6 +118,38 @@ export function unfollowUser(targetId) {
 
 export function getUserProfile(username) {
   return api.get(`/users/profile/${encodeURIComponent(username)}`);
+}
+
+export function getNotifications({ page = 0, size = 10 } = {}) {
+  return api.get('/notifications', { params: { page, size } });
+}
+
+export function getUnreadNotifications({ page = 0, size = 5 } = {}) {
+  return api.get('/notifications/unread', { params: { page, size } });
+}
+
+export function getUnreadCount() {
+  return api.get('/notifications/unread-count');
+}
+
+export function markAsRead(notificationId) {
+  return api.post(`/notifications/${notificationId}/read`);
+}
+
+export function markAllAsRead() {
+  return api.post('/notifications/read-all');
+}
+
+export function getPendingFollowRequests() {
+  return api.get('/follows/pending');
+}
+
+export function acceptFollowRequest(followerId) {
+  return api.post(`/follows/accept?followerId=${followerId}`);
+}
+
+export function rejectFollowRequest(followerId) {
+  return api.post(`/follows/reject?followerId=${followerId}`);
 }
 
 export default api;

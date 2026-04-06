@@ -37,6 +37,15 @@ public interface NotificationService {
     Page<NotificationResponse> getUserNotifications(Long userId, Pageable pageable);
 
     /**
+     * Obtiene solo las notificaciones no leídas de un usuario de forma paginada.
+     *
+     * @param userId   ID del usuario receptor
+     * @param pageable configuración de paginación
+     * @return página de notificaciones no leídas mapeadas a {@link NotificationResponse}
+     */
+    Page<NotificationResponse> getUnreadNotifications(Long userId, Pageable pageable);
+
+    /**
      * Obtiene el número de notificaciones no leídas de un usuario.
      *
      * @param userId ID del usuario
@@ -53,6 +62,13 @@ public interface NotificationService {
      * @throws com.cultureSL.CultureLog.exception.UnauthorizedException     si la notificación no pertenece al usuario
      */
     void markAsRead(Long notificationId, Long userId);
+
+    /**
+     * Marca todas las notificaciones del usuario como leídas.
+     *
+     * @param userId ID del usuario propietario de las notificaciones
+     */
+    void markAllAsRead(Long userId);
 
     /**
      * Crea notificaciones en bloque de forma asíncrona.

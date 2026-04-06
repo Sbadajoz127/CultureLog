@@ -25,13 +25,19 @@ function applyThemeToDOM(theme, accentColor) {
 export function ThemeProvider({ children }) {
   const { user, isAuthenticated } = useAuth();
   const [settings, setSettings] = useState(null);
-  const [theme, setThemeState] = useState('DARK');
-  const [accentColor, setAccentColorState] = useState('#448AFF');
+  const [theme, setThemeState] = useState(
+    () => localStorage.getItem('culturelog-theme') || 'DARK'
+  );
+  const [accentColor, setAccentColorState] = useState(
+    () => localStorage.getItem('culturelog-accent') || '#448AFF'
+  );
   const [loading, setLoading] = useState(true);
   const settingsRef = useRef(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
+      localStorage.removeItem('culturelog-theme');
+      localStorage.removeItem('culturelog-accent');
       applyThemeToDOM('DARK', '#448AFF');
       setLoading(false);
       return;
@@ -40,13 +46,17 @@ export function ThemeProvider({ children }) {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await getUserSettings(user.id);
+        const { data } = await getUserSettings();
         if (cancelled) return;
         settingsRef.current = data;
         setSettings(data);
-        setThemeState(data.theme || 'DARK');
-        setAccentColorState(data.accentColor || '#448AFF');
-        applyThemeToDOM(data.theme || 'DARK', data.accentColor || '#448AFF');
+        const t = data.theme || 'DARK';
+        const a = data.accentColor || '#448AFF';
+        setThemeState(t);
+        setAccentColorState(a);
+        localStorage.setItem('culturelog-theme', t);
+        localStorage.setItem('culturelog-accent', a);
+        applyThemeToDOM(t, a);
       } catch {
         applyThemeToDOM('DARK', '#448AFF');
       } finally {
@@ -66,27 +76,29 @@ export function ThemeProvider({ children }) {
   }, [theme, accentColor]);
 
   const persistSettings = useCallback(async (patch) => {
-    if (!user?.id || !settingsRef.current) return;
+    if (!isAuthenticated || !settingsRef.current) return;
     const merged = { ...settingsRef.current, ...patch };
     settingsRef.current = merged;
     setSettings(merged);
     try {
-      await updateUserSettings(user.id, merged);
+      await updateUserSettings(merged);
     } catch (err) {
       console.error('Error saving settings:', err);
     }
-  }, [user?.id]);
+  }, [isAuthenticated]);
 
   const updateTheme = useCallback((newTheme) => {
     setThemeState(newTheme);
+    localStorage.setItem('culturelog-theme', newTheme);
     applyThemeToDOM(newTheme, accentColor);
-    persistSettings({ theme: newTheme });
+    return persistSettings({ theme: newTheme });
   }, [accentColor, persistSettings]);
 
   const updateAccentColor = useCallback((newColor) => {
     setAccentColorState(newColor);
+    localStorage.setItem('culturelog-accent', newColor);
     document.documentElement.style.setProperty('--accent-color', newColor);
-    persistSettings({ accentColor: newColor });
+    return persistSettings({ accentColor: newColor });
   }, [persistSettings]);
 
   const updateSettings = useCallback((patch) => {

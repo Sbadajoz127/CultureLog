@@ -77,6 +77,44 @@ public class EmailServiceImpl implements EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
+    @Override
+    @Async
+    public void sendLikeNotification(String toEmail, String likerUsername) {
+        String subject = "A alguien le gusta tu publicación en CultureLog";
+
+        String htmlContent = """
+            <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #448AFF;">&#10084; ¡Nuevo Me Gusta!</h2>
+                <p>Hola,</p>
+                <p>El usuario <strong>%s</strong> le ha dado Me Gusta a tu publicación.</p>
+                <p>Entra en la app para verlo.</p>
+                <br>
+                <p style="font-size: 12px; color: #999;">El equipo de CultureLog</p>
+            </div>
+            """.formatted(likerUsername);
+
+        sendHtmlEmail(toEmail, subject, htmlContent);
+    }
+
+    @Override
+    @Async
+    public void sendCommentNotification(String toEmail, String commenterUsername) {
+        String subject = "Nuevo comentario en tu publicación de CultureLog";
+
+        String htmlContent = """
+            <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #448AFF;">&#128172; ¡Nuevo Comentario!</h2>
+                <p>Hola,</p>
+                <p>El usuario <strong>%s</strong> ha comentado en tu publicación.</p>
+                <p>Entra en la app para responder.</p>
+                <br>
+                <p style="font-size: 12px; color: #999;">El equipo de CultureLog</p>
+            </div>
+            """.formatted(commenterUsername);
+
+        sendHtmlEmail(toEmail, subject, htmlContent);
+    }
+
     /**
      * Envía un correo con el token de seguridad para restablecer la contraseña.
      *

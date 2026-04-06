@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.service;
 
+import com.cultureSL.CultureLog.dto.FollowRequestResponse;
 import com.cultureSL.CultureLog.model.Follow;
 import java.util.List;
 
@@ -84,11 +85,23 @@ public interface FollowService {
     void acceptFollowRequest(Long followedId, Long followerId);
 
     /**
-     * Rechaza una solicitud de seguimiento pendiente, eliminándola.
+     * Rechaza una solicitud de seguimiento pendiente, actualizando su estado a REJECTED.
+     * <p>
+     * La relación se conserva en la base de datos para impedir que el usuario
+     * vuelva a enviar una solicitud.
+     * </p>
      *
      * @param followedId ID del usuario que rechaza (el que recibió la solicitud)
      * @param followerId ID del usuario que envió la solicitud
      * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si no existe solicitud pendiente
      */
     void rejectFollowRequest(Long followedId, Long followerId);
+
+    /**
+     * Obtiene las solicitudes de seguimiento pendientes recibidas por un usuario.
+     *
+     * @param userId ID del usuario que recibió las solicitudes
+     * @return lista de solicitudes pendientes mapeadas a DTO
+     */
+    List<FollowRequestResponse> getPendingRequests(Long userId);
 }

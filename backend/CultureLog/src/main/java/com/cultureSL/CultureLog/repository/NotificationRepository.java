@@ -4,6 +4,9 @@ import com.cultureSL.CultureLog.model.Notification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -34,4 +37,23 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @return Número total de notificaciones sin leer.
      */
     long countByRecipientIdAndIsReadFalse(Long recipientId);
+
+    /**
+     * Obtiene las notificaciones no leídas de un usuario de forma paginada.
+     *
+     * @param recipientId ID del usuario receptor.
+     * @param pageable    Objeto de paginación.
+     * @return Página de notificaciones no leídas ordenadas por fecha descendente.
+     */
+    Page<Notification> findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(Long recipientId, Pageable pageable);
+
+    /**
+     * Marca todas las notificaciones no leídas de un usuario como leídas en una sola operación.
+     *
+     * @param recipientId ID del usuario receptor.
+     * @return número de filas actualizadas.
+     */
+    @Modifying
+    @Query("UPDATE Notification n SET n.isRead = true WHERE n.recipient.id = :recipientId AND n.isRead = false")
+    int markAllAsReadByRecipientId(@Param("recipientId") Long recipientId);
 }

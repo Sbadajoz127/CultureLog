@@ -103,6 +103,7 @@ public class PostMapper {
                 .createdAt(post.getCreatedAt())
                 .authorId(post.getAuthor().getId())
                 .authorName(post.getAuthor().getUsername())
+                .authorProfilePictureUrl(post.getAuthor().getProfilePictureUrl())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .likedByCurrentUser(isLiked)

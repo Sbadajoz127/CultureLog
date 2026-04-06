@@ -75,10 +75,10 @@ function Profile() {
       }
 
       if (localTheme !== theme) {
-        updateTheme(localTheme);
+        await updateTheme(localTheme);
       }
       if (localAccent !== accentColor) {
-        updateAccentColor(localAccent);
+        await updateAccentColor(localAccent);
       }
 
       await updateSettings({
