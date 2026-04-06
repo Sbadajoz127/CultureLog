@@ -104,6 +104,18 @@ export function togglePostLike(postId) {
   return api.post(`/posts/${postId}/like`);
 }
 
+export function getPostById(postId) {
+  return api.get(`/posts/${postId}`);
+}
+
+export function getPostComments(postId) {
+  return api.get(`/posts/${postId}/comments`);
+}
+
+export function addPostComment(postId, text) {
+  return api.post(`/posts/${postId}/comments`, { text });
+}
+
 export function getSuggestedUsers() {
   return api.get('/users/suggestions');
 }

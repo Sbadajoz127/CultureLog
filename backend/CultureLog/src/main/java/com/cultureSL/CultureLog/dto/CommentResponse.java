@@ -27,6 +27,8 @@ public class CommentResponse {
     private String authorName;
     /** ID del autor (útil para navegar a su perfil). */
     private Long authorId;
+    /** URL de la foto de perfil del autor. */
+    private String authorProfilePictureUrl;
     /** Fecha de creación. */
     private LocalDateTime createdAt;
 }

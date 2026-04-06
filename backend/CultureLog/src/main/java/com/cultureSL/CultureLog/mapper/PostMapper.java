@@ -111,6 +111,11 @@ public class PostMapper {
                 .linkedItemTitle(linkedItem != null ? linkedItem.getTitle() : null)
                 .linkedItemType(linkedItem != null ? linkedItem.getType().name() : null)
                 .linkedItemRating(linkedItem != null ? linkedItem.getRating() : null)
+                .linkedItemImageUrl(linkedItem != null ? linkedItem.getItemImageUrl() : null)
+                .linkedItemCreator(linkedItem != null ? linkedItem.getCreator() : null)
+                .linkedItemReleaseDate(linkedItem != null ? linkedItem.getReleaseDate() : null)
+                .linkedItemGenre(linkedItem != null ? linkedItem.getGenre() : null)
+                .linkedItemDescription(linkedItem != null ? linkedItem.getDescription() : null)
                 .recentComments(post.getComments().stream()
                         .sorted(Comparator.comparing(c -> c.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                         .limit(3)
@@ -119,6 +124,7 @@ public class PostMapper {
                                 c.getText(),
                                 c.getAuthor().getUsername(),
                                 c.getAuthor().getId(),
+                                c.getAuthor().getProfilePictureUrl(),
                                 c.getCreatedAt()))
                         .collect(Collectors.toList()))
                 .build();

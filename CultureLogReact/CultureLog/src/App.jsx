@@ -13,6 +13,8 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Library from './pages/Library';
 import PublicProfile from './pages/PublicProfile';
+import Notifications from './pages/Notifications';
+import PostDetail from './pages/PostDetail';
 import './App.css';
 
 function AuthNavigationGuard() {
@@ -52,6 +54,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:username" element={<PublicProfile />} />
                   <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/posts/:postId" element={<PostDetail />} />
                 </Route>
 
                 {/* Fallback */}
