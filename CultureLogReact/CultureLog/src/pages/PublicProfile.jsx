@@ -13,6 +13,7 @@ import {
   getPostComments,
   addPostComment,
 } from '../services/api';
+import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import '../App.css';
 
 const LIBRARY_TABS = [
@@ -122,6 +123,7 @@ function PublicProfile() {
   const [loadingCommentsPostId, setLoadingCommentsPostId] = useState(null);
   const [submittingCommentPostId, setSubmittingCommentPostId] = useState(null);
   const [commentsErrorByPost, setCommentsErrorByPost] = useState({});
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const loadProfile = useCallback(async (signal, { silent = false } = {}) => {
     if (!silent) {
@@ -554,7 +556,14 @@ function PublicProfile() {
                     ) : (
                       <div className="pub-profile-library-grid">
                         {filteredLibrary.map((item) => (
-                          <div key={item.id} className="pub-profile-library-card">
+                          <div
+                            key={item.id}
+                            className="pub-profile-library-card"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedItem(item)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') setSelectedItem(item); }}
+                          >
                             {item.itemImageUrl ? (
                               <img
                                 src={item.itemImageUrl}
@@ -592,6 +601,11 @@ function PublicProfile() {
           </div>
         )}
       </main>
+
+      <MediaItemDetailModal
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
     </div>
   );
 }
