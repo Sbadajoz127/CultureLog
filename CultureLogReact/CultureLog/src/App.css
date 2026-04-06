@@ -2417,6 +2417,31 @@ input[type="password"]::-ms-clear {
   margin-top: 6px;
 }
 
+.notification-mark-read-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  margin-top: 2px;
+}
+
+.notification-mark-read-btn:hover {
+  background-color: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  color: var(--accent-color);
+}
+
+.notification-mark-read-btn:active {
+  background-color: color-mix(in srgb, var(--accent-color) 25%, transparent);
+}
+
 .notification-dropdown-footer {
   border-top: 1px solid var(--border-subtle);
   padding: 0;
@@ -2808,6 +2833,33 @@ input[type="password"]::-ms-clear {
   border-radius: 50%;
   background-color: var(--accent-color);
   margin-top: 8px;
+}
+
+.nc-mark-read-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s;
+  margin-top: 2px;
+}
+
+.nc-mark-read-btn:hover {
+  background-color: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+.nc-mark-read-btn:active {
+  background-color: color-mix(in srgb, var(--accent-color) 25%, transparent);
+  transform: scale(0.95);
 }
 
 /* Load more */
