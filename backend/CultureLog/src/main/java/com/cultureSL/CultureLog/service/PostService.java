@@ -85,7 +85,7 @@ public interface PostService {
      * @return el comentario creado
      * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si el post o el usuario no existen
      */
-    Comment addComment(Long postId, Long userId, String text);
+    Comment addComment(Long postId, Long userId, String text, Long parentCommentId);
 
     /**
      * Recupera todos los comentarios de una publicación ordenados cronológicamente.

@@ -20,4 +20,7 @@ public class CommentRequest {
     @NotBlank(message = "El texto del comentario es obligatorio")
     @Size(max = 1000, message = "El comentario no puede exceder 1000 caracteres")
     private String text;
+
+    /** ID del comentario al que se responde (null si es comentario raíz). */
+    private Long parentCommentId;
 }

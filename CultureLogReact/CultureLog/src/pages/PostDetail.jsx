@@ -30,6 +30,9 @@ export default function PostDetail() {
   const [error, setError] = useState('');
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [replyOpenForId, setReplyOpenForId] = useState(null);
+  const [replyDrafts, setReplyDrafts] = useState({});
+  const [submittingReplyId, setSubmittingReplyId] = useState(null);
   const [liking, setLiking] = useState(false);
 
   const linkedItem = useMemo(() => ({
@@ -98,6 +101,104 @@ export default function PostDetail() {
       setSubmittingComment(false);
     }
   };
+
+  const commentTree = useMemo(() => {
+    const list = Array.isArray(comments) ? comments : [];
+    const byId = new Map(list.map((c) => [c.id, { ...c, children: [] }]));
+    const roots = [];
+    for (const c of byId.values()) {
+      if (c.parentCommentId && byId.has(c.parentCommentId)) {
+        byId.get(c.parentCommentId).children.push(c);
+      } else {
+        roots.push(c);
+      }
+    }
+    const sortByCreatedAt = (a, b) => new Date(a.createdAt) - new Date(b.createdAt);
+    const sortRec = (arr) => {
+      arr.sort(sortByCreatedAt);
+      arr.forEach((x) => sortRec(x.children));
+    };
+    sortRec(roots);
+    return roots;
+  }, [comments]);
+
+  const submitReply = async (parentCommentId) => {
+    const text = (replyDrafts[parentCommentId] || '').trim();
+    if (!text || !post) return;
+    setSubmittingReplyId(parentCommentId);
+    try {
+      const { data: created } = await addPostComment(post.id, text, parentCommentId);
+      setComments((prev) => [...prev, created]);
+      setPost((prev) => prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : prev);
+      setReplyDrafts((prev) => ({ ...prev, [parentCommentId]: '' }));
+      setReplyOpenForId(null);
+    } catch (e) {
+      setError(e.response?.data?.message || e.response?.data?.error || 'No se pudo enviar la respuesta.');
+    } finally {
+      setSubmittingReplyId(null);
+    }
+  };
+
+  const renderCommentNode = (c, depth = 0) => (
+    <div key={c.id} className={`post-detail-comment-node ${depth > 0 ? 'is-reply' : ''}`}>
+      <article className="post-detail-comment-item">
+        <div className="post-detail-comment-head">
+          <UserAvatar src={c.authorProfilePictureUrl} name={c.authorName} size="small" />
+          <div className="post-detail-comment-header">
+            <span
+              className="post-author post-author-link"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/user/${c.authorName}`)}
+              onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${c.authorName}`); }}
+            >
+              {c.authorName}
+            </span>
+            <span className="text-dim">{formatDate(c.createdAt)}</span>
+          </div>
+        </div>
+        <p>{c.text}</p>
+
+        <div className="post-detail-comment-actions-row">
+          <button
+            type="button"
+            className="post-like-btn"
+            onClick={() => setReplyOpenForId((prev) => (prev === c.id ? null : c.id))}
+          >
+            Responder
+          </button>
+        </div>
+
+        {replyOpenForId === c.id && (
+          <div className="post-detail-reply-form">
+            <textarea
+              value={replyDrafts[c.id] || ''}
+              onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [c.id]: e.target.value }))}
+              placeholder={`Responder a @${c.authorName}...`}
+              maxLength={MAX_COMMENT_LENGTH}
+            />
+            <div className="post-detail-comment-actions">
+              <span className="text-dim">{(replyDrafts[c.id] || '').length}/{MAX_COMMENT_LENGTH}</span>
+              <button
+                type="button"
+                className="login-button"
+                disabled={submittingReplyId === c.id || !(replyDrafts[c.id] || '').trim()}
+                onClick={() => submitReply(c.id)}
+              >
+                {submittingReplyId === c.id ? 'Enviando...' : 'Responder'}
+              </button>
+            </div>
+          </div>
+        )}
+      </article>
+
+      {Array.isArray(c.children) && c.children.length > 0 && (
+        <div className="post-detail-comment-children">
+          {c.children.map((child) => renderCommentNode(child, depth + 1))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="home-container">
@@ -196,26 +297,7 @@ export default function PostDetail() {
                 {comments.length === 0 ? (
                   <p className="text-muted">Sé el primero en comentar esta publicación.</p>
                 ) : (
-                  comments.map((c) => (
-                    <article key={c.id} className="post-detail-comment-item">
-                      <div className="post-detail-comment-head">
-                        <UserAvatar src={c.authorProfilePictureUrl} name={c.authorName} size="small" />
-                        <div className="post-detail-comment-header">
-                          <span
-                            className="post-author post-author-link"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => navigate(`/user/${c.authorName}`)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${c.authorName}`); }}
-                          >
-                            {c.authorName}
-                          </span>
-                          <span className="text-dim">{formatDate(c.createdAt)}</span>
-                        </div>
-                      </div>
-                      <p>{c.text}</p>
-                    </article>
-                  ))
+                  commentTree.map((c) => renderCommentNode(c, 0))
                 )}
               </div>
             </section>
