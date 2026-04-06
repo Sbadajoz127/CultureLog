@@ -4,12 +4,12 @@ import {
   Bell, Heart, MessageCircle, UserPlus, BookOpen,
   Check, X, CheckCheck, Inbox, Users,
 } from 'lucide-react';
-import { useAuth } from './context/AuthContext';
-import { useNotifications } from './context/NotificationContext';
-import { getNotifications } from './services/api';
-import { AppHeader } from './components/AppHeader';
-import { UserAvatar } from './components/UserAvatar';
-import './App.css';
+import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
+import { getNotifications } from '../services/api';
+import { AppHeader } from '../components/AppHeader';
+import { UserAvatar } from '../components/UserAvatar';
+import '../App.css';
 
 const ICON_MAP = {
   LIKE_POST: Heart,

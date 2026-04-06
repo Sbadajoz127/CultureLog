@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { resetPassword } from '../services/api';
-import '../App.css';
+import { resetPassword } from '../../services/api';
+import '../../App.css';
 
 function ResetPassword() {
   const [token, setToken] = useState('');

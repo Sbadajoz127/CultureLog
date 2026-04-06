@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import { useTheme } from './context/ThemeContext';
-import { useProfilePic } from './context/ProfilePicContext';
-import { AppHeader } from './components/AppHeader';
-import { UserAvatar } from './components/UserAvatar';
-import { uploadImage, updateProfilePicture } from './services/api';
-import './App.css';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useProfilePic } from '../context/ProfilePicContext';
+import { AppHeader } from '../components/AppHeader';
+import { UserAvatar } from '../components/UserAvatar';
+import { uploadImage, updateProfilePicture } from '../services/api';
+import '../App.css';
 
 const THEME_OPTIONS = [
   { value: 'DARK', label: 'Oscuro' },

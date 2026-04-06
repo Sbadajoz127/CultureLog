@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.service;
 
 import com.cultureSL.CultureLog.dto.LikeResponse;
+import com.cultureSL.CultureLog.dto.CommentResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.model.Comment;
 import com.cultureSL.CultureLog.model.Post;
@@ -44,6 +45,15 @@ public interface PostService {
     Page<PostResponse> getNewsFeed(Long userId, Pageable pageable);
 
     /**
+     * Obtiene el detalle de una publicación concreta.
+     *
+     * @param postId         ID de la publicación
+     * @param currentUserId  ID del usuario que intenta verla
+     * @return DTO de la publicación
+     */
+    PostResponse getPostById(Long postId, Long currentUserId);
+
+    /**
      * Obtiene las publicaciones de un usuario específico (vista de perfil).
      *
      * @param userId   ID del usuario autor
@@ -84,4 +94,12 @@ public interface PostService {
      * @return lista de comentarios ordenados del más antiguo al más reciente
      */
     List<Comment> getCommentsForPost(Long postId);
+
+    /**
+     * Recupera todos los comentarios de una publicación en formato DTO.
+     *
+     * @param postId ID de la publicación
+     * @return lista de comentarios
+     */
+    List<CommentResponse> getCommentResponsesForPost(Long postId, Long currentUserId);
 }

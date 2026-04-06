@@ -5,15 +5,16 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ProfilePicProvider } from './context/ProfilePicContext';
 import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Login from './LoginRegister/Login';
-import Register from './LoginRegister/Register';
-import ForgotPassword from './LoginRegister/ForgotPassword';
-import ResetPassword from './LoginRegister/ResetPassword';
-import Home from './Home';
-import Profile from './Profile';
-import Library from './Library';
-import PublicProfile from './PublicProfile';
-import Notifications from './Notifications';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Library from './pages/Library';
+import PublicProfile from './pages/PublicProfile';
+import Notifications from './pages/Notifications';
+import PostDetail from './pages/PostDetail';
 import './App.css';
 
 function AuthNavigationGuard() {
@@ -53,6 +54,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:username" element={<PublicProfile />} />
                   <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/posts/:postId" element={<PostDetail />} />
                 </Route>
 
                 {/* Fallback */}

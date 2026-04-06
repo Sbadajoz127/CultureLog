@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Heart, Lock } from 'lucide-react';
-import { useAuth } from './context/AuthContext';
-import { AppHeader } from './components/AppHeader';
-import { UserAvatar } from './components/UserAvatar';
-import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from './constants/media';
+import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
+import { UserAvatar } from '../components/UserAvatar';
+import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
+import { Heart, Lock, MessageCircle, Expand } from 'lucide-react';
 import {
   getUserProfile,
   followUser,
   unfollowUser,
   togglePostLike,
-} from './services/api';
-import './App.css';
+  getPostComments,
+  addPostComment,
+} from '../services/api';
+import '../App.css';
 
 const LIBRARY_TABS = [
   { id: 'VISTO', label: 'Visto' },
@@ -114,6 +116,12 @@ function PublicProfile() {
   const [libraryStatus, setLibraryStatus] = useState('VISTO');
   const [followLoading, setFollowLoading] = useState(false);
   const [likingPostId, setLikingPostId] = useState(null);
+  const [openCommentsPostId, setOpenCommentsPostId] = useState(null);
+  const [postCommentsMap, setPostCommentsMap] = useState({});
+  const [commentDrafts, setCommentDrafts] = useState({});
+  const [loadingCommentsPostId, setLoadingCommentsPostId] = useState(null);
+  const [submittingCommentPostId, setSubmittingCommentPostId] = useState(null);
+  const [commentsErrorByPost, setCommentsErrorByPost] = useState({});
 
   const loadProfile = useCallback(async (signal, { silent = false } = {}) => {
     if (!silent) {
@@ -180,6 +188,56 @@ function PublicProfile() {
       /* ignore */
     } finally {
       setLikingPostId(null);
+    }
+  };
+
+  const toggleInlineComments = async (postId) => {
+    if (openCommentsPostId === postId) {
+      setOpenCommentsPostId(null);
+      return;
+    }
+    setOpenCommentsPostId(postId);
+    if (postCommentsMap[postId]) return;
+    setLoadingCommentsPostId(postId);
+    setCommentsErrorByPost((prev) => ({ ...prev, [postId]: '' }));
+    try {
+      const { data } = await getPostComments(postId);
+      setPostCommentsMap((prev) => ({ ...prev, [postId]: Array.isArray(data) ? data : [] }));
+    } catch (e) {
+      setCommentsErrorByPost((prev) => ({
+        ...prev,
+        [postId]: e.response?.data?.message || e.response?.data?.error || 'No se pudieron cargar los comentarios.',
+      }));
+    } finally {
+      setLoadingCommentsPostId(null);
+    }
+  };
+
+  const handleInlineCommentSubmit = async (postId) => {
+    const text = (commentDrafts[postId] || '').trim();
+    if (!text) return;
+    setSubmittingCommentPostId(postId);
+    setCommentsErrorByPost((prev) => ({ ...prev, [postId]: '' }));
+    try {
+      const { data: created } = await addPostComment(postId, text);
+      setPostCommentsMap((prev) => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), created],
+      }));
+      setProfile((prev) => ({
+        ...prev,
+        posts: prev.posts.map((p) => (
+          p.id === postId ? { ...p, commentCount: (p.commentCount || 0) + 1 } : p
+        )),
+      }));
+      setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
+    } catch (e) {
+      setCommentsErrorByPost((prev) => ({
+        ...prev,
+        [postId]: e.response?.data?.message || e.response?.data?.error || 'No se pudo comentar.',
+      }));
+    } finally {
+      setSubmittingCommentPostId(null);
     }
   };
 
@@ -380,7 +438,76 @@ function PublicProfile() {
                               >
                                 <Heart size={16} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} /> {post.likeCount} Me gusta
                               </button>
+                              <div className="post-footer-actions">
+                                <button
+                                  type="button"
+                                  className="post-like-btn"
+                                  onClick={() => toggleInlineComments(post.id)}
+                                >
+                                  <MessageCircle size={16} /> {post.commentCount || 0} comentarios
+                                </button>
+                                <button
+                                  type="button"
+                                  className="post-like-btn"
+                                  onClick={() => navigate(`/posts/${post.id}`)}
+                                >
+                                  <Expand size={16} /> Ver publicación
+                                </button>
+                              </div>
                             </div>
+                            {openCommentsPostId === post.id && (
+                              <div className="post-inline-comments">
+                                {commentsErrorByPost[post.id] && (
+                                  <p className="auth-error">{commentsErrorByPost[post.id]}</p>
+                                )}
+                                {loadingCommentsPostId === post.id ? (
+                                  <p className="text-muted">Cargando comentarios...</p>
+                                ) : (
+                                  <div className="post-inline-comments-list">
+                                    {(postCommentsMap[post.id] || []).map((c) => (
+                                      <div key={c.id} className="post-inline-comment-item">
+                                        <UserAvatar src={c.authorProfilePictureUrl} name={c.authorName} size="small" />
+                                        <p>
+                                          <strong
+                                            role="button"
+                                            tabIndex={0}
+                                            className="post-author-link"
+                                            onClick={() => navigate(`/user/${c.authorName}`)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${c.authorName}`); }}
+                                          >
+                                            {c.authorName}
+                                          </strong>
+                                          {' '}
+                                          {c.text}
+                                        </p>
+                                      </div>
+                                    ))}
+                                    {(postCommentsMap[post.id] || []).length === 0 && (
+                                      <p className="text-muted">Todavía no hay comentarios.</p>
+                                    )}
+                                  </div>
+                                )}
+                                <div className="post-inline-comment-form">
+                                  <textarea
+                                    value={commentDrafts[post.id] || ''}
+                                    onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
+                                    maxLength={1000}
+                                    placeholder="Añade un comentario..."
+                                  />
+                                  <div className="post-inline-comment-form-footer">
+                                    <span className="text-dim">{(commentDrafts[post.id] || '').length}/1000</span>
+                                    <button
+                                      type="button"
+                                      className="login-button"
+                                      onClick={() => handleInlineCommentSubmit(post.id)}
+                                      disabled={submittingCommentPostId === post.id || !(commentDrafts[post.id] || '').trim()}
+                                    >
+                                      {submittingCommentPostId === post.id ? 'Enviando...' : 'Comentar'}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </article>
                         ))}
                       </div>

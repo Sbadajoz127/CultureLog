@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,6 +43,16 @@ public class PostResponse {
     private String linkedItemType;
     /** Puntuación del ítem vinculado. */
     private Integer linkedItemRating;
+    /** URL de imagen del ítem vinculado. */
+    private String linkedItemImageUrl;
+    /** Creador principal de la obra (autor/director/etc). */
+    private String linkedItemCreator;
+    /** Fecha de lanzamiento del ítem vinculado. */
+    private LocalDate linkedItemReleaseDate;
+    /** Género del ítem vinculado. */
+    private String linkedItemGenre;
+    /** Descripción/sinopsis de la obra. */
+    private String linkedItemDescription;
 
     /** Número total de likes en la publicación. */
     private int likeCount;

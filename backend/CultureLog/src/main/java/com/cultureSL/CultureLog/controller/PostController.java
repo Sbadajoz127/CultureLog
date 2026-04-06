@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.controller;
 
 import com.cultureSL.CultureLog.dto.CommentRequest;
+import com.cultureSL.CultureLog.dto.CommentResponse;
 import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostRequest;
 import com.cultureSL.CultureLog.dto.PostResponse;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Controlador REST para la gestión de publicaciones del feed social.
@@ -74,6 +77,14 @@ public class PostController {
         return ResponseEntity.ok(postService.getNewsFeed(userId, pageable));
     }
 
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponse> getPostById(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(postService.getPostById(postId, userId));
+    }
+
     /**
      * Alterna el "Me gusta" en una publicación (like/unlike).
      * <p>Endpoint: {@code POST /api/posts/{postId}/like}</p>
@@ -99,13 +110,28 @@ public class PostController {
      * @return HTTP 200 sin contenido
      */
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<Void> addComment(
+    public ResponseEntity<CommentResponse> addComment(
             @PathVariable Long postId,
             Authentication authentication,
             @Valid @RequestBody CommentRequest request) {
 
         Long userId = (Long) authentication.getPrincipal();
-        postService.addComment(postId, userId, request.getText());
-        return ResponseEntity.ok().build();
+        var saved = postService.addComment(postId, userId, request.getText());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new CommentResponse(
+                saved.getId(),
+                saved.getText(),
+                saved.getAuthor().getUsername(),
+                saved.getAuthor().getId(),
+                saved.getAuthor().getProfilePictureUrl(),
+                saved.getCreatedAt()
+        ));
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentResponse>> getComments(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(postService.getCommentResponsesForPost(postId, userId));
     }
 }

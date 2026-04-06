@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.dto.LikeResponse;
+import com.cultureSL.CultureLog.dto.CommentResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
@@ -8,6 +9,7 @@ import com.cultureSL.CultureLog.exception.UnauthorizedException;
 import com.cultureSL.CultureLog.mapper.PostMapper;
 import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
+import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
 import com.cultureSL.CultureLog.repository.*;
 import com.cultureSL.CultureLog.service.EmailService;
 import com.cultureSL.CultureLog.service.FollowService;
@@ -84,6 +86,16 @@ public class PostServiceImpl implements PostService {
     public Page<PostResponse> getNewsFeed(Long userId, Pageable pageable) {
         Page<Post> postPage = postRepository.findNewsFeed(userId, pageable);
         return postMapper.toPageDto(postPage, userId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public PostResponse getPostById(Long postId, Long currentUserId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
+        validatePostAccess(post, currentUserId);
+        return postMapper.toDto(post, currentUserId);
     }
 
     /** {@inheritDoc} */
@@ -186,6 +198,41 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<Comment> getCommentsForPost(Long postId) {
+        postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
         return commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public List<CommentResponse> getCommentResponsesForPost(Long postId, Long currentUserId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
+        validatePostAccess(post, currentUserId);
+
+        return commentRepository.findByPostIdOrderByCreatedAtAsc(postId).stream()
+                .map(c -> CommentResponse.builder()
+                        .id(c.getId())
+                        .text(c.getText())
+                        .authorId(c.getAuthor().getId())
+                        .authorName(c.getAuthor().getUsername())
+                        .authorProfilePictureUrl(c.getAuthor().getProfilePictureUrl())
+                        .createdAt(c.getCreatedAt())
+                        .build())
+                .toList();
+    }
+
+    private void validatePostAccess(Post post, Long currentUserId) {
+        Long authorId = post.getAuthor().getId();
+        if (authorId.equals(currentUserId)) return;
+
+        UserSettings settings = post.getAuthor().getSettings();
+        ProfilePrivacy privacy = settings != null ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;
+        boolean canAccess = privacy == ProfilePrivacy.PUBLICO || followService.isFollowing(currentUserId, authorId);
+
+        if (!canAccess) {
+            throw new UnauthorizedException("No tienes permiso para ver esta publicación");
+        }
     }
 }
