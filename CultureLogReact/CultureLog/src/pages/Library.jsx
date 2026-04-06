@@ -15,6 +15,7 @@ import {
   updateMediaItem,
   deleteMediaItem,
 } from '../services/api';
+import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import '../App.css';
 
 function SkeletonLibraryItem() {
@@ -60,35 +61,41 @@ function SkeletonSearchSection() {
   );
 }
 
-function LibraryItemCard({ item, onStatusChange, onDelete, busyId }) {
+function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }) {
   const busy = busyId === item.id;
   const tagList = item.tagNames ? Array.from(item.tagNames) : [];
 
   return (
     <article className="library-item-card">
       <div className="library-item-main">
-        {item.itemImageUrl ? (
-          <img src={item.itemImageUrl} alt="" className="library-item-cover" />
-        ) : (
-          <div className="library-item-cover library-item-cover-placeholder" aria-hidden />
-        )}
-        <div className="library-item-body">
-          <h4 className="library-item-title">{item.title}</h4>
-          <p className="library-item-meta text-muted">
-            {MEDIA_TYPE_LABELS[item.type] || item.type}
-            {item.creator ? ` · ${item.creator}` : ''}
-            {item.releaseDate ? ` · ${item.releaseDate}` : ''}
-          </p>
-          {tagList.length > 0 && (
-            <div className="tags-container">
-              {tagList.map((tag) => (
-                <span key={tag} className="custom-tag">
-                  #{tag}
-                </span>
-              ))}
-            </div>
+        <button
+          type="button"
+          className="library-item-clickable"
+          onClick={() => onItemClick(item)}
+        >
+          {item.itemImageUrl ? (
+            <img src={item.itemImageUrl} alt="" className="library-item-cover" />
+          ) : (
+            <div className="library-item-cover library-item-cover-placeholder" aria-hidden />
           )}
-        </div>
+          <div className="library-item-body">
+            <h4 className="library-item-title">{item.title}</h4>
+            <p className="library-item-meta text-muted">
+              {MEDIA_TYPE_LABELS[item.type] || item.type}
+              {item.creator ? ` · ${item.creator}` : ''}
+              {item.releaseDate ? ` · ${item.releaseDate}` : ''}
+            </p>
+            {tagList.length > 0 && (
+              <div className="tags-container">
+                {tagList.map((tag) => (
+                  <span key={tag} className="custom-tag">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </button>
       </div>
       <div className="library-item-actions">
         <div className="library-item-status-group">
@@ -138,6 +145,7 @@ function Library() {
   const [searchMsg, setSearchMsg] = useState('');
   const [addingKey, setAddingKey] = useState(null);
   const [busyItemId, setBusyItemId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const loadItems = useCallback(async (status) => {
     setListLoading(true);
@@ -402,6 +410,7 @@ function Library() {
                   item={item}
                   onStatusChange={handleStatusChange}
                   onDelete={handleDelete}
+                  onItemClick={setSelectedItem}
                   busyId={busyItemId}
                 />
               ))}
@@ -409,6 +418,11 @@ function Library() {
           )}
         </section>
       </main>
+
+      <MediaItemDetailModal
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
     </div>
   );
 }
