@@ -29,6 +29,8 @@ public class CommentResponse {
     private Long authorId;
     /** URL de la foto de perfil del autor. */
     private String authorProfilePictureUrl;
+    /** ID del comentario padre si este comentario es una respuesta. */
+    private Long parentCommentId;
     /** Fecha de creación. */
     private LocalDateTime createdAt;
 }

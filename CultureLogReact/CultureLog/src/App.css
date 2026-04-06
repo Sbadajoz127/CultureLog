@@ -3004,6 +3004,7 @@ input[type="password"]::-ms-clear {
   max-width: 920px;
   margin: 0 auto;
   width: 100%;
+  margin-bottom: 50px;
 }
 
 .post-detail-back {
@@ -3063,6 +3064,7 @@ input[type="password"]::-ms-clear {
   margin: 0;
 }
 
+.post-detail-reply-form textarea,
 .post-detail-comment-form textarea {
   min-height: 90px;
   width: 100%;
@@ -3118,6 +3120,28 @@ input[type="password"]::-ms-clear {
   align-items: baseline;
   gap: 10px;
   width: 100%;
+}
+
+.post-detail-comment-actions-row {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+
+.post-detail-reply-form {
+  margin-top: 10px;
+
+}
+
+.post-detail-comment-children {
+  margin-top: 10px;
+  margin-left: 34px;
+  display: grid;
+  gap: 10px;
+}
+
+.post-detail-comment-node.is-reply .post-detail-comment-item {
+  background: color-mix(in srgb, var(--bg-card) 85%, var(--bg-input));
 }
 
 .post-footer-actions {
