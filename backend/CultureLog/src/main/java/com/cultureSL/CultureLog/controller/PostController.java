@@ -116,15 +116,16 @@ public class PostController {
             @Valid @RequestBody CommentRequest request) {
 
         Long userId = (Long) authentication.getPrincipal();
-        var saved = postService.addComment(postId, userId, request.getText());
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CommentResponse(
-                saved.getId(),
-                saved.getText(),
-                saved.getAuthor().getUsername(),
-                saved.getAuthor().getId(),
-                saved.getAuthor().getProfilePictureUrl(),
-                saved.getCreatedAt()
-        ));
+        var saved = postService.addComment(postId, userId, request.getText(), request.getParentCommentId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommentResponse.builder()
+                .id(saved.getId())
+                .text(saved.getText())
+                .authorName(saved.getAuthor().getUsername())
+                .authorId(saved.getAuthor().getId())
+                .authorProfilePictureUrl(saved.getAuthor().getProfilePictureUrl())
+                .parentCommentId(saved.getParentComment() != null ? saved.getParentComment().getId() : null)
+                .createdAt(saved.getCreatedAt())
+                .build());
     }
 
     @GetMapping("/{postId}/comments")

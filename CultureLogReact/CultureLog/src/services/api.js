@@ -112,8 +112,8 @@ export function getPostComments(postId) {
   return api.get(`/posts/${postId}/comments`);
 }
 
-export function addPostComment(postId, text) {
-  return api.post(`/posts/${postId}/comments`, { text });
+export function addPostComment(postId, text, parentCommentId) {
+  return api.post(`/posts/${postId}/comments`, { text, parentCommentId: parentCommentId ?? null });
 }
 
 export function getSuggestedUsers() {

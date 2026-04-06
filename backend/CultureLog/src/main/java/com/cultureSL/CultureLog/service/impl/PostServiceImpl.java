@@ -158,7 +158,7 @@ public class PostServiceImpl implements PostService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public Comment addComment(Long postId, Long userId, String text) {
+    public Comment addComment(Long postId, Long userId, String text, Long parentCommentId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
         User author = userRepository.findById(userId)
@@ -173,6 +173,15 @@ public class PostServiceImpl implements PostService {
         comment.setPost(post);
         comment.setAuthor(author);
         comment.setText(text);
+
+        if (parentCommentId != null) {
+            Comment parent = commentRepository.findById(parentCommentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Comentario padre no encontrado"));
+            if (!parent.getPost().getId().equals(postId)) {
+                throw new BadRequestException("El comentario padre no pertenece a esta publicación");
+            }
+            comment.setParentComment(parent);
+        }
 
         postRepository.updateCommentCount(postId, 1);
 
@@ -218,6 +227,7 @@ public class PostServiceImpl implements PostService {
                         .authorId(c.getAuthor().getId())
                         .authorName(c.getAuthor().getUsername())
                         .authorProfilePictureUrl(c.getAuthor().getProfilePictureUrl())
+                        .parentCommentId(c.getParentComment() != null ? c.getParentComment().getId() : null)
                         .createdAt(c.getCreatedAt())
                         .build())
                 .toList();

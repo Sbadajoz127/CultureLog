@@ -119,13 +119,15 @@ public class PostMapper {
                 .recentComments(post.getComments().stream()
                         .sorted(Comparator.comparing(c -> c.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                         .limit(3)
-                        .map(c -> new CommentResponse(
-                                c.getId(),
-                                c.getText(),
-                                c.getAuthor().getUsername(),
-                                c.getAuthor().getId(),
-                                c.getAuthor().getProfilePictureUrl(),
-                                c.getCreatedAt()))
+                        .map(c -> CommentResponse.builder()
+                                .id(c.getId())
+                                .text(c.getText())
+                                .authorName(c.getAuthor().getUsername())
+                                .authorId(c.getAuthor().getId())
+                                .authorProfilePictureUrl(c.getAuthor().getProfilePictureUrl())
+                                .parentCommentId(c.getParentComment() != null ? c.getParentComment().getId() : null)
+                                .createdAt(c.getCreatedAt())
+                                .build())
                         .collect(Collectors.toList()))
                 .build();
     }
