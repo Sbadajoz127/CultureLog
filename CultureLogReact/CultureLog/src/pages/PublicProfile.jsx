@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import { AppHeader } from './components/AppHeader';
-import { UserAvatar } from './components/UserAvatar';
-import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from './constants/media';
+import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
+import { UserAvatar } from '../components/UserAvatar';
+import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
 import {
   getUserProfile,
   followUser,
   unfollowUser,
   togglePostLike,
-} from './services/api';
-import './App.css';
+} from '../services/api';
+import '../App.css';
 
 const LIBRARY_TABS = [
   { id: 'VISTO', label: 'Visto' },

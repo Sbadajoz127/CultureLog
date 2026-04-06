@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import { useProfilePic } from './context/ProfilePicContext';
-import { AppHeader } from './components/AppHeader';
-import { UserAvatar } from './components/UserAvatar';
-import { FEED_TABS, MEDIA_TYPE_LABELS, postMatchesFeedTab } from './constants/media';
-import { searchResultToPayload } from './utils/mediaItem';
+import { useAuth } from '../context/AuthContext';
+import { useProfilePic } from '../context/ProfilePicContext';
+import { AppHeader } from '../components/AppHeader';
+import { UserAvatar } from '../components/UserAvatar';
+import { FEED_TABS, MEDIA_TYPE_LABELS, postMatchesFeedTab } from '../constants/media';
+import { searchResultToPayload } from '../utils/mediaItem';
 import {
   getFeed,
   createPost,
@@ -15,8 +15,8 @@ import {
   getMediaItems,
   getSuggestedUsers,
   followUser,
-} from './services/api';
-import './App.css';
+} from '../services/api';
+import '../App.css';
 
 const FEED_PAGE_SIZE = 10;
 const MAX_POST_LENGTH = 2000;

@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { useAuth } from './context/AuthContext';
-import { AppHeader } from './components/AppHeader';
+import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
 import {
   MEDIA_STATUS_TABS,
   MEDIA_TYPES,
   MEDIA_TYPE_LABELS,
   MEDIA_STATUS_LABELS,
-} from './constants/media';
-import { mediaItemToRequest, searchResultToPayload } from './utils/mediaItem';
+} from '../constants/media';
+import { mediaItemToRequest, searchResultToPayload } from '../utils/mediaItem';
 import {
   getMediaItems,
   searchMedia,
   addToLibraryFromSearch,
   updateMediaItem,
   deleteMediaItem,
-} from './services/api';
-import './App.css';
+} from '../services/api';
+import '../App.css';
 
 function SkeletonLibraryItem() {
   return (
