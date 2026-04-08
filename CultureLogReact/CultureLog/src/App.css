@@ -512,8 +512,16 @@ input[type="password"]::-ms-clear {
   transition: color 0.2s ease;
 }
 
-.post-footer button:hover {
+.post-footer .post-like-btn:hover {
   color: var(--danger-hover);
+}
+
+.post-footer .post-action-btn:hover {
+  color: color-mix(in srgb, var(--accent-color) 65%, white);
+}
+
+.post-footer .post-action-btn.active {
+  color: var(--accent-color);
 }
 
 /* --- Estilos para Ajustes de Perfil --- */
@@ -1079,6 +1087,9 @@ input[type="password"]::-ms-clear {
   padding: 0;
   font-size: 0.95rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   transition: color 0.2s ease;
 }
 
@@ -1088,6 +1099,28 @@ input[type="password"]::-ms-clear {
 
 .post-like-btn.liked {
   color: var(--danger);
+}
+
+.post-action-btn {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+}
+
+.post-action-btn:hover {
+  color: color-mix(in srgb, var(--accent-color) 65%, white);
+}
+
+.post-action-btn.active {
+  color: var(--accent-color);
 }
 
 .post-comment-count {
@@ -3061,12 +3094,39 @@ input[type="password"]::-ms-clear {
   max-width: 920px;
   margin: 0 auto;
   width: 100%;
+  margin-top: 30px;
   margin-bottom: 50px;
 }
 
-.post-detail-back {
-  margin-top: 12px;
-  margin-bottom: 14px;
+.post-detail-back-btn {
+  position: fixed;
+  top: 100px;
+  right: calc((100vw - 920px) / 2 - 120px);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  box-shadow: 0 2px 8px var(--shadow-card);
+}
+
+.post-detail-back-btn:hover {
+  background: var(--hover-overlay);
+  color: var(--accent-color);
+}
+
+@media (max-width: 1200px) {
+  .post-detail-back-btn {
+    right: 16px;
+  }
 }
 
 .post-detail-card {
@@ -3199,6 +3259,40 @@ input[type="password"]::-ms-clear {
 
 .post-detail-comment-node.is-reply .post-detail-comment-item {
   background: color-mix(in srgb, var(--bg-card) 85%, var(--bg-input));
+}
+
+.post-toggle-replies-btn {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 0;
+  margin-top: 6px;
+  margin-left: 34px;
+  transition: opacity 0.2s ease;
+}
+
+.post-toggle-replies-btn:hover {
+  opacity: 0.8;
+}
+
+.post-read-more {
+  color: var(--accent-color);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.post-read-more:hover {
+  text-decoration: underline;
+}
+
+.post-comments-separator {
+  border-top: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
+  margin-top: 12px; 
 }
 
 .post-footer-actions {
