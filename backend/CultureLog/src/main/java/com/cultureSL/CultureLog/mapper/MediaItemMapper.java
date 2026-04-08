@@ -40,6 +40,7 @@ public class MediaItemMapper {
                 .description(item.getDescription())
                 .externalId(item.getExternalId())
                 .externalSource(item.getExternalSource())
+                .album(item.getAlbum())
                 .tagNames(item.getTags().stream()
                         .map(Tag::getName)
                         .collect(Collectors.toSet()))

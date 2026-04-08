@@ -348,6 +348,7 @@ function Library() {
                         <div className="text-muted library-search-sub">
                           {MEDIA_TYPE_LABELS[r.type] || r.type}
                           {r.creator ? ` · ${r.creator}` : ''}
+                          {r.album ? ` · ${r.album}` : ''}
                           {r.source ? ` · ${r.source}` : ''}
                         </div>
                       </div>

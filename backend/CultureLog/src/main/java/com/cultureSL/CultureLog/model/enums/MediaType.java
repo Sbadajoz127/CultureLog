@@ -19,8 +19,6 @@ public enum MediaType {
     ANIME,
     /** Cómic japonés (manga). */
     MANGA,
-    /** Programa de audio bajo demanda. */
-    PODCAST,
-    /** Para cualquier obra que no encaje en las categorías anteriores (ej: Documentales, Teatro). */
-    OTRO
+    /** Canción, álbum o contenido musical. */
+    MUSICA
 }

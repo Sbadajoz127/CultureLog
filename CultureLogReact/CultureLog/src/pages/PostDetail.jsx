@@ -39,6 +39,7 @@ export default function PostDetail() {
     releaseDate: post?.linkedItemReleaseDate,
     genre: post?.linkedItemGenre,
     description: post?.linkedItemDescription,
+    album: post?.linkedItemAlbum,
   }), [post]);
 
   const linkedItemDescriptionText = (linkedItem?.description || '').trim()
@@ -139,6 +140,7 @@ export default function PostDetail() {
                     {linkedItem.releaseDate ? ` · ${linkedItem.releaseDate}` : ''}
                     {linkedItem.rating != null ? ` · ${linkedItem.rating}/10` : ''}
                   </p>
+                  {linkedItem.album && <p className="text-muted">Álbum: {linkedItem.album}</p>}
                   {linkedItem.genre && <p className="text-muted">Género: {linkedItem.genre}</p>}
                   <p className="post-detail-linked-description">
                     <strong>Descripción: </strong>

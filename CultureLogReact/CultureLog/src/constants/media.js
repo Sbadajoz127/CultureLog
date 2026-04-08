@@ -22,8 +22,7 @@ export const MEDIA_TYPES = [
   { value: 'VIDEOJUEGO', label: 'Videojuego' },
   { value: 'ANIME', label: 'Anime' },
   { value: 'MANGA', label: 'Manga' },
-  { value: 'PODCAST', label: 'Podcast' },
-  { value: 'OTRO', label: 'Otro' },
+  { value: 'MUSICA', label: 'Música' },
 ];
 
 export const MEDIA_TYPE_LABELS = Object.fromEntries(
@@ -35,14 +34,14 @@ export const FEED_TABS = [
   { id: 'GENERAL', label: 'General' },
   { id: 'AUDIOVISUAL', label: 'Audiovisual' },
   { id: 'LECTURA', label: 'Lectura' },
-  { id: 'JUEGOS_OTROS', label: 'Juegos y otros' },
+  { id: 'JUEGOS_MUSICA', label: 'Juegos y música' },
 ];
 
 export const FEED_CATEGORY_TYPES = {
   GENERAL: null,
   AUDIOVISUAL: ['PELICULA', 'SERIE', 'ANIME'],
   LECTURA: ['LIBRO', 'MANGA'],
-  JUEGOS_OTROS: ['VIDEOJUEGO', 'PODCAST', 'OTRO'],
+  JUEGOS_MUSICA: ['VIDEOJUEGO', 'MUSICA'],
 };
 
 export function postMatchesFeedTab(post, tabId) {

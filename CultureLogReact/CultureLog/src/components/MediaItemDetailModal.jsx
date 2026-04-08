@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { X, Star, Calendar, Clock, Tag, BookOpen, User, Layers } from 'lucide-react';
+import { X, Star, Calendar, Clock, Tag, BookOpen, User, Layers, Disc3 } from 'lucide-react';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
 
 const SOURCE_LABELS = {
@@ -7,6 +7,7 @@ const SOURCE_LABELS = {
   GOOGLE_BOOKS: 'Google Books',
   JIKAN: 'Jikan (MAL)',
   RAWG: 'RAWG',
+  DEEZER: 'Deezer',
 };
 
 function formatDate(iso) {
@@ -121,6 +122,12 @@ export function MediaItemDetailModal({ item, onClose }) {
               <p className="mdm-meta-line">
                 <User size={14} />
                 <span>{item.creator}</span>
+              </p>
+            )}
+            {item.album && (
+              <p className="mdm-meta-line">
+                <Disc3 size={14} />
+                <span>{item.album}</span>
               </p>
             )}
             {item.genre && (
