@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, Trash2 } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { useAuth } from '../context/AuthContext';
 import { MEDIA_TYPE_LABELS } from '../constants/media';
-import { addPostComment, getPostById, getPostComments, togglePostLike } from '../services/api';
+import {
+  addPostComment,
+  getPostById,
+  getPostComments,
+  togglePostLike,
+  deletePostComment,
+  deletePost,
+} from '../services/api';
 import '../App.css';
 
 const MAX_COMMENT_LENGTH = 1000;
@@ -139,6 +146,27 @@ export default function PostDetail() {
     }
   };
 
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deletePostComment(commentId);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      setPost((prev) => prev ? { ...prev, commentCount: Math.max(0, (prev.commentCount || 0) - 1) } : prev);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!post) return;
+    if (!window.confirm('¿Seguro que quieres eliminar esta publicación?')) return;
+    try {
+      await deletePost(post.id);
+      navigate('/home');
+    } catch {
+      /* ignore */
+    }
+  };
+
   const renderCommentNode = (c, depth = 0) => (
     <div key={c.id} className={`post-detail-comment-node ${depth > 0 ? 'is-reply' : ''}`}>
       <article className="post-detail-comment-item">
@@ -167,6 +195,15 @@ export default function PostDetail() {
           >
             Responder
           </button>
+          {(c.authorId === user?.id || post?.authorId === user?.id) && (
+            <button
+              type="button"
+              className="post-like-btn post-comment-delete-btn"
+              onClick={() => handleDeleteComment(c.id)}
+            >
+              <Trash2 size={14} /> Eliminar
+            </button>
+          )}
         </div>
 
         {replyOpenForId === c.id && (
@@ -232,6 +269,11 @@ export default function PostDetail() {
                 </div>
               </div>
               <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+              {post.authorId === user?.id && (
+                <button type="button" className="post-like-btn post-delete-btn" onClick={handleDeletePost}>
+                  <Trash2 size={16} /> Eliminar
+                </button>
+              )}
             </div>
 
             {linkedItem?.id && (

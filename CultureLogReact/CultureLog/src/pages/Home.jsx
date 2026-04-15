@@ -6,7 +6,7 @@ import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { FEED_TABS, MEDIA_TYPE_LABELS, postMatchesFeedTab } from '../constants/media';
 import { searchResultToPayload } from '../utils/mediaItem';
-import { Heart, MessageCircle, Expand } from 'lucide-react';
+import { Heart, MessageCircle, Expand, Trash2 } from 'lucide-react';
 import {
   getFeed,
   createPost,
@@ -18,6 +18,8 @@ import {
   getMediaItems,
   getSuggestedUsers,
   followUser,
+  deletePost,
+  deletePostComment,
 } from '../services/api';
 import '../App.css';
 
@@ -351,6 +353,31 @@ function Home() {
     }
   };
 
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('¿Seguro que quieres eliminar esta publicación?')) return;
+    try {
+      await deletePost(postId);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleDeleteInlineComment = async (postId, commentId) => {
+    try {
+      await deletePostComment(commentId);
+      setPostCommentsMap((prev) => ({
+        ...prev,
+        [postId]: (prev[postId] || []).filter((c) => c.id !== commentId),
+      }));
+      setPosts((prev) => prev.map((p) => (
+        p.id === postId ? { ...p, commentCount: Math.max(0, (p.commentCount || 0) - 1) } : p
+      )));
+    } catch {
+      /* ignore */
+    }
+  };
+
   const loadMore = () => {
     const next = feedPage + 1;
     setFeedPage(next);
@@ -554,6 +581,15 @@ function Home() {
                         </div>
                       </div>
                       <span className="text-dim post-date">{formatFeedDate(post.createdAt)}</span>
+                      {post.authorId === user.id && (
+                        <button
+                          type="button"
+                          className="post-like-btn post-delete-btn"
+                          onClick={() => handleDeletePost(post.id)}
+                        >
+                          <Trash2 size={16} /> Eliminar
+                        </button>
+                      )}
                     </div>
 
                     {(post.linkedItemTitle || post.linkedItemId) && (
@@ -618,6 +654,15 @@ function Home() {
                                   {' '}
                                   {c.text}
                                 </p>
+                                {(c.authorId === user.id || post.authorId === user.id) && (
+                                  <button
+                                    type="button"
+                                    className="post-like-btn post-comment-delete-btn"
+                                    onClick={() => handleDeleteInlineComment(post.id, c.id)}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                )}
                               </div>
                             ))}
                             {(postCommentsMap[post.id] || []).length === 0 && (

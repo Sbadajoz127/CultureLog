@@ -116,6 +116,14 @@ export function addPostComment(postId, text, parentCommentId) {
   return api.post(`/posts/${postId}/comments`, { text, parentCommentId: parentCommentId ?? null });
 }
 
+export function deletePostComment(commentId) {
+  return api.delete(`/posts/comments/${commentId}`);
+}
+
+export function deletePost(postId) {
+  return api.delete(`/posts/${postId}`);
+}
+
 export function getSuggestedUsers() {
   return api.get('/users/suggestions');
 }
@@ -162,6 +170,14 @@ export function acceptFollowRequest(followerId) {
 
 export function rejectFollowRequest(followerId) {
   return api.post(`/follows/reject?followerId=${followerId}`);
+}
+
+export function getFollowers(userId) {
+  return api.get(`/follows/followers/${userId}`);
+}
+
+export function getFollowing(userId) {
+  return api.get(`/follows/following/${userId}`);
 }
 
 export default api;

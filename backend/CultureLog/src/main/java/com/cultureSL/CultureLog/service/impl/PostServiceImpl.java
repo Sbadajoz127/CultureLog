@@ -205,6 +205,38 @@ public class PostServiceImpl implements PostService {
 
     /** {@inheritDoc} */
     @Override
+    @Transactional
+    public void deleteComment(Long commentId, Long currentUserId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comentario no encontrado"));
+
+        Long postAuthorId = comment.getPost().getAuthor().getId();
+        Long commentAuthorId = comment.getAuthor().getId();
+        if (!currentUserId.equals(commentAuthorId) && !currentUserId.equals(postAuthorId)) {
+            throw new UnauthorizedException("No tienes permiso para eliminar este comentario");
+        }
+
+        Long postId = comment.getPost().getId();
+        commentRepository.delete(comment);
+        postRepository.updateCommentCount(postId, -1);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void deletePost(Long postId, Long currentUserId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
+
+        if (!currentUserId.equals(post.getAuthor().getId())) {
+            throw new UnauthorizedException("No tienes permiso para eliminar esta publicación");
+        }
+
+        postRepository.delete(post);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     @Transactional(readOnly = true)
     public List<Comment> getCommentsForPost(Long postId) {
         postRepository.findById(postId)
