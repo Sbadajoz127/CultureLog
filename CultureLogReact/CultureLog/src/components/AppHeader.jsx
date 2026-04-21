@@ -10,7 +10,7 @@ import '../App.css';
  */
 export function AppHeader({ active = 'home', userName }) {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
   const { profilePic } = useProfilePic();
 
   const handleLogout = () => {
@@ -48,6 +48,15 @@ export function AppHeader({ active = 'home', userName }) {
         >
           Perfil
         </button>
+        {isAdmin && (
+          <button
+            type="button"
+            className={`nav-link ${active === 'admin' ? 'active' : ''}`}
+            onClick={() => navigate('/admin')}
+          >
+            Admin
+          </button>
+        )}
       </nav>
 
       <div className="header-right header-user-cluster">

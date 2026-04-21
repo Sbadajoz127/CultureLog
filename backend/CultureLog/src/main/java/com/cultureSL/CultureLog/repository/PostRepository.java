@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -95,4 +97,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void unlinkMediaItem(@Param("mediaItemId") Long mediaItemId);
 
     long countByAuthorId(Long authorId);
+
+    @Query("SELECT p.author.username, COUNT(p) FROM Post p GROUP BY p.author.username ORDER BY COUNT(p) DESC")
+    List<Object[]> countPostsGroupedByUser(Pageable pageable);
+
+    @Query(value = "SELECT DISTINCT p FROM Post p " +
+           "LEFT JOIN FETCH p.author " +
+           "LEFT JOIN FETCH p.linkedItem " +
+           "ORDER BY p.createdAt DESC",
+           countQuery = "SELECT COUNT(p) FROM Post p")
+    Page<Post> findAllWithAuthorAndItem(Pageable pageable);
 }

@@ -4,6 +4,7 @@ import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -150,4 +151,15 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
 
     Optional<MediaItem> findFirstByUserIdAndTypeAndTitleIgnoreCase(
             Long userId, MediaType type, String title);
+
+    long countByUserId(Long userId);
+
+    @Query("SELECT m.type, COUNT(m) FROM MediaItem m GROUP BY m.type")
+    List<Object[]> countGroupedByType();
+
+    @Query("SELECT m.status, COUNT(m) FROM MediaItem m GROUP BY m.status")
+    List<Object[]> countGroupedByStatus();
+
+    @Query("SELECT m.user.username, COUNT(m) FROM MediaItem m GROUP BY m.user.username ORDER BY COUNT(m) DESC")
+    List<Object[]> countItemsGroupedByUser(Pageable pageable);
 }

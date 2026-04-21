@@ -93,7 +93,7 @@ function SkeletonProfilePage() {
 
 function PublicProfile() {
   const { username } = useParams();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
@@ -162,6 +162,7 @@ function PublicProfile() {
   const hasAccess =
     profile &&
     (profile.ownProfile ||
+      isAdmin ||
       profile.profilePrivacy === 'PUBLICO' ||
       profile.followStatus === 'ACCEPTED');
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { AppHeader } from '../components/AppHeader';
 import {
   MEDIA_STATUS_TABS,
@@ -129,6 +130,7 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
 
 function Library() {
   const { user } = useAuth();
+  const confirm = useConfirm();
 
   const [activeStatus, setActiveStatus] = useState('POR_VER');
   const [items, setItems] = useState([]);
@@ -188,7 +190,13 @@ function Library() {
   };
 
   const handleDelete = async (item) => {
-    if (!window.confirm(`¿Eliminar «${item.title}» de tu biblioteca?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar de biblioteca',
+      message: `¿Eliminar «${item.title}» de tu biblioteca?`,
+      confirmText: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!ok) return;
     setBusyItemId(item.id);
     try {
       await deleteMediaItem(item.id);

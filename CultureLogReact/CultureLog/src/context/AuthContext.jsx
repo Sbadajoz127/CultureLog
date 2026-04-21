@@ -48,6 +48,7 @@ export function AuthProvider({ children }) {
       username: data.username,
       email: data.email,
       profilePictureUrl: data.profilePictureUrl ?? null,
+      role: data.role ?? 'USER',
     };
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -84,6 +85,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     isAuthenticated: !!user,
+    isAdmin: user?.role === 'ADMIN',
     login,
     register,
     logout,

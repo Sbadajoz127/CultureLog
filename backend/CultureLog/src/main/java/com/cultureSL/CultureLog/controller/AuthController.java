@@ -46,7 +46,7 @@ public class AuthController {
         newUser.setEmail(request.getEmail());
 
         User createdUser = userService.registerUser(newUser);
-        String token = jwtService.generateToken(createdUser.getId(), createdUser.getUsername());
+        String token = jwtService.generateToken(createdUser.getId(), createdUser.getUsername(), createdUser.getRole().name());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new AuthResponse(
@@ -55,6 +55,7 @@ public class AuthController {
                         createdUser.getEmail(),
                         createdUser.getProfilePictureUrl(),
                         token,
+                        createdUser.getRole().name(),
                         "Usuario registrado con éxito"
                 ));
     }
@@ -72,18 +73,19 @@ public class AuthController {
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            String token = jwtService.generateToken(user.getId(), user.getUsername());
+            String token = jwtService.generateToken(user.getId(), user.getUsername(), user.getRole().name());
             return ResponseEntity.ok(new AuthResponse(
                     user.getId(),
                     user.getUsername(),
                     user.getEmail(),
                     user.getProfilePictureUrl(),
                     token,
+                    user.getRole().name(),
                     "Login correcto"
             ));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponse(null, null, null, null, null, "Credenciales incorrectas"));
+                    .body(new AuthResponse(null, null, null, null, null, null, "Credenciales incorrectas"));
         }
     }
 

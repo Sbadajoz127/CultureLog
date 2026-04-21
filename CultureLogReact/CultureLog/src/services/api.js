@@ -164,4 +164,44 @@ export function rejectFollowRequest(followerId) {
   return api.post(`/follows/reject?followerId=${followerId}`);
 }
 
+// ── Admin endpoints ──
+
+export function getAdminUsers(page = 0, size = 20, search = '') {
+  const params = { page, size };
+  if (search) params.search = search;
+  return api.get('/admin/users', { params });
+}
+
+export function getAdminUserDetail(userId) {
+  return api.get(`/admin/users/${userId}`);
+}
+
+export function adminDeleteUser(userId) {
+  return api.delete(`/admin/users/${userId}`);
+}
+
+export function adminDeletePost(postId) {
+  return api.delete(`/admin/posts/${postId}`);
+}
+
+export function adminDeleteComment(commentId) {
+  return api.delete(`/admin/comments/${commentId}`);
+}
+
+export function adminDeleteItem(itemId) {
+  return api.delete(`/admin/items/${itemId}`);
+}
+
+export function getAdminPosts(page = 0, size = 20) {
+  return api.get('/admin/posts', { params: { page, size } });
+}
+
+export function getAdminPostComments(postId) {
+  return api.get(`/admin/posts/${postId}/comments`);
+}
+
+export function getAdminStats() {
+  return api.get('/admin/stats');
+}
+
 export default api;
