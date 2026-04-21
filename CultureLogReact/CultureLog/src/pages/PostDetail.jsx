@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Heart, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Heart, MessageCircle, ArrowLeft, Trash2 } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { CommentSection } from '../components/CommentSection';
 import { useAuth } from '../context/AuthContext';
 import { MEDIA_TYPE_LABELS } from '../constants/media';
-import { getPostById, getPostComments, togglePostLike } from '../services/api';
+import { getPostById, getPostComments, togglePostLike, deletePost } from '../services/api';
 import '../App.css';
 
 function formatDate(iso) {
@@ -84,6 +84,17 @@ export default function PostDetail() {
     setPost((prev) => prev ? { ...prev, commentCount: (prev.commentCount || 0) + delta } : prev);
   };
 
+  const handleDeletePost = async () => {
+    if (!post) return;
+    if (!window.confirm('¿Seguro que quieres eliminar esta publicación?')) return;
+    try {
+      await deletePost(post.id);
+      navigate('/home');
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="home-container">
       <AppHeader active="home" userName={user?.username} />
@@ -121,6 +132,11 @@ export default function PostDetail() {
                 </div>
               </div>
               <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+              {post.authorId === user?.id && (
+                <button type="button" className="post-like-btn post-delete-btn" onClick={handleDeletePost}>
+                  <Trash2 size={16} /> Eliminar
+                </button>
+              )}
             </div>
 
             {linkedItem?.id && (

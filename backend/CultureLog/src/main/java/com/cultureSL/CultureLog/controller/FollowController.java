@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.controller;
 
 import com.cultureSL.CultureLog.dto.FollowRequestResponse;
+import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -106,5 +107,15 @@ public class FollowController {
         Long userId = (Long) authentication.getPrincipal();
         followService.rejectFollowRequest(userId, followerId);
         return ResponseEntity.ok("Solicitud de seguimiento rechazada");
+    }
+
+    @GetMapping("/followers/{userId}")
+    public ResponseEntity<List<UserSuggestionResponse>> getFollowers(@PathVariable Long userId) {
+        return ResponseEntity.ok(followService.getFollowersSummary(userId));
+    }
+
+    @GetMapping("/following/{userId}")
+    public ResponseEntity<List<UserSuggestionResponse>> getFollowing(@PathVariable Long userId) {
+        return ResponseEntity.ok(followService.getFollowingSummary(userId));
     }
 }

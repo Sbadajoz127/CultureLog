@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.service.impl;
 
 import com.cultureSL.CultureLog.dto.FollowRequestResponse;
+import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import com.cultureSL.CultureLog.model.Follow;
@@ -177,6 +178,32 @@ public class FollowServiceImpl implements FollowService {
                         .followerProfilePicture(f.getFollower().getProfilePictureUrl())
                         .createdAt(f.getCreatedAt())
                         .build())
+                .toList();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserSuggestionResponse> getFollowersSummary(Long userId) {
+        return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED)
+                .stream()
+                .map(f -> new UserSuggestionResponse(
+                        f.getFollower().getId(),
+                        f.getFollower().getUsername(),
+                        f.getFollower().getProfilePictureUrl()))
+                .toList();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserSuggestionResponse> getFollowingSummary(Long userId) {
+        return followRepository.findByFollowerIdAndStatus(userId, FollowStatus.ACCEPTED)
+                .stream()
+                .map(f -> new UserSuggestionResponse(
+                        f.getFollowed().getId(),
+                        f.getFollowed().getUsername(),
+                        f.getFollowed().getProfilePictureUrl()))
                 .toList();
     }
 }

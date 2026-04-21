@@ -135,4 +135,22 @@ public class PostController {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(postService.getCommentResponsesForPost(postId, userId));
     }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        postService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        postService.deletePost(postId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -1,6 +1,7 @@
 package com.cultureSL.CultureLog.service;
 
 import com.cultureSL.CultureLog.dto.FollowRequestResponse;
+import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.model.Follow;
 import java.util.List;
 
@@ -104,4 +105,20 @@ public interface FollowService {
      * @return lista de solicitudes pendientes mapeadas a DTO
      */
     List<FollowRequestResponse> getPendingRequests(Long userId);
+
+    /**
+     * Obtiene la lista de seguidores de un usuario en formato ligero.
+     *
+     * @param userId ID del usuario consultado
+     * @return lista de usuarios seguidores
+     */
+    List<UserSuggestionResponse> getFollowersSummary(Long userId);
+
+    /**
+     * Obtiene la lista de seguidos de un usuario en formato ligero.
+     *
+     * @param userId ID del usuario consultado
+     * @return lista de usuarios seguidos
+     */
+    List<UserSuggestionResponse> getFollowingSummary(Long userId);
 }

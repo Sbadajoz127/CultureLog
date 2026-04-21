@@ -14,6 +14,8 @@ import {
   getMediaItems,
   getSuggestedUsers,
   followUser,
+  deletePost,
+  deletePostComment,
 } from '../services/api';
 import '../App.css';
 

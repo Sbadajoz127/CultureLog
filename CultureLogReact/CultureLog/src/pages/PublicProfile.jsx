@@ -10,6 +10,9 @@ import {
   getUserProfile,
   followUser,
   unfollowUser,
+  deletePost,
+  getFollowers,
+  getFollowing,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import '../App.css';
@@ -103,6 +106,10 @@ function PublicProfile() {
   const [libraryStatus, setLibraryStatus] = useState('VISTO');
   const [followLoading, setFollowLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [connectionsModal, setConnectionsModal] = useState(null);
+  const [connectionsLoading, setConnectionsLoading] = useState(false);
+  const [connectionsError, setConnectionsError] = useState('');
+  const [connectionsUsers, setConnectionsUsers] = useState([]);
 
   const loadProfile = useCallback(async (signal, { silent = false } = {}) => {
     if (!silent) {
@@ -159,6 +166,40 @@ function PublicProfile() {
     }));
   };
 
+  const openConnectionsModal = async (type) => {
+    if (!profile?.id) return;
+    setConnectionsModal(type);
+    setConnectionsUsers([]);
+    setConnectionsError('');
+    setConnectionsLoading(true);
+    try {
+      const { data } = type === 'followers'
+        ? await getFollowers(profile.id)
+        : await getFollowing(profile.id);
+      setConnectionsUsers(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setConnectionsError(
+        e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar la lista.'
+      );
+    } finally {
+      setConnectionsLoading(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('¿Seguro que quieres eliminar esta publicación?')) return;
+    try {
+      await deletePost(postId);
+      setProfile((prev) => ({
+        ...prev,
+        posts: prev.posts.filter((p) => p.id !== postId),
+        postCount: Math.max(0, prev.postCount - 1),
+      }));
+    } catch {
+      /* ignore */
+    }
+  };
+
   const hasAccess =
     profile &&
     (profile.ownProfile ||
@@ -207,7 +248,8 @@ function PublicProfile() {
   };
 
   return (
-    <div className="home-container">
+    <>
+      <div className="home-container">
       <AppHeader active="profile" userName={user.username} />
 
       <main className="feed profile-feed">
@@ -256,11 +298,27 @@ function PublicProfile() {
                     <span className="pub-profile-stat-label">publicaciones</span>
                   </div>
                   <div className="pub-profile-stat">
-                    <span className="pub-profile-stat-count">{profile.followerCount}</span>
+                    <span
+                      className="pub-profile-stat-count post-author-link"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openConnectionsModal('followers')}
+                      onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('followers'); }}
+                    >
+                      {profile.followerCount}
+                    </span>
                     <span className="pub-profile-stat-label">seguidores</span>
                   </div>
                   <div className="pub-profile-stat">
-                    <span className="pub-profile-stat-count">{profile.followingCount}</span>
+                    <span
+                      className="pub-profile-stat-count post-author-link"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openConnectionsModal('following')}
+                      onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('following'); }}
+                    >
+                      {profile.followingCount}
+                    </span>
                     <span className="pub-profile-stat-label">seguidos</span>
                   </div>
                 </div>
@@ -410,11 +468,60 @@ function PublicProfile() {
         )}
       </main>
 
-      <MediaItemDetailModal
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-      />
-    </div>
+        <MediaItemDetailModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      </div>
+
+      {connectionsModal && (
+        <div className="modal-overlay" onClick={() => setConnectionsModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{connectionsModal === 'followers' ? 'Seguidores' : 'Seguidos'}</h3>
+              <button type="button" className="close-btn" onClick={() => setConnectionsModal(null)}>
+                ×
+              </button>
+            </div>
+            {connectionsError && <p className="auth-error">{connectionsError}</p>}
+            {connectionsLoading ? (
+              <p className="text-muted">Cargando...</p>
+            ) : (
+              <div className="post-inline-comments-list">
+                {connectionsUsers.map((u) => (
+                  <div
+                    key={u.id}
+                    className="suggestion-user suggestion-user-link"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      setConnectionsModal(null);
+                      navigate(`/user/${u.username}`);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setConnectionsModal(null);
+                        navigate(`/user/${u.username}`);
+                      }
+                    }}
+                  >
+                    <UserAvatar src={u.profilePictureUrl} name={u.username} size="small" />
+                    <span className="suggestion-username">@{u.username}</span>
+                  </div>
+                ))}
+                {connectionsUsers.length === 0 && (
+                  <p className="text-muted">
+                    {connectionsModal === 'followers'
+                      ? 'Este usuario no tiene seguidores todavía.'
+                      : 'Este usuario todavía no sigue a nadie.'}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

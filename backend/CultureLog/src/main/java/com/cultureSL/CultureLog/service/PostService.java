@@ -88,6 +88,24 @@ public interface PostService {
     Comment addComment(Long postId, Long userId, String text, Long parentCommentId);
 
     /**
+     * Elimina un comentario.
+     * Puede eliminarlo el autor del comentario o el autor de la publicación.
+     *
+     * @param commentId      ID del comentario
+     * @param currentUserId  ID del usuario autenticado
+     */
+    void deleteComment(Long commentId, Long currentUserId);
+
+    /**
+     * Elimina una publicación.
+     * Solo el autor de la publicación puede eliminarla.
+     *
+     * @param postId         ID de la publicación
+     * @param currentUserId  ID del usuario autenticado
+     */
+    void deletePost(Long postId, Long currentUserId);
+
+    /**
      * Recupera todos los comentarios de una publicación ordenados cronológicamente.
      *
      * @param postId ID de la publicación
