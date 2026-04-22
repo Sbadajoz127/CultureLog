@@ -5,6 +5,7 @@ import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.Post;
 import com.cultureSL.CultureLog.repository.PostLikeRepository;
+import com.cultureSL.CultureLog.repository.PostSaveRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class PostMapper {
 
     private final PostLikeRepository postLikeRepository;
+    private final PostSaveRepository postSaveRepository;
 
     /**
      * Convierte un post individual en su DTO de respuesta.
@@ -37,7 +39,8 @@ public class PostMapper {
      */
     public PostResponse toDto(Post post, Long currentUserId) {
         boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
-        return buildDto(post, isLiked);
+        boolean isSaved = postSaveRepository.existsByPostIdAndUserId(post.getId(), currentUserId);
+        return buildDto(post, isLiked, isSaved);
     }
 
     /**
@@ -59,8 +62,9 @@ public class PostMapper {
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
         Set<Long> likedPostIds = postLikeRepository.findLikedPostIds(currentUserId, postIds);
+        Set<Long> savedPostIds = postSaveRepository.findSavedPostIds(currentUserId, postIds);
 
-        return postPage.map(post -> buildDto(post, likedPostIds.contains(post.getId())));
+        return postPage.map(post -> buildDto(post, likedPostIds.contains(post.getId()), savedPostIds.contains(post.getId())));
     }
 
     /**
@@ -81,20 +85,22 @@ public class PostMapper {
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
         Set<Long> likedPostIds = postLikeRepository.findLikedPostIds(currentUserId, postIds);
+        Set<Long> savedPostIds = postSaveRepository.findSavedPostIds(currentUserId, postIds);
 
         return posts.stream()
-                .map(post -> buildDto(post, likedPostIds.contains(post.getId())))
+                .map(post -> buildDto(post, likedPostIds.contains(post.getId()), savedPostIds.contains(post.getId())))
                 .toList();
     }
 
     /**
-     * Construye el DTO de respuesta a partir de un post y su estado de like.
+     * Construye el DTO de respuesta a partir de un post y su estado de like/save.
      *
      * @param post    entidad del post
      * @param isLiked indica si el usuario actual dio like a este post
+     * @param isSaved indica si el usuario actual guardó este post
      * @return DTO completo del post
      */
-    private PostResponse buildDto(Post post, boolean isLiked) {
+    private PostResponse buildDto(Post post, boolean isLiked, boolean isSaved) {
         MediaItem linkedItem = post.getLinkedItem();
 
         return PostResponse.builder()
@@ -107,6 +113,7 @@ public class PostMapper {
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .likedByCurrentUser(isLiked)
+                .savedByCurrentUser(isSaved)
                 .linkedItemId(linkedItem != null ? linkedItem.getId() : null)
                 .linkedItemTitle(linkedItem != null ? linkedItem.getTitle() : null)
                 .linkedItemType(linkedItem != null ? linkedItem.getType().name() : null)

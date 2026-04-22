@@ -105,4 +105,13 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     long countByFollowedIdAndStatus(Long followedId, FollowStatus status);
 
     long countByFollowerIdAndStatus(Long followerId, FollowStatus status);
+
+    /**
+     * Elimina todas las relaciones de seguimiento donde el usuario es seguidor o seguido.
+     * Se utiliza al eliminar la cuenta de un usuario.
+     *
+     * @param followerId ID del usuario como seguidor.
+     * @param followedId ID del usuario como seguido.
+     */
+    void deleteByFollowerIdOrFollowedId(Long followerId, Long followedId);
 }

@@ -44,6 +44,10 @@ public class User {
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
+    /** Url de la imagen del banner del usuario. */
+    @Column(name = "banner_url")
+    private String bannerUrl;
+
     /**
      * Colección de obras multimedia añadidas por el usuario (Su biblioteca).
      * Si se borra el usuario, se borra su biblioteca (Cascade ALL).

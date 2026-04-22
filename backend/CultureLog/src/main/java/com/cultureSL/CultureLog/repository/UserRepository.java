@@ -67,4 +67,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.id <> :userId AND u.id NOT IN " +
            "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId)")
     List<User> findSuggestedUsers(@Param("userId") Long userId, Pageable pageable);
+
+    /**
+     * Busca usuarios cuyo nombre de usuario contenga el texto dado (case-insensitive).
+     *
+     * @param query    texto a buscar en el username.
+     * @param userId   ID del usuario actual (para excluirlo de los resultados).
+     * @param pageable configuración de paginación.
+     * @return lista de usuarios que coinciden con la búsqueda.
+     */
+    @Query("SELECT u FROM User u WHERE u.id <> :userId AND LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%'))")
+    List<User> searchByUsername(@Param("query") String query, @Param("userId") Long userId, Pageable pageable);
 }

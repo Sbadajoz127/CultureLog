@@ -100,4 +100,43 @@ public interface UserService {
      * @return DTO con stats, estado de follow, y contenido según permisos
      */
     UserProfileResponse getUserProfileByUsername(String username, Long viewerUserId);
+
+    /**
+     * Solicita la eliminación de la cuenta del usuario, enviando un código de confirmación por email.
+     *
+     * @param userId ID del usuario que solicita la eliminación
+     */
+    void requestAccountDeletion(Long userId);
+
+    /**
+     * Confirma la eliminación de la cuenta usando el código recibido por email.
+     *
+     * @param userId ID del usuario
+     * @param code   código de 6 dígitos recibido por email
+     */
+    void confirmAccountDeletion(Long userId, String code);
+
+    /**
+     * Actualiza el banner de perfil de un usuario.
+     *
+     * @param userId   ID del usuario
+     * @param imageUrl nueva URL de la imagen del banner
+     */
+    void updateBanner(Long userId, String imageUrl);
+
+    /**
+     * Elimina el banner de perfil de un usuario, dejándolo como {@code null}.
+     *
+     * @param userId ID del usuario
+     */
+    void removeBanner(Long userId);
+
+    /**
+     * Busca usuarios por nombre de usuario.
+     *
+     * @param query  texto a buscar
+     * @param userId ID del usuario que realiza la búsqueda (se excluye de resultados)
+     * @return lista de usuarios encontrados
+     */
+    List<UserSuggestionResponse> searchUsers(String query, Long userId);
 }

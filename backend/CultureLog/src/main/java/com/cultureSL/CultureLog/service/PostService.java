@@ -120,4 +120,31 @@ public interface PostService {
      * @return lista de comentarios
      */
     List<CommentResponse> getCommentResponsesForPost(Long postId, Long currentUserId);
+
+    /**
+     * Alterna el estado de guardado de una publicación.
+     *
+     * @param postId ID de la publicación
+     * @param userId ID del usuario
+     * @return true si la publicación quedó guardada, false si se eliminó el guardado
+     */
+    boolean toggleSave(Long postId, Long userId);
+
+    /**
+     * Obtiene los posts guardados por un usuario.
+     *
+     * @param userId   ID del usuario
+     * @param pageable configuración de paginación
+     * @return página de posts guardados
+     */
+    Page<PostResponse> getSavedPosts(Long userId, Pageable pageable);
+
+    /**
+     * Obtiene los posts que el usuario ha dado like.
+     *
+     * @param userId   ID del usuario
+     * @param pageable configuración de paginación
+     * @return página de posts con like
+     */
+    Page<PostResponse> getLikedPosts(Long userId, Pageable pageable);
 }

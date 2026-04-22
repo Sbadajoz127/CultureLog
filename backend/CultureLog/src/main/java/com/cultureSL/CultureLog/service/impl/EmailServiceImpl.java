@@ -143,4 +143,35 @@ public class EmailServiceImpl implements EmailService {
 
         sendHtmlEmail(to, subject, htmlContent);
     }
+
+    /**
+     * Envía un correo con el código de confirmación para eliminar la cuenta.
+     *
+     * @param to   Correo del usuario que solicita la eliminación.
+     * @param code Código de 6 dígitos para confirmar la eliminación.
+     */
+    @Override
+    @Async
+    public void sendAccountDeletionCode(String to, String code) {
+        String subject = "Código de confirmación para eliminar tu cuenta - CultureLog";
+
+        String htmlContent = """
+            <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #D32F2F;">&#9888; Eliminación de Cuenta</h2>
+                <p>Hola,</p>
+                <p>Hemos recibido una solicitud para <strong>eliminar permanentemente</strong> tu cuenta de CultureLog.</p>
+                <p>Si deseas continuar, introduce el siguiente código en la aplicación:</p>
+                <div style="background-color: #ffebee; padding: 20px; text-align: center; border-radius: 5px; border: 2px solid #D32F2F;">
+                    <h1 style="margin: 0; letter-spacing: 4px; color: #D32F2F; font-size: 32px;">%s</h1>
+                </div>
+                <p style="margin-top: 15px;"><strong>Este código expirará en 15 minutos.</strong></p>
+                <p style="color: #D32F2F;"><strong>Advertencia:</strong> Esta acción es irreversible. Se eliminarán todos tus datos, publicaciones, comentarios y biblioteca.</p>
+                <br>
+                <p style="font-size: 12px; color: #999;">Si no solicitaste eliminar tu cuenta, ignora este correo y tu cuenta permanecerá segura.</p>
+                <p style="font-size: 12px; color: #999;">El equipo de CultureLog</p>
+            </div>
+            """.formatted(code);
+
+        sendHtmlEmail(to, subject, htmlContent);
+    }
 }

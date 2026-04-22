@@ -4,13 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import { useProfilePic } from '../context/ProfilePicContext';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { FEED_TABS, MEDIA_TYPE_LABELS, postMatchesFeedTab } from '../constants/media';
 import { searchResultToPayload } from '../utils/mediaItem';
-import { Heart, MessageCircle, Expand, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Expand, Trash2, Bookmark } from 'lucide-react';
 import {
   getFeed,
   createPost,
   togglePostLike,
+  togglePostSave,
   addPostComment,
   getPostComments,
   searchMedia,
@@ -131,7 +133,6 @@ function Home() {
   const [suggestions, setSuggestions] = useState([]);
   const [followingIds, setFollowingIds] = useState(new Set());
 
-  const [likingPostId, setLikingPostId] = useState(null);
   const [openCommentsPostId, setOpenCommentsPostId] = useState(null);
   const [postCommentsMap, setPostCommentsMap] = useState({});
   const [commentDrafts, setCommentDrafts] = useState({});
@@ -141,6 +142,8 @@ function Home() {
   const [initialReady, setInitialReady] = useState(false);
   const feedDone = useRef(false);
   const suggestionsDone = useRef(false);
+
+  const [confirmModal, setConfirmModal] = useState({ open: false, type: null, id: null, postId: null });
 
   const markReady = useCallback(() => {
     if (feedDone.current && suggestionsDone.current) setInitialReady(true);
@@ -272,25 +275,55 @@ function Home() {
   };
 
   const handleLike = async (post) => {
-    if (likingPostId === post.id) return;
-    setLikingPostId(post.id);
+    const wasLiked = post.likedByCurrentUser;
+    const prevCount = post.likeCount;
+
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === post.id
+          ? {
+              ...p,
+              likedByCurrentUser: !wasLiked,
+              likeCount: wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1,
+            }
+          : p
+      )
+    );
+
     try {
-      const { data } = await togglePostLike(post.id);
+      await togglePostLike(post.id);
+    } catch {
       setPosts((prev) =>
         prev.map((p) =>
           p.id === post.id
-            ? {
-                ...p,
-                likedByCurrentUser: data.liked,
-                likeCount: data.likeCount,
-              }
+            ? { ...p, likedByCurrentUser: wasLiked, likeCount: prevCount }
             : p
         )
       );
+    }
+  };
+
+  const handleSave = async (post) => {
+    const wasSaved = post.savedByCurrentUser;
+
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === post.id
+          ? { ...p, savedByCurrentUser: !wasSaved }
+          : p
+      )
+    );
+
+    try {
+      await togglePostSave(post.id);
     } catch {
-      /* ignore */
-    } finally {
-      setLikingPostId(null);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === post.id
+            ? { ...p, savedByCurrentUser: wasSaved }
+            : p
+        )
+      );
     }
   };
 
@@ -353,28 +386,45 @@ function Home() {
     }
   };
 
-  const handleDeletePost = async (postId) => {
-    if (!window.confirm('¿Seguro que quieres eliminar esta publicación?')) return;
-    try {
-      await deletePost(postId);
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
-    } catch {
-      /* ignore */
-    }
+  const openDeletePostModal = (postId) => {
+    setConfirmModal({ open: true, type: 'post', id: postId, postId: null });
   };
 
-  const handleDeleteInlineComment = async (postId, commentId) => {
-    try {
-      await deletePostComment(commentId);
-      setPostCommentsMap((prev) => ({
-        ...prev,
-        [postId]: (prev[postId] || []).filter((c) => c.id !== commentId),
-      }));
-      setPosts((prev) => prev.map((p) => (
-        p.id === postId ? { ...p, commentCount: Math.max(0, (p.commentCount || 0) - 1) } : p
-      )));
-    } catch {
-      /* ignore */
+  const openDeleteCommentModal = (postId, commentId) => {
+    setConfirmModal({ open: true, type: 'comment', id: commentId, postId });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModal({ open: false, type: null, id: null, postId: null });
+  };
+
+  const handleConfirmDelete = async () => {
+    const { type, id, postId } = confirmModal;
+    closeConfirmModal();
+
+    if (type === 'post') {
+      try {
+        await deletePost(id);
+        setPosts((prev) => prev.filter((p) => p.id !== id));
+      } catch {
+        /* ignore */
+      }
+    } else if (type === 'comment') {
+      try {
+        await deletePostComment(id);
+        setPostCommentsMap((prev) => ({
+          ...prev,
+          [postId]: (prev[postId] || []).filter((c) => c.id !== id),
+        }));
+        setPosts((prev) => prev.map((p) => (
+          p.id === postId ? { ...p, commentCount: Math.max(0, (p.commentCount || 0) - 1) } : p
+        )));
+      } catch (e) {
+        setCommentsErrorByPost((prev) => ({
+          ...prev,
+          [postId]: e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el comentario.',
+        }));
+      }
     }
   };
 
@@ -558,6 +608,7 @@ function Home() {
             {filteredPosts.length > 0 ? (
               filteredPosts.map((post) => {
                 const isLiked = post.likedByCurrentUser;
+                const isSaved = post.savedByCurrentUser;
                 return (
                   <article key={post.id} className="post-card">
                     <div className="post-card-header">
@@ -585,7 +636,7 @@ function Home() {
                         <button
                           type="button"
                           className="post-like-btn post-delete-btn"
-                          onClick={() => handleDeletePost(post.id)}
+                          onClick={() => openDeletePostModal(post.id)}
                         >
                           <Trash2 size={16} /> Eliminar
                         </button>
@@ -604,14 +655,22 @@ function Home() {
                     <p className="post-content">{post.content}</p>
 
                     <div className="post-footer">
-                      <button
-                        type="button"
-                        className={`post-like-btn ${isLiked ? 'liked' : ''}`}
-                        onClick={() => handleLike(post)}
-                        disabled={likingPostId === post.id}
-                      >
-                        <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} /> {post.likeCount} Me gusta
-                      </button>
+                      <div className="post-footer-left">
+                        <button
+                          type="button"
+                          className={`post-like-btn ${isLiked ? 'liked' : ''}`}
+                          onClick={() => handleLike(post)}
+                        >
+                          <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} /> {post.likeCount}
+                        </button>
+                        <button
+                          type="button"
+                          className={`post-like-btn ${isSaved ? 'saved' : ''}`}
+                          onClick={() => handleSave(post)}
+                        >
+                          <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
+                        </button>
+                      </div>
                       <div className="post-footer-actions">
                         <button
                           type="button"
@@ -658,7 +717,7 @@ function Home() {
                                   <button
                                     type="button"
                                     className="post-like-btn post-comment-delete-btn"
-                                    onClick={() => handleDeleteInlineComment(post.id, c.id)}
+                                    onClick={() => openDeleteCommentModal(post.id, c.id)}
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -747,6 +806,21 @@ function Home() {
           )}
         </aside>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.open}
+        title={confirmModal.type === 'post' ? 'Eliminar publicación' : 'Eliminar comentario'}
+        message={
+          confirmModal.type === 'post'
+            ? '¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.'
+            : '¿Estás seguro de que quieres eliminar este comentario?'
+        }
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        danger
+        onConfirm={handleConfirmDelete}
+        onCancel={closeConfirmModal}
+      />
     </div>
   );
 }
