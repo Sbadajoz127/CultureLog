@@ -5,7 +5,15 @@ import { useTheme } from '../context/ThemeContext';
 import { useProfilePic } from '../context/ProfilePicContext';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
-import { uploadImage, updateProfilePicture } from '../services/api';
+import { Trash2 } from 'lucide-react';
+import {
+  uploadImage,
+  updateProfilePicture,
+  updateBanner,
+  removeBanner,
+  requestAccountDeletion,
+  confirmAccountDeletion,
+} from '../services/api';
 import '../App.css';
 
 const THEME_OPTIONS = [
@@ -21,13 +29,15 @@ const PRIVACY_OPTIONS = [
 ];
 
 function Profile() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const { theme, accentColor, settings, updateTheme, updateAccentColor, updateSettings } = useTheme();
   const { profilePic, setProfilePic } = useProfilePic();
   const navigate = useNavigate();
 
   const [previewPic, setPreviewPic] = useState(profilePic);
   const [pendingFile, setPendingFile] = useState(null);
+  const [previewBanner, setPreviewBanner] = useState(user?.bannerUrl || null);
+  const [pendingBannerFile, setPendingBannerFile] = useState(null);
   const [localTheme, setLocalTheme] = useState(theme);
   const [localAccent, setLocalAccent] = useState(accentColor);
   const [localPrivacy, setLocalPrivacy] = useState(settings?.profilePrivacy || 'PUBLICO');
@@ -37,9 +47,19 @@ function Profile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteStep, setDeleteStep] = useState('confirm');
+  const [deletionCode, setDeletionCode] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
   useEffect(() => {
     if (!pendingFile) setPreviewPic(profilePic);
   }, [profilePic, pendingFile]);
+
+  useEffect(() => {
+    if (!pendingBannerFile) setPreviewBanner(user?.bannerUrl || null);
+  }, [user?.bannerUrl, pendingBannerFile]);
 
   useEffect(() => {
     if (settings) {
@@ -58,21 +78,97 @@ function Profile() {
     }
   };
 
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPreviewBanner(URL.createObjectURL(file));
+      setPendingBannerFile(file);
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    if (!previewBanner) return;
+    try {
+      if (user?.bannerUrl) {
+        await removeBanner();
+      }
+      setPreviewBanner(null);
+      setPendingBannerFile(null);
+      const updated = { ...user, bannerUrl: null };
+      setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+    } catch {
+      setError('Error al eliminar el banner.');
+    }
+  };
+
+  const handleRequestDeletion = async () => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await requestAccountDeletion();
+      setDeleteStep('code');
+    } catch (err) {
+      setDeleteError(
+        err.response?.data?.message || err.response?.data?.error || 'Error al solicitar eliminación.'
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleConfirmDeletion = async () => {
+    if (!deletionCode.trim()) {
+      setDeleteError('Introduce el código de confirmación.');
+      return;
+    }
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await confirmAccountDeletion(deletionCode.trim());
+      logout();
+      navigate('/login');
+    } catch (err) {
+      setDeleteError(
+        err.response?.data?.message || err.response?.data?.error || 'Código incorrecto o expirado.'
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteStep('confirm');
+    setDeletionCode('');
+    setDeleteError('');
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setError('');
     setSaving(true);
 
     try {
+      let updatedUser = { ...user };
+
       if (pendingFile) {
         const { data: cloudinaryUrl } = await uploadImage(pendingFile);
         await updateProfilePicture(cloudinaryUrl);
         setProfilePic(cloudinaryUrl);
-        const updated = { ...user, profilePictureUrl: cloudinaryUrl };
-        setUser(updated);
-        localStorage.setItem('user', JSON.stringify(updated));
+        updatedUser.profilePictureUrl = cloudinaryUrl;
         setPendingFile(null);
       }
+
+      if (pendingBannerFile) {
+        const { data: bannerUrl } = await uploadImage(pendingBannerFile);
+        await updateBanner(bannerUrl);
+        updatedUser.bannerUrl = bannerUrl;
+        setPendingBannerFile(null);
+      }
+
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
 
       if (localTheme !== theme) {
         await updateTheme(localTheme);
@@ -117,6 +213,37 @@ function Profile() {
 
           <form className="login-form" onSubmit={handleSave}>
             {error && <p className="auth-error">{error}</p>}
+
+            <div className="profile-banner-section">
+              <label className="profile-banner-label">Banner del perfil</label>
+              {previewBanner ? (
+                <div className="profile-banner-preview-wrap">
+                  <img src={previewBanner} alt="Banner" className="profile-banner-preview" />
+                  <button
+                    type="button"
+                    className="profile-banner-remove-btn"
+                    onClick={handleRemoveBanner}
+                    disabled={saving}
+                    title="Eliminar banner"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="profile-banner-placeholder">Sin banner</div>
+              )}
+              <label htmlFor="banner-upload" className="upload-btn">
+                {previewBanner ? 'Cambiar banner' : 'Subir banner'}
+              </label>
+              <input
+                id="banner-upload"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleBannerChange}
+                style={{ display: 'none' }}
+                disabled={saving}
+              />
+            </div>
 
             <div className="profile-pic-section">
               {previewPic ? (
@@ -260,8 +387,103 @@ function Profile() {
               </button>
             </div>
           </form>
+
+          <hr className="section-divider" />
+          <h4 className="settings-section-title danger-section-title">Zona de peligro</h4>
+          <div className="danger-zone">
+            <p className="danger-zone-text">
+              Eliminar tu cuenta es una acción <strong>irreversible</strong>. Se borrarán todos tus datos, publicaciones, comentarios y biblioteca.
+            </p>
+            <button
+              type="button"
+              className="danger-btn"
+              onClick={() => setShowDeleteModal(true)}
+            >
+              <Trash2 size={16} /> Eliminar mi cuenta
+            </button>
+          </div>
         </div>
       </main>
+
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={closeDeleteModal}>
+          <div className="modal-content delete-account-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Eliminar cuenta</h3>
+              <button type="button" className="close-btn" onClick={closeDeleteModal}>×</button>
+            </div>
+
+            {deleteError && <p className="auth-error">{deleteError}</p>}
+
+            {deleteStep === 'confirm' && (
+              <div className="delete-modal-body">
+                <p className="delete-warning">
+                  ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción es <strong>permanente</strong> y no se puede deshacer.
+                </p>
+                <p className="delete-info">
+                  Se enviará un código de confirmación a tu correo electrónico: <strong>{user?.email}</strong>
+                </p>
+                <div className="delete-modal-actions">
+                  <button
+                    type="button"
+                    className="logout-button"
+                    onClick={closeDeleteModal}
+                    disabled={deleteLoading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="danger-btn"
+                    onClick={handleRequestDeletion}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? 'Enviando...' : 'Enviar código'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {deleteStep === 'code' && (
+              <div className="delete-modal-body">
+                <p className="delete-info">
+                  Hemos enviado un código de 6 dígitos a <strong>{user?.email}</strong>. Introduce el código para confirmar la eliminación.
+                </p>
+                <div className="input-group">
+                  <label>Código de confirmación</label>
+                  <input
+                    type="text"
+                    className="portal-input deletion-code-input"
+                    placeholder="123456"
+                    value={deletionCode}
+                    onChange={(e) => setDeletionCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    maxLength={6}
+                    disabled={deleteLoading}
+                  />
+                </div>
+                <div className="delete-modal-actions">
+                  <button
+                    type="button"
+                    className="logout-button"
+                    onClick={closeDeleteModal}
+                    disabled={deleteLoading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="danger-btn"
+                    onClick={handleConfirmDeletion}
+                    disabled={deleteLoading || deletionCode.length !== 6}
+                  >
+                    {deleteLoading ? 'Eliminando...' : 'Eliminar cuenta'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

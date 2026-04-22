@@ -40,6 +40,22 @@ public class UserController {
     }
 
     /**
+     * Busca usuarios por nombre de usuario.
+     * <p>Endpoint: {@code GET /api/users/search?q=nombre}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param q              texto a buscar (mínimo 2 caracteres)
+     * @return HTTP 200 con la lista de usuarios encontrados
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<UserSuggestionResponse>> searchUsers(
+            Authentication authentication,
+            @RequestParam String q) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(userService.searchUsers(q, userId));
+    }
+
+    /**
      * Actualiza la foto de perfil del usuario autenticado.
      * <p>Endpoint: {@code PUT /api/users/profile-picture?imageUrl=...}</p>
      *
@@ -110,5 +126,67 @@ public class UserController {
             @RequestBody UserSettingsRequest request) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(userService.updateSettings(userId, request));
+    }
+
+    /**
+     * Solicita la eliminación de la cuenta, enviando un código de confirmación por email.
+     * <p>Endpoint: {@code POST /api/users/request-deletion}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 si se envió el código correctamente
+     */
+    @PostMapping("/request-deletion")
+    public ResponseEntity<Void> requestAccountDeletion(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        userService.requestAccountDeletion(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Confirma la eliminación de la cuenta usando el código recibido por email.
+     * <p>Endpoint: {@code DELETE /api/users/confirm-deletion?code=123456}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param code           código de 6 dígitos recibido por email
+     * @return HTTP 200 si la cuenta se eliminó correctamente
+     */
+    @DeleteMapping("/confirm-deletion")
+    public ResponseEntity<Void> confirmAccountDeletion(
+            Authentication authentication,
+            @RequestParam String code) {
+        Long userId = (Long) authentication.getPrincipal();
+        userService.confirmAccountDeletion(userId, code);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Actualiza el banner del usuario autenticado.
+     * <p>Endpoint: {@code PUT /api/users/banner?imageUrl=...}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param imageUrl       nueva URL de la imagen del banner
+     * @return HTTP 200 sin contenido
+     */
+    @PutMapping("/banner")
+    public ResponseEntity<Void> updateBanner(
+            Authentication authentication,
+            @RequestParam String imageUrl) {
+        Long userId = (Long) authentication.getPrincipal();
+        userService.updateBanner(userId, imageUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Elimina el banner del usuario autenticado.
+     * <p>Endpoint: {@code DELETE /api/users/banner}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 sin contenido
+     */
+    @DeleteMapping("/banner")
+    public ResponseEntity<Void> removeBanner(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        userService.removeBanner(userId);
+        return ResponseEntity.ok().build();
     }
 }

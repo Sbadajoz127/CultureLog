@@ -46,6 +46,7 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final MediaItemRepository mediaItemRepository;
     private final PostLikeRepository postLikeRepository;
+    private final PostSaveRepository postSaveRepository;
     private final CommentRepository commentRepository;
     private final PostMapper postMapper;
     private final NotificationService notificationService;
@@ -218,7 +219,18 @@ public class PostServiceImpl implements PostService {
         }
 
         Long postId = comment.getPost().getId();
+        Post post = comment.getPost();
+        
+        // Limpiar referencia del padre si es una respuesta
+        if (comment.getParentComment() != null) {
+            comment.getParentComment().getReplies().remove(comment);
+        }
+        
+        // Eliminar de la colección del post para sincronizar la relación bidireccional
+        post.getComments().remove(comment);
+        
         commentRepository.delete(comment);
+        commentRepository.flush();
         postRepository.updateCommentCount(postId, -1);
     }
 
@@ -280,5 +292,40 @@ public class PostServiceImpl implements PostService {
         if (!canAccess) {
             throw new UnauthorizedException("No tienes permiso para ver esta publicación");
         }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public boolean toggleSave(Long postId, Long userId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        var existingSave = postSaveRepository.findByPostIdAndUserId(postId, userId);
+        if (existingSave.isPresent()) {
+            postSaveRepository.delete(existingSave.get());
+            return false;
+        } else {
+            postSaveRepository.save(new PostSave(post, user));
+            return true;
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PostResponse> getSavedPosts(Long userId, Pageable pageable) {
+        Page<Post> savedPosts = postRepository.findSavedPostsByUserId(userId, pageable);
+        return postMapper.toPageDto(savedPosts, userId);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PostResponse> getLikedPosts(Long userId, Pageable pageable) {
+        Page<Post> likedPosts = postRepository.findLikedPostsByUserId(userId, pageable);
+        return postMapper.toPageDto(likedPosts, userId);
     }
 }

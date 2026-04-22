@@ -104,6 +104,18 @@ export function togglePostLike(postId) {
   return api.post(`/posts/${postId}/like`);
 }
 
+export function togglePostSave(postId) {
+  return api.post(`/posts/${postId}/save`);
+}
+
+export function getSavedPosts({ page = 0, size = 10 } = {}) {
+  return api.get('/posts/saved', { params: { page, size } });
+}
+
+export function getLikedPosts({ page = 0, size = 10 } = {}) {
+  return api.get('/posts/liked', { params: { page, size } });
+}
+
 export function getPostById(postId) {
   return api.get(`/posts/${postId}`);
 }
@@ -126,6 +138,10 @@ export function deletePost(postId) {
 
 export function getSuggestedUsers() {
   return api.get('/users/suggestions');
+}
+
+export function searchUsers(query) {
+  return api.get(`/users/search?q=${encodeURIComponent(query)}`);
 }
 
 export function followUser(targetId) {
@@ -233,6 +249,28 @@ export function getAdminPostComments(postId) {
 
 export function getAdminStats() {
   return api.get('/admin/stats');
+}
+
+// ── Account management endpoints ──
+
+export function requestAccountDeletion() {
+  return api.post('/users/request-deletion');
+}
+
+export function confirmAccountDeletion(code) {
+  return api.delete(`/users/confirm-deletion?code=${encodeURIComponent(code)}`);
+}
+
+export function updateBanner(imageUrl) {
+  return api.put(`/users/banner?imageUrl=${encodeURIComponent(imageUrl)}`);
+}
+
+export function removeBanner() {
+  return api.delete('/users/banner');
+}
+
+export function searchUsers(query) {
+  return api.get(`/users/search?q=${encodeURIComponent(query)}`);
 }
 
 export default api;

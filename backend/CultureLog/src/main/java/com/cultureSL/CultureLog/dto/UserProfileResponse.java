@@ -15,6 +15,7 @@ public class UserProfileResponse {
     private Long id;
     private String username;
     private String profilePictureUrl;
+    private String bannerUrl;
     private String profilePrivacy;
     private int postCount;
     private int followerCount;

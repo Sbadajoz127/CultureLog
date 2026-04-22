@@ -124,4 +124,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT DISTINCT p.linkedItem FROM Post p WHERE p.linkedItem IS NOT NULL " +
            "AND (:q IS NULL OR :q = '' OR LOWER(p.linkedItem.title) LIKE LOWER(CONCAT('%', :q, '%')))")
     List<MediaItem> findDistinctLinkedItems(@Param("q") String q);
+
+    /**
+     * Obtiene los posts que un usuario ha dado like.
+     */
+    @Query("SELECT p FROM Post p JOIN PostLike pl ON pl.post = p WHERE pl.user.id = :userId ORDER BY pl.likedAt DESC")
+    Page<Post> findLikedPostsByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    /**
+     * Obtiene los posts guardados por un usuario.
+     */
+    @Query("SELECT p FROM Post p JOIN PostSave ps ON ps.post = p WHERE ps.user.id = :userId ORDER BY ps.savedAt DESC")
+    Page<Post> findSavedPostsByUserId(@Param("userId") Long userId, Pageable pageable);
 }

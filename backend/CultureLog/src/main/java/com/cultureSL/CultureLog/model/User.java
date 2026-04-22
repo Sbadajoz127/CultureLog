@@ -47,6 +47,10 @@ public class User {
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
+    /** Url de la imagen del banner del usuario. */
+    @Column(name = "banner_url")
+    private String bannerUrl;
+
     /** Rol del usuario en el sistema (USER o ADMIN). */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "varchar(255) default 'USER'")

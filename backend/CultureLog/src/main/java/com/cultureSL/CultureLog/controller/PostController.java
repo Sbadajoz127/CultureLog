@@ -153,4 +153,59 @@ public class PostController {
         postService.deletePost(postId, userId);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Alterna el guardado de una publicación.
+     * <p>Endpoint: {@code POST /api/posts/{postId}/save}</p>
+     *
+     * @param postId         ID del post
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 con el estado de guardado (true = guardado, false = quitado)
+     */
+    @PostMapping("/{postId}/save")
+    public ResponseEntity<java.util.Map<String, Boolean>> toggleSave(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        boolean saved = postService.toggleSave(postId, userId);
+        return ResponseEntity.ok(java.util.Map.of("saved", saved));
+    }
+
+    /**
+     * Obtiene los posts guardados por el usuario autenticado.
+     * <p>Endpoint: {@code GET /api/posts/saved?page=0&size=10}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param page           número de página (por defecto 0)
+     * @param size           tamaño de página (por defecto 10)
+     * @return HTTP 200 con la página de posts guardados
+     */
+    @GetMapping("/saved")
+    public ResponseEntity<Page<PostResponse>> getSavedPosts(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Long userId = (Long) authentication.getPrincipal();
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 50));
+        return ResponseEntity.ok(postService.getSavedPosts(userId, pageable));
+    }
+
+    /**
+     * Obtiene los posts que el usuario autenticado ha dado like.
+     * <p>Endpoint: {@code GET /api/posts/liked?page=0&size=10}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param page           número de página (por defecto 0)
+     * @param size           tamaño de página (por defecto 10)
+     * @return HTTP 200 con la página de posts con like
+     */
+    @GetMapping("/liked")
+    public ResponseEntity<Page<PostResponse>> getLikedPosts(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Long userId = (Long) authentication.getPrincipal();
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 50));
+        return ResponseEntity.ok(postService.getLikedPosts(userId, pageable));
+    }
 }

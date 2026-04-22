@@ -14,8 +14,6 @@ import {
   getMediaItems,
   getSuggestedUsers,
   followUser,
-  deletePost,
-  deletePostComment,
 } from '../services/api';
 import '../App.css';
 
@@ -250,6 +248,10 @@ function Home() {
     setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...updates } : p)));
   };
 
+  const handlePostDelete = (postId) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  };
+
   const handleFollow = async (targetId) => {
     if (followingIds.has(targetId)) return;
     try {
@@ -445,6 +447,7 @@ function Home() {
                   key={post.id}
                   post={post}
                   onPostUpdate={handlePostUpdate}
+                  onPostDelete={handlePostDelete}
                   showAuthorLink
                 />
               ))

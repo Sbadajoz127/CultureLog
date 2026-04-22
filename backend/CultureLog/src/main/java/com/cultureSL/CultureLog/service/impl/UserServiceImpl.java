@@ -16,6 +16,7 @@ import com.cultureSL.CultureLog.model.enums.FollowStatus;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
 import com.cultureSL.CultureLog.model.enums.Role;
+import com.cultureSL.CultureLog.repository.AccountDeletionTokenRepository;
 import com.cultureSL.CultureLog.repository.FollowRepository;
 import com.cultureSL.CultureLog.repository.MediaItemRepository;
 import com.cultureSL.CultureLog.repository.PasswordResetTokenRepository;
@@ -57,6 +58,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepository;
+    private final AccountDeletionTokenRepository deletionTokenRepository;
     private final EmailService emailService;
     private final ImageStorageService imageStorageService;
     private final EntityManager entityManager;
@@ -318,6 +320,7 @@ public class UserServiceImpl implements UserService {
                 .id(target.getId())
                 .username(target.getUsername())
                 .profilePictureUrl(target.getProfilePictureUrl())
+                .bannerUrl(target.getBannerUrl())
                 .profilePrivacy(privacy.name())
                 .postCount((int) postCnt)
                 .followerCount((int) followerCount)
@@ -328,5 +331,96 @@ public class UserServiceImpl implements UserService {
                 .posts(posts)
                 .libraryItems(libraryItems)
                 .build();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void requestAccountDeletion(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        deletionTokenRepository.deleteByUser(user);
+        entityManager.flush();
+
+        AccountDeletionToken token = new AccountDeletionToken(user);
+        deletionTokenRepository.save(token);
+
+        emailService.sendAccountDeletionCode(user.getEmail(), token.getCode());
+        log.info("Código de eliminación enviado al usuario {}", user.getUsername());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void confirmAccountDeletion(Long userId, String code) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        AccountDeletionToken token = deletionTokenRepository.findByCodeAndUser(code, user)
+                .orElseThrow(() -> new BadRequestException("Código inválido o no encontrado"));
+
+        if (token.isExpired()) {
+            deletionTokenRepository.delete(token);
+            throw new BadRequestException("El código ha expirado. Solicita uno nuevo.");
+        }
+
+        if (user.getProfilePictureUrl() != null) {
+            imageStorageService.deleteImage(user.getProfilePictureUrl());
+        }
+        if (user.getBannerUrl() != null) {
+            imageStorageService.deleteImage(user.getBannerUrl());
+        }
+
+        deletionTokenRepository.delete(token);
+        followRepository.deleteByFollowerIdOrFollowedId(userId, userId);
+        userRepository.delete(user);
+
+        log.info("Usuario {} eliminado permanentemente", user.getUsername());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void updateBanner(Long userId, String imageUrl) {
+        validateCloudinaryUrl(imageUrl);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        if (user.getBannerUrl() != null) {
+            imageStorageService.deleteImage(user.getBannerUrl());
+        }
+
+        user.setBannerUrl(imageUrl);
+        userRepository.save(user);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void removeBanner(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        if (user.getBannerUrl() != null) {
+            imageStorageService.deleteImage(user.getBannerUrl());
+        }
+
+        user.setBannerUrl(null);
+        userRepository.save(user);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserSuggestionResponse> searchUsers(String query, Long userId) {
+        if (query == null || query.trim().length() < 2) {
+            return Collections.emptyList();
+        }
+        return userRepository.searchByUsername(query.trim(), userId, PageRequest.of(0, 10))
+                .stream()
+                .map(u -> new UserSuggestionResponse(u.getId(), u.getUsername(), u.getProfilePictureUrl()))
+                .toList();
     }
 }

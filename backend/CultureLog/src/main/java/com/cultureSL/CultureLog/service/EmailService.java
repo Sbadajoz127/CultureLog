@@ -49,4 +49,12 @@ public interface EmailService {
      * @param token token de seguridad (UUID) para validar la solicitud
      */
     void sendPasswordResetEmail(String to, String token);
+
+    /**
+     * Envía un email con el código de confirmación para eliminar la cuenta.
+     *
+     * @param to   dirección de correo del usuario
+     * @param code código de 6 dígitos para confirmar la eliminación
+     */
+    void sendAccountDeletionCode(String to, String code);
 }

@@ -5,17 +5,29 @@ import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { PostCard } from '../components/PostCard';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
-import { Lock } from 'lucide-react';
+import { Heart, Lock, Bookmark, Expand } from 'lucide-react';
 import {
   getUserProfile,
   followUser,
   unfollowUser,
-  deletePost,
+  togglePostLike,
+  togglePostSave,
   getFollowers,
   getFollowing,
+  getSavedPosts,
+  getLikedPosts,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import '../App.css';
+
+function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch {
+    return iso;
+  }
+}
 
 const LIBRARY_TABS = [
   { id: 'VISTO', label: 'Visto' },
@@ -105,6 +117,10 @@ function PublicProfile() {
   const [activeTab, setActiveTab] = useState('posts');
   const [libraryStatus, setLibraryStatus] = useState('VISTO');
   const [followLoading, setFollowLoading] = useState(false);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
+  const [loadingLiked, setLoadingLiked] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [connectionsModal, setConnectionsModal] = useState(null);
   const [connectionsLoading, setConnectionsLoading] = useState(false);
@@ -166,6 +182,77 @@ function PublicProfile() {
     }));
   };
 
+  const handlePostDelete = (postId) => {
+    setProfile((prev) => ({
+      ...prev,
+      posts: prev.posts.filter((p) => p.id !== postId),
+      postCount: Math.max(0, prev.postCount - 1),
+    }));
+  };
+
+  const handleLikeForTab = async (post) => {
+    const wasLiked = post.likedByCurrentUser;
+    const prevCount = post.likeCount;
+
+    if (likedPosts.length > 0) {
+      if (wasLiked) {
+        setLikedPosts((prev) => prev.filter((p) => p.id !== post.id));
+      } else {
+        setLikedPosts((prev) => [{ ...post, likedByCurrentUser: true, likeCount: prevCount + 1 }, ...prev]);
+      }
+    }
+
+    try {
+      await togglePostLike(post.id);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleSaveForTab = async (post) => {
+    const wasSaved = post.savedByCurrentUser;
+
+    if (savedPosts.length > 0) {
+      if (wasSaved) {
+        setSavedPosts((prev) => prev.filter((p) => p.id !== post.id));
+      } else {
+        setSavedPosts((prev) => [{ ...post, savedByCurrentUser: true }, ...prev]);
+      }
+    }
+
+    try {
+      await togglePostSave(post.id);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const loadSavedPosts = async () => {
+    if (loadingSaved || savedPosts.length > 0) return;
+    setLoadingSaved(true);
+    try {
+      const { data } = await getSavedPosts({ page: 0, size: 50 });
+      setSavedPosts(data?.content || []);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingSaved(false);
+    }
+  };
+
+  const loadLikedPosts = async () => {
+    if (loadingLiked || likedPosts.length > 0) return;
+    setLoadingLiked(true);
+    try {
+      const { data } = await getLikedPosts({ page: 0, size: 50 });
+      setLikedPosts(data?.content || []);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingLiked(false);
+    }
+  };
+
   const openConnectionsModal = async (type) => {
     if (!profile?.id) return;
     setConnectionsModal(type);
@@ -183,20 +270,6 @@ function PublicProfile() {
       );
     } finally {
       setConnectionsLoading(false);
-    }
-  };
-
-  const handleDeletePost = async (postId) => {
-    if (!window.confirm('¿Seguro que quieres eliminar esta publicación?')) return;
-    try {
-      await deletePost(postId);
-      setProfile((prev) => ({
-        ...prev,
-        posts: prev.posts.filter((p) => p.id !== postId),
-        postCount: Math.max(0, prev.postCount - 1),
-      }));
-    } catch {
-      /* ignore */
     }
   };
 
@@ -259,7 +332,12 @@ function PublicProfile() {
 
         {profile && !loading && (
           <div className="feed-loaded">
-            <div className="pub-profile-header">
+            {profile.bannerUrl && (
+              <div className="pub-profile-banner">
+                <img src={profile.bannerUrl} alt="Banner" className="pub-profile-banner-img" />
+              </div>
+            )}
+            <div className={`pub-profile-header ${profile.bannerUrl ? 'has-banner' : ''}`}>
               <div className="pub-profile-avatar-section">
                 <UserAvatar
                   src={profile.profilePictureUrl}
@@ -297,28 +375,24 @@ function PublicProfile() {
                     <span className="pub-profile-stat-count">{profile.postCount}</span>
                     <span className="pub-profile-stat-label">publicaciones</span>
                   </div>
-                  <div className="pub-profile-stat">
-                    <span
-                      className="pub-profile-stat-count post-author-link"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => openConnectionsModal('followers')}
-                      onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('followers'); }}
-                    >
-                      {profile.followerCount}
-                    </span>
+                  <div
+                    className="pub-profile-stat pub-profile-stat-clickable"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openConnectionsModal('followers')}
+                    onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('followers'); }}
+                  >
+                    <span className="pub-profile-stat-count">{profile.followerCount}</span>
                     <span className="pub-profile-stat-label">seguidores</span>
                   </div>
-                  <div className="pub-profile-stat">
-                    <span
-                      className="pub-profile-stat-count post-author-link"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => openConnectionsModal('following')}
-                      onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('following'); }}
-                    >
-                      {profile.followingCount}
-                    </span>
+                  <div
+                    className="pub-profile-stat pub-profile-stat-clickable"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openConnectionsModal('following')}
+                    onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('following'); }}
+                  >
+                    <span className="pub-profile-stat-count">{profile.followingCount}</span>
                     <span className="pub-profile-stat-label">seguidos</span>
                   </div>
                 </div>
@@ -342,6 +416,30 @@ function PublicProfile() {
                   >
                     Biblioteca
                   </button>
+                  {profile.ownProfile && (
+                    <>
+                      <button
+                        type="button"
+                        className={`pub-profile-tab ${activeTab === 'saved' ? 'active' : ''}`}
+                        onClick={() => {
+                          setActiveTab('saved');
+                          loadSavedPosts();
+                        }}
+                      >
+                        Guardados
+                      </button>
+                      <button
+                        type="button"
+                        className={`pub-profile-tab ${activeTab === 'liked' ? 'active' : ''}`}
+                        onClick={() => {
+                          setActiveTab('liked');
+                          loadLikedPosts();
+                        }}
+                      >
+                        Likes
+                      </button>
+                    </>
+                  )}
                 </nav>
 
                 {activeTab === 'posts' && (
@@ -374,6 +472,7 @@ function PublicProfile() {
                             key={post.id}
                             post={post}
                             onPostUpdate={handlePostUpdate}
+                            onPostDelete={handlePostDelete}
                             authorAvatar={profile.profilePictureUrl}
                             showAuthorLink={false}
                           />
@@ -454,6 +553,140 @@ function PublicProfile() {
                     )}
                   </div>
                 )}
+
+                {activeTab === 'saved' && profile.ownProfile && (
+                  <div className="pub-profile-content">
+                    {loadingSaved ? (
+                      <p className="text-muted">Cargando posts guardados...</p>
+                    ) : savedPosts.length === 0 ? (
+                      <div className="pub-profile-empty">
+                        <p className="pub-profile-empty-text">
+                          Aún no has guardado ninguna publicación.
+                        </p>
+                        <button
+                          type="button"
+                          className="login-button pub-profile-cta-btn"
+                          onClick={() => navigate('/home')}
+                        >
+                          Explorar publicaciones
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="posts-list">
+                        {savedPosts.map((post) => (
+                          <article key={post.id} className="post-card">
+                            <div className="post-card-header">
+                              <div
+                                className="post-card-author"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => navigate(`/user/${post.authorName}`)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
+                              >
+                                <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
+                                <span className="post-author-link">@{post.authorName}</span>
+                              </div>
+                              <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+                            </div>
+                            <p className="post-content">{post.content}</p>
+                            <div className="post-footer">
+                              <div className="post-footer-left">
+                                <button
+                                  type="button"
+                                  className={`post-like-btn ${post.likedByCurrentUser ? 'liked' : ''}`}
+                                  onClick={() => handleLikeForTab(post)}
+                                >
+                                  <Heart size={16} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} /> {post.likeCount}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="post-like-btn saved"
+                                  onClick={() => handleSaveForTab(post)}
+                                >
+                                  <Bookmark size={16} fill="currentColor" />
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                className="post-like-btn"
+                                onClick={() => navigate(`/posts/${post.id}`)}
+                              >
+                                <Expand size={16} /> Ver publicación
+                              </button>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'liked' && profile.ownProfile && (
+                  <div className="pub-profile-content">
+                    {loadingLiked ? (
+                      <p className="text-muted">Cargando likes...</p>
+                    ) : likedPosts.length === 0 ? (
+                      <div className="pub-profile-empty">
+                        <p className="pub-profile-empty-text">
+                          Aún no has dado like a ninguna publicación.
+                        </p>
+                        <button
+                          type="button"
+                          className="login-button pub-profile-cta-btn"
+                          onClick={() => navigate('/home')}
+                        >
+                          Explorar publicaciones
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="posts-list">
+                        {likedPosts.map((post) => (
+                          <article key={post.id} className="post-card">
+                            <div className="post-card-header">
+                              <div
+                                className="post-card-author"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => navigate(`/user/${post.authorName}`)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
+                              >
+                                <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
+                                <span className="post-author-link">@{post.authorName}</span>
+                              </div>
+                              <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+                            </div>
+                            <p className="post-content">{post.content}</p>
+                            <div className="post-footer">
+                              <div className="post-footer-left">
+                                <button
+                                  type="button"
+                                  className="post-like-btn liked"
+                                  onClick={() => handleLikeForTab(post)}
+                                >
+                                  <Heart size={16} fill="currentColor" /> {post.likeCount}
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`post-like-btn ${post.savedByCurrentUser ? 'saved' : ''}`}
+                                  onClick={() => handleSaveForTab(post)}
+                                >
+                                  <Bookmark size={16} fill={post.savedByCurrentUser ? 'currentColor' : 'none'} />
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                className="post-like-btn"
+                                onClick={() => navigate(`/posts/${post.id}`)}
+                              >
+                                <Expand size={16} /> Ver publicación
+                              </button>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               <div className="pub-profile-private">
@@ -521,6 +754,7 @@ function PublicProfile() {
           </div>
         </div>
       )}
+
     </>
   );
 }

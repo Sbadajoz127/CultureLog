@@ -62,6 +62,8 @@ public class PostResponse {
     private int commentCount;
     /** Indica si el usuario que ve el feed ya ha dado like a este post (para pintar el corazón rojo/gris). */
     private boolean likedByCurrentUser;
+    /** Indica si el usuario que ve el feed ha guardado este post. */
+    private boolean savedByCurrentUser;
 
     /** Lista breve de comentarios recientes para vista previa. */
     private List<CommentResponse> recentComments;
