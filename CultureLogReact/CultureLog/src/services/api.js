@@ -182,10 +182,16 @@ export function getFollowing(userId) {
 
 // ── Admin endpoints ──
 
-export function getAdminUsers(page = 0, size = 20, search = '') {
+export function getAdminUsers(page = 0, size = 20, filters = {}) {
   const params = { page, size };
-  if (search) params.search = search;
+  if (filters.userId) params.userId = filters.userId;
+  if (filters.sortBy) params.sortBy = filters.sortBy;
+  if (filters.sortDir) params.sortDir = filters.sortDir;
   return api.get('/admin/users', { params });
+}
+
+export function getAdminUsersAutocomplete(q = '') {
+  return api.get('/admin/users/autocomplete', { params: { q } });
 }
 
 export function getAdminUserDetail(userId) {
@@ -208,8 +214,17 @@ export function adminDeleteItem(itemId) {
   return api.delete(`/admin/items/${itemId}`);
 }
 
-export function getAdminPosts(page = 0, size = 20) {
-  return api.get('/admin/posts', { params: { page, size } });
+export function getAdminPosts(page = 0, size = 20, filters = {}) {
+  const params = { page, size };
+  if (filters.authorId) params.authorId = filters.authorId;
+  if (filters.linkedItemId) params.linkedItemId = filters.linkedItemId;
+  if (filters.sortBy) params.sortBy = filters.sortBy;
+  if (filters.sortDir) params.sortDir = filters.sortDir;
+  return api.get('/admin/posts', { params });
+}
+
+export function getAdminLinkedItemsAutocomplete(q = '') {
+  return api.get('/admin/items/linked-autocomplete', { params: { q } });
 }
 
 export function getAdminPostComments(postId) {

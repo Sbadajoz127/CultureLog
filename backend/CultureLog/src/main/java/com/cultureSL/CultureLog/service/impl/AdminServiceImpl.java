@@ -14,6 +14,7 @@ import com.cultureSL.CultureLog.service.AdminService;
 import com.cultureSL.CultureLog.service.ImageStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,10 +38,15 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AdminUserResponse> listUsers(Pageable pageable, String search) {
-        Page<User> page = (search != null && !search.isBlank())
-                ? userRepository.searchByUsernameOrEmail(search.trim(), pageable)
-                : userRepository.findAll(pageable);
+    public Page<AdminUserResponse> listUsers(Pageable pageable, Long userId) {
+        Page<User> page;
+        if (userId != null) {
+            page = userRepository.findById(userId)
+                    .map(user -> (Page<User>) new PageImpl<>(List.of(user), pageable, 1))
+                    .orElseGet(() -> new PageImpl<>(List.of(), pageable, 0));
+        } else {
+            page = userRepository.findAll(pageable);
+        }
 
         return page.map(user -> AdminUserResponse.builder()
                 .id(user.getId())
@@ -53,6 +59,17 @@ public class AdminServiceImpl implements AdminService {
                 .itemCount(mediaItemRepository.countByUserId(user.getId()))
                 .followerCount(followRepository.countByFollowedIdAndStatus(user.getId(), FollowStatus.ACCEPTED))
                 .build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAutocompleteResponse> autocompleteUsers(String q) {
+        return userRepository.autocompleteByUsername(q, PageRequest.of(0, 20)).stream()
+                .map(user -> UserAutocompleteResponse.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .build())
+                .toList();
     }
 
     @Override
@@ -117,18 +134,37 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AdminPostResponse> listPosts(Pageable pageable) {
-        return postRepository.findAllWithAuthorAndItem(pageable).map(post ->
+    public Page<AdminPostResponse> listPosts(Pageable pageable, Long authorId, Long linkedItemId) {
+        Page<Post> page;
+        if (authorId != null || linkedItemId != null) {
+            page = postRepository.findAllWithFilters(authorId, linkedItemId, pageable);
+        } else {
+            page = postRepository.findAllWithAuthorAndItem(pageable);
+        }
+
+        return page.map(post ->
                 AdminPostResponse.builder()
                         .id(post.getId())
                         .content(post.getContent())
                         .authorUsername(post.getAuthor().getUsername())
                         .authorId(post.getAuthor().getId())
                         .linkedItemTitle(post.getLinkedItem() != null ? post.getLinkedItem().getTitle() : null)
+                        .linkedItemId(post.getLinkedItem() != null ? post.getLinkedItem().getId() : null)
                         .createdAt(post.getCreatedAt())
                         .likeCount(post.getLikeCount())
                         .commentCount(post.getCommentCount())
                         .build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ItemAutocompleteResponse> autocompleteLinkedItems(String q) {
+        return postRepository.findDistinctLinkedItems(q).stream()
+                .map(item -> ItemAutocompleteResponse.builder()
+                        .id(item.getId())
+                        .title(item.getTitle())
+                        .build())
+                .toList();
     }
 
     @Override

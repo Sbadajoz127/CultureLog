@@ -4002,7 +4002,140 @@ input[type="password"]::-ms-clear {
   color: var(--text-muted);
 }
 
-/* --- Search bar --- */
+/* --- Filters bar --- */
+.admin-filters-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* --- Autocomplete Select --- */
+.admin-autocomplete {
+  position: relative;
+  min-width: 200px;
+  max-width: 280px;
+  flex: 1;
+}
+
+.admin-autocomplete-input-wrapper {
+  position: relative;
+}
+
+.admin-autocomplete-input {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.admin-autocomplete-input::placeholder {
+  color: var(--text-muted);
+}
+
+.admin-autocomplete-input:focus {
+  border-color: var(--accent-color);
+}
+
+.admin-autocomplete-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-color);
+  background: var(--accent-muted);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.admin-autocomplete-selected span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-autocomplete-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  line-height: 1;
+}
+
+.admin-autocomplete-clear:hover {
+  color: var(--text-primary);
+}
+
+.admin-autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.admin-autocomplete-option {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  transition: background 0.15s ease;
+}
+
+.admin-autocomplete-option:hover {
+  background: var(--bg-hover);
+}
+
+.admin-autocomplete-option-all {
+  font-weight: 600;
+  color: var(--accent-color);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.admin-autocomplete-loading,
+.admin-autocomplete-empty {
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* --- Sortable Header --- */
+.admin-sortable-header {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.admin-sortable-header:hover {
+  background: var(--bg-hover);
+}
+
+.admin-sort-icon {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* --- Search bar (legacy) --- */
 .admin-search-bar {
   margin-bottom: 16px;
 }

@@ -17,6 +17,7 @@ public class AdminPostResponse {
     private String authorUsername;
     private Long authorId;
     private String linkedItemTitle;
+    private Long linkedItemId;
     private LocalDateTime createdAt;
     private int likeCount;
     private int commentCount;

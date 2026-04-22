@@ -85,4 +85,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Query(value = "UPDATE users SET role = 'USER' WHERE username <> 'admin' AND role = 'ADMIN'", nativeQuery = true)
     int fixAllNonAdminRoles();
+
+    @Query("SELECT u FROM User u WHERE :q IS NULL OR :q = '' OR LOWER(u.username) LIKE LOWER(CONCAT('%', :q, '%'))")
+    List<User> autocompleteByUsername(@Param("q") String q, Pageable pageable);
 }

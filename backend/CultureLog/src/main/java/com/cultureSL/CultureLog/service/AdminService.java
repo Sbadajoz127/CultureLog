@@ -11,13 +11,17 @@ import java.util.List;
  */
 public interface AdminService {
 
-    Page<AdminUserResponse> listUsers(Pageable pageable, String search);
+    Page<AdminUserResponse> listUsers(Pageable pageable, Long userId);
+
+    List<UserAutocompleteResponse> autocompleteUsers(String q);
 
     UserProfileResponse getUserDetail(Long userId, Long adminUserId);
 
     void deleteUser(Long userId);
 
-    Page<AdminPostResponse> listPosts(Pageable pageable);
+    Page<AdminPostResponse> listPosts(Pageable pageable, Long authorId, Long linkedItemId);
+
+    List<ItemAutocompleteResponse> autocompleteLinkedItems(String q);
 
     List<AdminCommentResponse> getPostComments(Long postId);
 

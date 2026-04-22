@@ -11,6 +11,8 @@ import {
   adminDeleteUser,
   adminDeletePost,
   adminDeleteComment,
+  getAdminUsersAutocomplete,
+  getAdminLinkedItemsAutocomplete,
 } from '../services/api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -190,18 +192,162 @@ function StatsPanel({ stats }) {
   );
 }
 
+/* ──────────────────── AutocompleteSelect ──────────────────── */
+
+function AutocompleteSelect({ placeholder, fetchOptions, value, onChange, labelKey = 'username', valueKey = 'id' }) {
+  const [inputValue, setInputValue] = useState('');
+  const [options, setOptions] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const containerRef = useRef(null);
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const loadOptions = useCallback(async (q) => {
+    setLoading(true);
+    try {
+      const { data } = await fetchOptions(q);
+      setOptions(data);
+    } catch (err) {
+      console.error('Error loading autocomplete options:', err);
+      setOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchOptions]);
+
+  useEffect(() => {
+    loadOptions('');
+  }, [loadOptions]);
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    setIsOpen(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadOptions(val);
+    }, 300);
+  };
+
+  const handleSelect = (option) => {
+    onChange(option ? { id: option[valueKey], label: option[labelKey] } : null);
+    setInputValue('');
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    onChange(null);
+    setInputValue('');
+    loadOptions('');
+  };
+
+  const handleFocus = () => {
+    setIsOpen(true);
+  };
+
+  return (
+    <div className="admin-autocomplete" ref={containerRef}>
+      <div className="admin-autocomplete-input-wrapper">
+        {value ? (
+          <div className="admin-autocomplete-selected">
+            <span>{value.label}</span>
+            <button type="button" onClick={handleClear} className="admin-autocomplete-clear">&times;</button>
+          </div>
+        ) : (
+          <input
+            type="text"
+            className="admin-autocomplete-input"
+            placeholder={placeholder}
+            value={inputValue}
+            onChange={handleInputChange}
+            onFocus={handleFocus}
+          />
+        )}
+      </div>
+      {isOpen && !value && (
+        <div className="admin-autocomplete-dropdown">
+          {loading && <div className="admin-autocomplete-loading">Cargando...</div>}
+          {!loading && (
+            <>
+              <div
+                className="admin-autocomplete-option admin-autocomplete-option-all"
+                onClick={() => handleSelect(null)}
+              >
+                Todos
+              </div>
+              {options.map((opt) => (
+                <div
+                  key={opt[valueKey]}
+                  className="admin-autocomplete-option"
+                  onClick={() => handleSelect(opt)}
+                >
+                  {opt[labelKey]}
+                </div>
+              ))}
+              {options.length === 0 && (
+                <div className="admin-autocomplete-empty">Sin resultados</div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ──────────────────── SortableHeader ──────────────────── */
+
+function SortableHeader({ label, field, currentSort, onSort }) {
+  const isActive = currentSort.sortBy === field;
+  const direction = isActive ? currentSort.sortDir : null;
+
+  const handleClick = () => {
+    if (isActive) {
+      onSort(field, direction === 'asc' ? 'desc' : 'asc');
+    } else {
+      onSort(field, 'asc');
+    }
+  };
+
+  return (
+    <th className="admin-sortable-header" onClick={handleClick}>
+      <span>{label}</span>
+      <span className="admin-sort-icon">
+        {isActive && direction === 'asc' && ' ▲'}
+        {isActive && direction === 'desc' && ' ▼'}
+        {!isActive && ' ⇅'}
+      </span>
+    </th>
+  );
+}
+
 /* ──────────────────── Users Panel ──────────────────── */
 
-function UsersPanel({ users, page, totalPages, totalElements, pageSize, onPageSizeChange, onPageChange, onDelete, onViewProfile, search, onSearchChange, tableLoading }) {
+function UsersPanel({ users, page, totalPages, totalElements, pageSize, onPageSizeChange, onPageChange, onDelete, onViewProfile, selectedUser, onUserFilterChange, sortBy, sortDir, onSort, tableLoading }) {
+  const handleSort = (field, dir) => {
+    onSort(field, dir);
+  };
+
   return (
     <div className="admin-users">
-      <div className="admin-search-bar">
-        <input
-          type="text"
-          className="admin-search-input"
-          placeholder="Buscar por nombre de usuario o email…"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
+      <div className="admin-filters-bar">
+        <AutocompleteSelect
+          placeholder="Filtrar por usuario..."
+          fetchOptions={getAdminUsersAutocomplete}
+          value={selectedUser}
+          onChange={onUserFilterChange}
+          labelKey="username"
+          valueKey="id"
         />
       </div>
 
@@ -209,11 +355,11 @@ function UsersPanel({ users, page, totalPages, totalElements, pageSize, onPageSi
         <table className="admin-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Usuario</th>
-              <th>Email</th>
+              <SortableHeader label="ID" field="id" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
+              <SortableHeader label="Usuario" field="username" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
+              <SortableHeader label="Email" field="email" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
               <th>Rol</th>
-              <th>Registro</th>
+              <SortableHeader label="Registro" field="createdAt" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
               <th>Posts</th>
               <th>Items</th>
               <th>Seguidores</th>
@@ -252,7 +398,7 @@ function UsersPanel({ users, page, totalPages, totalElements, pageSize, onPageSi
                   ))}
                   {users.length === 0 && (
                     <tr><td colSpan={9} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                      {search ? 'No se encontraron usuarios' : 'No hay usuarios'}
+                      {selectedUser ? 'No se encontraron usuarios' : 'No hay usuarios'}
                     </td></tr>
                   )}
                 </>
@@ -374,26 +520,49 @@ function CommentsModal({ postId, onClose, onDeleteComment }) {
 
 /* ──────────────────── Posts Panel ──────────────────── */
 
-function PostsPanel({ posts, page, totalPages, totalElements, pageSize, onPageSizeChange, onPageChange, onDeletePost, onViewPost, tableLoading }) {
+function PostsPanel({ posts, page, totalPages, totalElements, pageSize, onPageSizeChange, onPageChange, onDeletePost, onViewPost, selectedAuthor, onAuthorFilterChange, selectedItem, onItemFilterChange, sortBy, sortDir, onSort, tableLoading }) {
   const [commentsPostId, setCommentsPostId] = useState(null);
 
   const handleDeleteComment = async (commentId) => {
     await adminDeleteComment(commentId);
   };
 
+  const handleSort = (field, dir) => {
+    onSort(field, dir);
+  };
+
   return (
     <div className="admin-posts">
+      <div className="admin-filters-bar">
+        <AutocompleteSelect
+          placeholder="Filtrar por autor..."
+          fetchOptions={getAdminUsersAutocomplete}
+          value={selectedAuthor}
+          onChange={onAuthorFilterChange}
+          labelKey="username"
+          valueKey="id"
+        />
+        <AutocompleteSelect
+          placeholder="Filtrar por item enlazado..."
+          fetchOptions={getAdminLinkedItemsAutocomplete}
+          value={selectedItem}
+          onChange={onItemFilterChange}
+          labelKey="title"
+          valueKey="id"
+        />
+      </div>
+
       <div className="admin-table-wrapper">
         <table className="admin-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <SortableHeader label="ID" field="id" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
               <th>Autor</th>
               <th>Contenido</th>
               <th>Item enlazado</th>
-              <th>Fecha</th>
-              <th>Likes</th>
-              <th>Comentarios</th>
+              <SortableHeader label="Fecha" field="createdAt" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
+              <SortableHeader label="Likes" field="likeCount" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
+              <SortableHeader label="Comentarios" field="commentCount" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
               <th>Acciones</th>
             </tr>
           </thead>
@@ -486,26 +655,35 @@ export default function AdminDashboard() {
   const [userPage, setUserPage] = useState(0);
   const [userTotalPages, setUserTotalPages] = useState(0);
   const [userTotalElements, setUserTotalElements] = useState(0);
-  const [userPageSize, setUserPageSize] = useState(10);
-  const [userSearch, setUserSearch] = useState('');
+  const [userPageSize, setUserPageSize] = useState(5);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [userFilter, setUserFilter] = useState(null);
+  const [userSortBy, setUserSortBy] = useState('id');
+  const [userSortDir, setUserSortDir] = useState('asc');
 
   const [posts, setPosts] = useState([]);
   const [postPage, setPostPage] = useState(0);
   const [postTotalPages, setPostTotalPages] = useState(0);
   const [postTotalElements, setPostTotalElements] = useState(0);
-  const [postPageSize, setPostPageSize] = useState(10);
+  const [postPageSize, setPostPageSize] = useState(5);
   const [postsLoading, setPostsLoading] = useState(true);
+  const [postAuthorFilter, setPostAuthorFilter] = useState(null);
+  const [postItemFilter, setPostItemFilter] = useState(null);
+  const [postSortBy, setPostSortBy] = useState('createdAt');
+  const [postSortDir, setPostSortDir] = useState('desc');
 
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  const debounceRef = useRef(null);
-
-  const loadUsers = useCallback(async (p = 0, search = '') => {
+  const loadUsers = useCallback(async (p = 0, filters = {}) => {
     setUsersLoading(true);
     try {
-      const { data } = await getAdminUsers(p, userPageSize, search);
+      const effectiveUserId = 'userId' in filters ? filters.userId : userFilter?.id;
+      const { data } = await getAdminUsers(p, userPageSize, {
+        userId: effectiveUserId,
+        sortBy: filters.sortBy ?? userSortBy,
+        sortDir: filters.sortDir ?? userSortDir,
+      });
       setUsers(data.content);
       setUserTotalPages(data.totalPages);
       setUserTotalElements(data.totalElements);
@@ -515,12 +693,19 @@ export default function AdminDashboard() {
     } finally {
       setUsersLoading(false);
     }
-  }, [userPageSize]);
+  }, [userPageSize, userFilter, userSortBy, userSortDir]);
 
-  const loadPosts = useCallback(async (p = 0) => {
+  const loadPosts = useCallback(async (p = 0, filters = {}) => {
     setPostsLoading(true);
     try {
-      const { data } = await getAdminPosts(p, postPageSize);
+      const effectiveAuthorId = 'authorId' in filters ? filters.authorId : postAuthorFilter?.id;
+      const effectiveLinkedItemId = 'linkedItemId' in filters ? filters.linkedItemId : postItemFilter?.id;
+      const { data } = await getAdminPosts(p, postPageSize, {
+        authorId: effectiveAuthorId,
+        linkedItemId: effectiveLinkedItemId,
+        sortBy: filters.sortBy ?? postSortBy,
+        sortDir: filters.sortDir ?? postSortDir,
+      });
       setPosts(data.content);
       setPostTotalPages(data.totalPages);
       setPostTotalElements(data.totalElements);
@@ -530,7 +715,7 @@ export default function AdminDashboard() {
     } finally {
       setPostsLoading(false);
     }
-  }, [postPageSize]);
+  }, [postPageSize, postAuthorFilter, postItemFilter, postSortBy, postSortDir]);
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
@@ -545,7 +730,7 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    if (tab === 'users') loadUsers(0, userSearch);
+    if (tab === 'users') loadUsers(0);
     else if (tab === 'posts') loadPosts(0);
     else if (tab === 'stats') loadStats();
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -559,19 +744,38 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (tab === 'users') loadUsers(0, userSearch);
+    if (tab === 'users') loadUsers(0);
   }, [userPageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (tab === 'posts') loadPosts(0);
   }, [postPageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSearchChange = (value) => {
-    setUserSearch(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      loadUsers(0, value);
-    }, 400);
+  const handleUserFilterChange = (selected) => {
+    setUserFilter(selected);
+    loadUsers(0, { userId: selected ? selected.id : null, sortBy: userSortBy, sortDir: userSortDir });
+  };
+
+  const handleUserSort = (field, dir) => {
+    setUserSortBy(field);
+    setUserSortDir(dir);
+    loadUsers(0, { userId: userFilter ? userFilter.id : null, sortBy: field, sortDir: dir });
+  };
+
+  const handlePostAuthorFilterChange = (selected) => {
+    setPostAuthorFilter(selected);
+    loadPosts(0, { authorId: selected ? selected.id : null, linkedItemId: postItemFilter ? postItemFilter.id : null, sortBy: postSortBy, sortDir: postSortDir });
+  };
+
+  const handlePostItemFilterChange = (selected) => {
+    setPostItemFilter(selected);
+    loadPosts(0, { authorId: postAuthorFilter ? postAuthorFilter.id : null, linkedItemId: selected ? selected.id : null, sortBy: postSortBy, sortDir: postSortDir });
+  };
+
+  const handlePostSort = (field, dir) => {
+    setPostSortBy(field);
+    setPostSortDir(dir);
+    loadPosts(0, { authorId: postAuthorFilter ? postAuthorFilter.id : null, linkedItemId: postItemFilter ? postItemFilter.id : null, sortBy: field, sortDir: dir });
   };
 
   const handleDeleteUser = async (userId, username) => {
@@ -584,7 +788,7 @@ export default function AdminDashboard() {
     if (!ok) return;
     try {
       await adminDeleteUser(userId);
-      loadUsers(userPage, userSearch);
+      loadUsers(userPage);
     } catch (err) {
       await confirm({
         title: 'Error',
@@ -652,11 +856,14 @@ export default function AdminDashboard() {
             totalElements={userTotalElements}
             pageSize={userPageSize}
             onPageSizeChange={handleUserPageSizeChange}
-            onPageChange={(p) => loadUsers(p, userSearch)}
+            onPageChange={(p) => loadUsers(p)}
             onDelete={handleDeleteUser}
             onViewProfile={(username) => navigate(`/user/${username}`)}
-            search={userSearch}
-            onSearchChange={handleSearchChange}
+            selectedUser={userFilter}
+            onUserFilterChange={handleUserFilterChange}
+            sortBy={userSortBy}
+            sortDir={userSortDir}
+            onSort={handleUserSort}
             tableLoading={usersLoading}
           />
         )}
@@ -669,9 +876,16 @@ export default function AdminDashboard() {
             totalElements={postTotalElements}
             pageSize={postPageSize}
             onPageSizeChange={handlePostPageSizeChange}
-            onPageChange={loadPosts}
+            onPageChange={(p) => loadPosts(p)}
             onDeletePost={handleDeletePost}
             onViewPost={(postId) => navigate(`/posts/${postId}`)}
+            selectedAuthor={postAuthorFilter}
+            onAuthorFilterChange={handlePostAuthorFilterChange}
+            selectedItem={postItemFilter}
+            onItemFilterChange={handlePostItemFilterChange}
+            sortBy={postSortBy}
+            sortDir={postSortDir}
+            onSort={handlePostSort}
             tableLoading={postsLoading}
           />
         )}

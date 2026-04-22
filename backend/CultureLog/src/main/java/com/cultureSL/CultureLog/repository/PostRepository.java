@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.repository;
 
+import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -107,4 +108,20 @@ public interface PostRepository extends JpaRepository<Post, Long> {
            "ORDER BY p.createdAt DESC",
            countQuery = "SELECT COUNT(p) FROM Post p")
     Page<Post> findAllWithAuthorAndItem(Pageable pageable);
+
+    @Query(value = "SELECT DISTINCT p FROM Post p " +
+           "LEFT JOIN FETCH p.author " +
+           "LEFT JOIN FETCH p.linkedItem " +
+           "WHERE (:authorId IS NULL OR p.author.id = :authorId) " +
+           "AND (:linkedItemId IS NULL OR p.linkedItem.id = :linkedItemId)",
+           countQuery = "SELECT COUNT(p) FROM Post p " +
+           "WHERE (:authorId IS NULL OR p.author.id = :authorId) " +
+           "AND (:linkedItemId IS NULL OR p.linkedItem.id = :linkedItemId)")
+    Page<Post> findAllWithFilters(@Param("authorId") Long authorId,
+                                   @Param("linkedItemId") Long linkedItemId,
+                                   Pageable pageable);
+
+    @Query("SELECT DISTINCT p.linkedItem FROM Post p WHERE p.linkedItem IS NOT NULL " +
+           "AND (:q IS NULL OR :q = '' OR LOWER(p.linkedItem.title) LIKE LOWER(CONCAT('%', :q, '%')))")
+    List<MediaItem> findDistinctLinkedItems(@Param("q") String q);
 }
