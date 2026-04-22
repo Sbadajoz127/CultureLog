@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, Expand } from 'lucide-react';
+import { Heart, MessageCircle, Expand, Bookmark, Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { UserAvatar } from './UserAvatar';
 import { CommentSection } from './CommentSection';
+import { ConfirmModal } from './ConfirmModal';
 import { MEDIA_TYPE_LABELS } from '../constants/media';
-import { getPostComments, togglePostLike } from '../services/api';
+import { getPostComments, togglePostLike, togglePostSave, deletePost } from '../services/api';
 
 const CONTENT_TRUNCATE_LENGTH = 300;
 
@@ -17,8 +19,9 @@ function formatDate(iso) {
   }
 }
 
-export function PostCard({ post, onPostUpdate, authorAvatar, showAuthorLink = true }) {
+export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showAuthorLink = true }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState([]);
@@ -26,10 +29,15 @@ export function PostCard({ post, onPostUpdate, authorAvatar, showAuthorLink = tr
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [liking, setLiking] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const avatarUrl = authorAvatar ?? post.authorProfilePictureUrl;
   const isLiked = post.likedByCurrentUser;
+  const isSaved = post.savedByCurrentUser;
+  const isOwner = user?.id === post.authorId;
   const content = post.content || '';
   const isTruncated = content.length > CONTENT_TRUNCATE_LENGTH && !expanded;
 
@@ -43,6 +51,32 @@ export function PostCard({ post, onPostUpdate, authorAvatar, showAuthorLink = tr
       /* ignore */
     } finally {
       setLiking(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const { data } = await togglePostSave(post.id);
+      onPostUpdate?.(post.id, { savedByCurrentUser: data.saved });
+    } catch {
+      /* ignore */
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await deletePost(post.id);
+      onPostDelete?.(post.id);
+    } catch {
+      /* ignore */
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteOpen(false);
     }
   };
 
@@ -96,7 +130,19 @@ export function PostCard({ post, onPostUpdate, authorAvatar, showAuthorLink = tr
             )}
           </div>
         </div>
-        <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+        <div className="post-card-header-right">
+          <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+          {isOwner && (
+            <button
+              type="button"
+              className="post-like-btn post-delete-btn"
+              onClick={() => setConfirmDeleteOpen(true)}
+              disabled={deleting}
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       {(post.linkedItemTitle || post.linkedItemId) && (
@@ -128,28 +174,38 @@ export function PostCard({ post, onPostUpdate, authorAvatar, showAuthorLink = tr
       </p>
 
       <div className="post-footer">
-        <button
-          type="button"
-          className={`post-like-btn ${isLiked ? 'liked' : ''}`}
-          onClick={handleLike}
-          disabled={liking}
-        >
-          <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} /> {post.likeCount} Me gusta
-        </button>
+        <div className="post-footer-left">
+          <button
+            type="button"
+            className={`post-like-btn ${isLiked ? 'liked' : ''}`}
+            onClick={handleLike}
+            disabled={liking}
+          >
+            <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} /> {post.likeCount}
+          </button>
+          <button
+            type="button"
+            className={`post-like-btn ${isSaved ? 'saved' : ''}`}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
+          </button>
+        </div>
         <div className="post-footer-actions">
           <button
             type="button"
             className={`post-action-btn ${commentsOpen ? 'active' : ''}`}
             onClick={toggleComments}
           >
-            <MessageCircle size={16} /> {post.commentCount || 0} comentarios
+            <MessageCircle size={16} /> {post.commentCount || 0}
           </button>
           <button
             type="button"
             className="post-action-btn"
             onClick={() => navigate(`/posts/${post.id}`)}
           >
-            <Expand size={16} /> Ver publicación
+            <Expand size={16} />
           </button>
         </div>
       </div>
@@ -168,6 +224,17 @@ export function PostCard({ post, onPostUpdate, authorAvatar, showAuthorLink = tr
           />
         </>
       )}
+
+      <ConfirmModal
+        isOpen={confirmDeleteOpen}
+        title="Eliminar publicación"
+        message="¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        danger
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </article>
   );
 }
