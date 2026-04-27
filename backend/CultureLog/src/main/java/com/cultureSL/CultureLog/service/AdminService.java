@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface AdminService {
 
-    Page<AdminUserResponse> listUsers(Pageable pageable, Long userId);
+    Page<AdminUserResponse> listUsers(Pageable pageable, Long userId, String memorySortBy, boolean desc);
 
     List<UserAutocompleteResponse> autocompleteUsers(String q);
 

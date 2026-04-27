@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,17 +16,22 @@ import java.util.Set;
 
 /**
  * Controlador REST para operaciones de administración.
- * Todos los endpoints requieren rol ADMIN (protegido en SecurityConfig).
+ * Todos los endpoints requieren rol ADMIN (protegido en SecurityConfig y @PreAuthorize).
  */
 @RestController
 @RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
 
-    private static final Set<String> VALID_USER_SORT_FIELDS = Set.of(
-            "id", "username", "email", "createdAt"
+    private static final Set<String> VALID_USER_DB_SORT_FIELDS = Set.of(
+            "id", "username", "createdAt"
+    );
+
+    private static final Set<String> VALID_USER_MEMORY_SORT_FIELDS = Set.of(
+            "postCount", "itemCount"
     );
 
     private static final Set<String> VALID_POST_SORT_FIELDS = Set.of(
@@ -39,12 +45,18 @@ public class AdminController {
             @RequestParam(required = false) Long userId,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
-        String safeSortBy = VALID_USER_SORT_FIELDS.contains(sortBy) ? sortBy : "id";
-        Sort sort = "desc".equalsIgnoreCase(sortDir)
-                ? Sort.by(safeSortBy).descending()
-                : Sort.by(safeSortBy).ascending();
+        int safeSize = Math.min(size, 100);
+        boolean desc = "desc".equalsIgnoreCase(sortDir);
+
+        if (VALID_USER_MEMORY_SORT_FIELDS.contains(sortBy)) {
+            return ResponseEntity.ok(adminService.listUsers(
+                    PageRequest.of(page, safeSize), userId, sortBy, desc));
+        }
+
+        String safeSortBy = VALID_USER_DB_SORT_FIELDS.contains(sortBy) ? sortBy : "id";
+        Sort sort = desc ? Sort.by(safeSortBy).descending() : Sort.by(safeSortBy).ascending();
         return ResponseEntity.ok(adminService.listUsers(
-                PageRequest.of(page, Math.min(size, 100), sort), userId));
+                PageRequest.of(page, safeSize, sort), userId, null, false));
     }
 
     @GetMapping("/users/autocomplete")

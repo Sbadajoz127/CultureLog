@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
@@ -38,17 +40,38 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AdminUserResponse> listUsers(Pageable pageable, Long userId) {
-        Page<User> page;
+    public Page<AdminUserResponse> listUsers(Pageable pageable, Long userId, String memorySortBy, boolean desc) {
         if (userId != null) {
-            page = userRepository.findById(userId)
+            Page<User> page = userRepository.findById(userId)
                     .map(user -> (Page<User>) new PageImpl<>(List.of(user), pageable, 1))
                     .orElseGet(() -> new PageImpl<>(List.of(), pageable, 0));
-        } else {
-            page = userRepository.findAll(pageable);
+            return page.map(this::toAdminUserResponse);
         }
 
-        return page.map(user -> AdminUserResponse.builder()
+        if (memorySortBy != null) {
+            List<User> allUsers = userRepository.findAll();
+            List<AdminUserResponse> dtos = allUsers.stream()
+                    .map(this::toAdminUserResponse)
+                    .collect(Collectors.toList());
+
+            Comparator<AdminUserResponse> cmp = "postCount".equals(memorySortBy)
+                    ? Comparator.comparingLong(AdminUserResponse::getPostCount)
+                    : Comparator.comparingLong(AdminUserResponse::getItemCount);
+            if (desc) cmp = cmp.reversed();
+            dtos.sort(cmp);
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), dtos.size());
+            List<AdminUserResponse> slice = start < dtos.size() ? dtos.subList(start, end) : List.of();
+            return new PageImpl<>(slice, pageable, dtos.size());
+        }
+
+        Page<User> page = userRepository.findAll(pageable);
+        return page.map(this::toAdminUserResponse);
+    }
+
+    private AdminUserResponse toAdminUserResponse(User user) {
+        return AdminUserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
@@ -58,7 +81,7 @@ public class AdminServiceImpl implements AdminService {
                 .postCount(postRepository.countByAuthorId(user.getId()))
                 .itemCount(mediaItemRepository.countByUserId(user.getId()))
                 .followerCount(followRepository.countByFollowedIdAndStatus(user.getId(), FollowStatus.ACCEPTED))
-                .build());
+                .build();
     }
 
     @Override

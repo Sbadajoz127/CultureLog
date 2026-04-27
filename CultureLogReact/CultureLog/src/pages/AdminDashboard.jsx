@@ -357,11 +357,11 @@ function UsersPanel({ users, page, totalPages, totalElements, pageSize, onPageSi
             <tr>
               <SortableHeader label="ID" field="id" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
               <SortableHeader label="Usuario" field="username" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
-              <SortableHeader label="Email" field="email" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
+              <th>Email</th>
               <th>Rol</th>
               <SortableHeader label="Registro" field="createdAt" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
-              <th>Posts</th>
-              <th>Items</th>
+              <SortableHeader label="Posts" field="postCount" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
+              <SortableHeader label="Items" field="itemCount" currentSort={{ sortBy, sortDir }} onSort={handleSort} />
               <th>Seguidores</th>
               <th>Acciones</th>
             </tr>
@@ -574,7 +574,7 @@ function PostsPanel({ posts, page, totalPages, totalElements, pageSize, onPageSi
                     <tr key={p.id} className="feed-loaded">
                       <td>{p.id}</td>
                       <td>{p.authorUsername}</td>
-                      <td className="admin-cell-content" title={p.content}>{truncate(p.content)}</td>
+                      <td className="admin-cell-content" title={p.content}>{truncate(p.content, 50)}</td>
                       <td className="admin-cell-linked-item" title={p.linkedItemTitle}>{p.linkedItemTitle || '—'}</td>
                       <td>{formatDateTime(p.createdAt)}</td>
                       <td>{p.likeCount}</td>

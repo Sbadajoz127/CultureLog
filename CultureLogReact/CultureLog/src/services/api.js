@@ -269,8 +269,4 @@ export function removeBanner() {
   return api.delete('/users/banner');
 }
 
-export function searchUsers(query) {
-  return api.get(`/users/search?q=${encodeURIComponent(query)}`);
-}
-
 export default api;

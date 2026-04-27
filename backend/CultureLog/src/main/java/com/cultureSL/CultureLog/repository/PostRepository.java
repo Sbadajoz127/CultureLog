@@ -104,8 +104,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(value = "SELECT DISTINCT p FROM Post p " +
            "LEFT JOIN FETCH p.author " +
-           "LEFT JOIN FETCH p.linkedItem " +
-           "ORDER BY p.createdAt DESC",
+           "LEFT JOIN FETCH p.linkedItem",
            countQuery = "SELECT COUNT(p) FROM Post p")
     Page<Post> findAllWithAuthorAndItem(Pageable pageable);
 

@@ -78,10 +78,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "UPDATE users SET created_at = NOW() WHERE created_at IS NULL", nativeQuery = true)
     int setDefaultCreatedAtWhereNull();
 
+    /** @deprecated Método de migración puntual. No usar en lógica de negocio. */
+    @Deprecated
     @Modifying
     @Query(value = "UPDATE users SET role = 'USER' WHERE role IS NULL", nativeQuery = true)
     int setDefaultRoleWhereNull();
 
+    /** @deprecated Método de migración puntual. Hardcodea username 'admin', no usar en producción. */
+    @Deprecated
     @Modifying
     @Query(value = "UPDATE users SET role = 'USER' WHERE username <> 'admin' AND role = 'ADMIN'", nativeQuery = true)
     int fixAllNonAdminRoles();
