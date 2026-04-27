@@ -118,6 +118,7 @@ public class MediaSearchServiceImpl implements MediaSearchService {
         request.setItemImageUrl(cloudinaryUrl);
         request.setExternalId(searchResult.getExternalId());
         request.setExternalSource(searchResult.getSource());
+        request.setAlbum(searchResult.getAlbum());
 
         try {
             MediaItem savedItem = mediaItemService.addItem(userId, request);

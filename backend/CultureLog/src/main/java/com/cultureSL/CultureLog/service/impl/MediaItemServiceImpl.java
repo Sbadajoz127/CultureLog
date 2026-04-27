@@ -92,6 +92,7 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setDescription(request.getDescription());
         item.setExternalId(request.getExternalId());
         item.setExternalSource(request.getExternalSource());
+        item.setAlbum(request.getAlbum());
         item.setDateAdded(LocalDate.now());
         item.setUser(user);
 
@@ -121,6 +122,7 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setDescription(request.getDescription());
         item.setExternalId(request.getExternalId());
         item.setExternalSource(request.getExternalSource());
+        item.setAlbum(request.getAlbum());
 
         return mediaItemRepository.save(item);
     }

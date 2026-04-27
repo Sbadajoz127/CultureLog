@@ -1,8 +1,10 @@
 package com.cultureSL.CultureLog.repository;
 
 import com.cultureSL.CultureLog.model.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -67,6 +69,29 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.id <> :userId AND u.id NOT IN " +
            "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId)")
     List<User> findSuggestedUsers(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :term, '%')) " +
+           "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :term, '%'))")
+    Page<User> searchByUsernameOrEmail(@Param("term") String term, Pageable pageable);
+
+    @Modifying
+    @Query(value = "UPDATE users SET created_at = NOW() WHERE created_at IS NULL", nativeQuery = true)
+    int setDefaultCreatedAtWhereNull();
+
+    /** @deprecated Método de migración puntual. No usar en lógica de negocio. */
+    @Deprecated
+    @Modifying
+    @Query(value = "UPDATE users SET role = 'USER' WHERE role IS NULL", nativeQuery = true)
+    int setDefaultRoleWhereNull();
+
+    /** @deprecated Método de migración puntual. Hardcodea username 'admin', no usar en producción. */
+    @Deprecated
+    @Modifying
+    @Query(value = "UPDATE users SET role = 'USER' WHERE username <> 'admin' AND role = 'ADMIN'", nativeQuery = true)
+    int fixAllNonAdminRoles();
+
+    @Query("SELECT u FROM User u WHERE :q IS NULL OR :q = '' OR LOWER(u.username) LIKE LOWER(CONCAT('%', :q, '%'))")
+    List<User> autocompleteByUsername(@Param("q") String q, Pageable pageable);
 
     /**
      * Busca usuarios cuyo nombre de usuario contenga el texto dado (case-insensitive).

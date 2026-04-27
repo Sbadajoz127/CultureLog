@@ -196,6 +196,63 @@ export function getFollowing(userId) {
   return api.get(`/follows/following/${userId}`);
 }
 
+// ── Admin endpoints ──
+
+export function getAdminUsers(page = 0, size = 20, filters = {}) {
+  const params = { page, size };
+  if (filters.userId) params.userId = filters.userId;
+  if (filters.sortBy) params.sortBy = filters.sortBy;
+  if (filters.sortDir) params.sortDir = filters.sortDir;
+  return api.get('/admin/users', { params });
+}
+
+export function getAdminUsersAutocomplete(q = '') {
+  return api.get('/admin/users/autocomplete', { params: { q } });
+}
+
+export function getAdminUserDetail(userId) {
+  return api.get(`/admin/users/${userId}`);
+}
+
+export function adminDeleteUser(userId) {
+  return api.delete(`/admin/users/${userId}`);
+}
+
+export function adminDeletePost(postId) {
+  return api.delete(`/admin/posts/${postId}`);
+}
+
+export function adminDeleteComment(commentId) {
+  return api.delete(`/admin/comments/${commentId}`);
+}
+
+export function adminDeleteItem(itemId) {
+  return api.delete(`/admin/items/${itemId}`);
+}
+
+export function getAdminPosts(page = 0, size = 20, filters = {}) {
+  const params = { page, size };
+  if (filters.authorId) params.authorId = filters.authorId;
+  if (filters.linkedItemId) params.linkedItemId = filters.linkedItemId;
+  if (filters.sortBy) params.sortBy = filters.sortBy;
+  if (filters.sortDir) params.sortDir = filters.sortDir;
+  return api.get('/admin/posts', { params });
+}
+
+export function getAdminLinkedItemsAutocomplete(q = '') {
+  return api.get('/admin/items/linked-autocomplete', { params: { q } });
+}
+
+export function getAdminPostComments(postId) {
+  return api.get(`/admin/posts/${postId}/comments`);
+}
+
+export function getAdminStats() {
+  return api.get('/admin/stats');
+}
+
+// ── Account management endpoints ──
+
 export function requestAccountDeletion() {
   return api.post('/users/request-deletion');
 }

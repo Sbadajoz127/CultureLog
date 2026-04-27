@@ -15,6 +15,7 @@ import com.cultureSL.CultureLog.model.enums.AppTheme;
 import com.cultureSL.CultureLog.model.enums.FollowStatus;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
+import com.cultureSL.CultureLog.model.enums.Role;
 import com.cultureSL.CultureLog.repository.AccountDeletionTokenRepository;
 import com.cultureSL.CultureLog.repository.FollowRepository;
 import com.cultureSL.CultureLog.repository.MediaItemRepository;
@@ -288,7 +289,11 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+        User viewer = userRepository.findById(viewerUserId).orElse(null);
+        boolean isAdmin = viewer != null && viewer.getRole() == Role.ADMIN;
+
         boolean hasAccess = isOwn
+                || isAdmin
                 || privacy == ProfilePrivacy.PUBLICO
                 || (followStatus.equals("ACCEPTED"));
 

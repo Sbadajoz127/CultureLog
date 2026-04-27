@@ -46,7 +46,7 @@ public class MediaItem {
 
     /** Tipo de medio (LIBRO, PELICULA, etc.). */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(20)")
     private MediaType type;
 
     /** Estado de consumo (VISTO, PENDIENTE, ABANDONADO). */
@@ -86,6 +86,9 @@ public class MediaItem {
 
     /** Nombre de la fuente externa (TMDB, GOOGLE_BOOKS, JIKAN, RAWG). */
     private String externalSource;
+
+    /** Nombre del álbum (solo para contenido musical). */
+    private String album;
 
     /** Usuario propietario de este ítem. */
     @ManyToOne(fetch = FetchType.LAZY)

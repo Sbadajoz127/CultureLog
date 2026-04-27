@@ -1,46 +1,24 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useProfilePic } from '../context/ProfilePicContext';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
-import { ConfirmModal } from '../components/ConfirmModal';
+import { PostCard } from '../components/PostCard';
 import { FEED_TABS, MEDIA_TYPE_LABELS, postMatchesFeedTab } from '../constants/media';
 import { searchResultToPayload } from '../utils/mediaItem';
-import { Heart, MessageCircle, Expand, Trash2, Bookmark } from 'lucide-react';
 import {
   getFeed,
   createPost,
-  togglePostLike,
-  togglePostSave,
-  addPostComment,
-  getPostComments,
   searchMedia,
   addToLibraryFromSearch,
   getMediaItems,
   getSuggestedUsers,
   followUser,
-  deletePost,
-  deletePostComment,
 } from '../services/api';
 import '../App.css';
 
 const FEED_PAGE_SIZE = 10;
 const MAX_POST_LENGTH = 2000;
-const MAX_INLINE_COMMENT_LENGTH = 1000;
-
-function formatFeedDate(iso) {
-  if (!iso) return '';
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 function SkeletonComposer() {
   return (
@@ -133,17 +111,9 @@ function Home() {
   const [suggestions, setSuggestions] = useState([]);
   const [followingIds, setFollowingIds] = useState(new Set());
 
-  const [openCommentsPostId, setOpenCommentsPostId] = useState(null);
-  const [postCommentsMap, setPostCommentsMap] = useState({});
-  const [commentDrafts, setCommentDrafts] = useState({});
-  const [loadingCommentsPostId, setLoadingCommentsPostId] = useState(null);
-  const [submittingCommentPostId, setSubmittingCommentPostId] = useState(null);
-  const [commentsErrorByPost, setCommentsErrorByPost] = useState({});
   const [initialReady, setInitialReady] = useState(false);
   const feedDone = useRef(false);
   const suggestionsDone = useRef(false);
-
-  const [confirmModal, setConfirmModal] = useState({ open: false, type: null, id: null, postId: null });
 
   const markReady = useCallback(() => {
     if (feedDone.current && suggestionsDone.current) setInitialReady(true);
@@ -274,57 +244,12 @@ function Home() {
     }
   };
 
-  const handleLike = async (post) => {
-    const wasLiked = post.likedByCurrentUser;
-    const prevCount = post.likeCount;
-
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === post.id
-          ? {
-              ...p,
-              likedByCurrentUser: !wasLiked,
-              likeCount: wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1,
-            }
-          : p
-      )
-    );
-
-    try {
-      await togglePostLike(post.id);
-    } catch {
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === post.id
-            ? { ...p, likedByCurrentUser: wasLiked, likeCount: prevCount }
-            : p
-        )
-      );
-    }
+  const handlePostUpdate = (postId, updates) => {
+    setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...updates } : p)));
   };
 
-  const handleSave = async (post) => {
-    const wasSaved = post.savedByCurrentUser;
-
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === post.id
-          ? { ...p, savedByCurrentUser: !wasSaved }
-          : p
-      )
-    );
-
-    try {
-      await togglePostSave(post.id);
-    } catch {
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === post.id
-            ? { ...p, savedByCurrentUser: wasSaved }
-            : p
-        )
-      );
-    }
+  const handlePostDelete = (postId) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
   };
 
   const handleFollow = async (targetId) => {
@@ -336,95 +261,6 @@ function Home() {
       setFeedPage(0);
     } catch {
       /* ignore */
-    }
-  };
-
-  const toggleInlineComments = async (postId) => {
-    if (openCommentsPostId === postId) {
-      setOpenCommentsPostId(null);
-      return;
-    }
-    setOpenCommentsPostId(postId);
-    if (postCommentsMap[postId]) return;
-    setLoadingCommentsPostId(postId);
-    setCommentsErrorByPost((prev) => ({ ...prev, [postId]: '' }));
-    try {
-      const { data } = await getPostComments(postId);
-      setPostCommentsMap((prev) => ({ ...prev, [postId]: Array.isArray(data) ? data : [] }));
-    } catch (e) {
-      setCommentsErrorByPost((prev) => ({
-        ...prev,
-        [postId]: e.response?.data?.message || e.response?.data?.error || 'No se pudieron cargar los comentarios.',
-      }));
-    } finally {
-      setLoadingCommentsPostId(null);
-    }
-  };
-
-  const handleInlineCommentSubmit = async (postId) => {
-    const text = (commentDrafts[postId] || '').trim();
-    if (!text) return;
-    setSubmittingCommentPostId(postId);
-    setCommentsErrorByPost((prev) => ({ ...prev, [postId]: '' }));
-    try {
-      const { data: created } = await addPostComment(postId, text);
-      setPostCommentsMap((prev) => ({
-        ...prev,
-        [postId]: [...(prev[postId] || []), created],
-      }));
-      setPosts((prev) => prev.map((p) => (
-        p.id === postId ? { ...p, commentCount: (p.commentCount || 0) + 1 } : p
-      )));
-      setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
-    } catch (e) {
-      setCommentsErrorByPost((prev) => ({
-        ...prev,
-        [postId]: e.response?.data?.message || e.response?.data?.error || 'No se pudo comentar.',
-      }));
-    } finally {
-      setSubmittingCommentPostId(null);
-    }
-  };
-
-  const openDeletePostModal = (postId) => {
-    setConfirmModal({ open: true, type: 'post', id: postId, postId: null });
-  };
-
-  const openDeleteCommentModal = (postId, commentId) => {
-    setConfirmModal({ open: true, type: 'comment', id: commentId, postId });
-  };
-
-  const closeConfirmModal = () => {
-    setConfirmModal({ open: false, type: null, id: null, postId: null });
-  };
-
-  const handleConfirmDelete = async () => {
-    const { type, id, postId } = confirmModal;
-    closeConfirmModal();
-
-    if (type === 'post') {
-      try {
-        await deletePost(id);
-        setPosts((prev) => prev.filter((p) => p.id !== id));
-      } catch {
-        /* ignore */
-      }
-    } else if (type === 'comment') {
-      try {
-        await deletePostComment(id);
-        setPostCommentsMap((prev) => ({
-          ...prev,
-          [postId]: (prev[postId] || []).filter((c) => c.id !== id),
-        }));
-        setPosts((prev) => prev.map((p) => (
-          p.id === postId ? { ...p, commentCount: Math.max(0, (p.commentCount || 0) - 1) } : p
-        )));
-      } catch (e) {
-        setCommentsErrorByPost((prev) => ({
-          ...prev,
-          [postId]: e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el comentario.',
-        }));
-      }
     }
   };
 
@@ -606,153 +442,15 @@ function Home() {
 
           <div className="posts-list">
             {filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => {
-                const isLiked = post.likedByCurrentUser;
-                const isSaved = post.savedByCurrentUser;
-                return (
-                  <article key={post.id} className="post-card">
-                    <div className="post-card-header">
-                      <div className="post-card-author">
-                        <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
-                        <div>
-                          <h4
-                            className="post-author post-author-link"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => navigate(`/user/${post.authorName}`)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
-                          >
-                            {post.authorName}
-                          </h4>
-                          {post.linkedItemType && (
-                            <span className="post-category-tag">
-                              {MEDIA_TYPE_LABELS[post.linkedItemType] || post.linkedItemType}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-dim post-date">{formatFeedDate(post.createdAt)}</span>
-                      {post.authorId === user.id && (
-                        <button
-                          type="button"
-                          className="post-like-btn post-delete-btn"
-                          onClick={() => openDeletePostModal(post.id)}
-                        >
-                          <Trash2 size={16} /> Eliminar
-                        </button>
-                      )}
-                    </div>
-
-                    {(post.linkedItemTitle || post.linkedItemId) && (
-                      <div className="post-linked-work">
-                        Reseña de: <strong>{post.linkedItemTitle}</strong>
-                        {post.linkedItemRating != null && (
-                          <span className="text-muted"> · {post.linkedItemRating}/10</span>
-                        )}
-                      </div>
-                    )}
-
-                    <p className="post-content">{post.content}</p>
-
-                    <div className="post-footer">
-                      <div className="post-footer-left">
-                        <button
-                          type="button"
-                          className={`post-like-btn ${isLiked ? 'liked' : ''}`}
-                          onClick={() => handleLike(post)}
-                        >
-                          <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} /> {post.likeCount}
-                        </button>
-                        <button
-                          type="button"
-                          className={`post-like-btn ${isSaved ? 'saved' : ''}`}
-                          onClick={() => handleSave(post)}
-                        >
-                          <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
-                        </button>
-                      </div>
-                      <div className="post-footer-actions">
-                        <button
-                          type="button"
-                          className="post-like-btn"
-                          onClick={() => toggleInlineComments(post.id)}
-                        >
-                          <MessageCircle size={16} /> {post.commentCount || 0} comentarios
-                        </button>
-                        <button
-                          type="button"
-                          className="post-like-btn"
-                          onClick={() => navigate(`/posts/${post.id}`)}
-                        >
-                          <Expand size={16} /> Ver publicación
-                        </button>
-                      </div>
-                    </div>
-                    {openCommentsPostId === post.id && (
-                      <div className="post-inline-comments">
-                        {commentsErrorByPost[post.id] && (
-                          <p className="auth-error">{commentsErrorByPost[post.id]}</p>
-                        )}
-                        {loadingCommentsPostId === post.id ? (
-                          <p className="text-muted">Cargando comentarios...</p>
-                        ) : (
-                          <div className="post-inline-comments-list">
-                            {(postCommentsMap[post.id] || []).map((c) => (
-                              <div key={c.id} className="post-inline-comment-item">
-                                <UserAvatar src={c.authorProfilePictureUrl} name={c.authorName} size="small" />
-                                <p>
-                                  <strong
-                                    role="button"
-                                    tabIndex={0}
-                                    className="post-author-link"
-                                    onClick={() => navigate(`/user/${c.authorName}`)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${c.authorName}`); }}
-                                  >
-                                    {c.authorName}
-                                  </strong>
-                                  {' '}
-                                  {c.text}
-                                </p>
-                                {(c.authorId === user.id || post.authorId === user.id) && (
-                                  <button
-                                    type="button"
-                                    className="post-like-btn post-comment-delete-btn"
-                                    onClick={() => openDeleteCommentModal(post.id, c.id)}
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                            {(postCommentsMap[post.id] || []).length === 0 && (
-                              <p className="text-muted">Todavía no hay comentarios.</p>
-                            )}
-                          </div>
-                        )}
-                        <div className="post-inline-comment-form">
-                          <textarea
-                            value={commentDrafts[post.id] || ''}
-                            onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                            maxLength={MAX_INLINE_COMMENT_LENGTH}
-                            placeholder="Añade un comentario..."
-                          />
-                          <div className="post-inline-comment-form-footer">
-                            <span className="text-dim">{(commentDrafts[post.id] || '').length}/{MAX_INLINE_COMMENT_LENGTH}</span>
-                            <button
-                              type="button"
-                              className="login-button"
-                              onClick={() => handleInlineCommentSubmit(post.id)}  
-                              disabled={submittingCommentPostId === post.id || !(commentDrafts[post.id] || '').trim()}
-                            >
-                              {submittingCommentPostId === post.id ? 'Enviando...' : 'Comentar'}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </article>
-                );
-              })
+              filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onPostUpdate={handlePostUpdate}
+                  onPostDelete={handlePostDelete}
+                  showAuthorLink
+                />
+              ))
             ) : (
               <div className="bg-card feed-placeholder">
                 <p className="text-faint">No hay publicaciones en esta vista.</p>
@@ -806,21 +504,6 @@ function Home() {
           )}
         </aside>
       </div>
-
-      <ConfirmModal
-        isOpen={confirmModal.open}
-        title={confirmModal.type === 'post' ? 'Eliminar publicación' : 'Eliminar comentario'}
-        message={
-          confirmModal.type === 'post'
-            ? '¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.'
-            : '¿Estás seguro de que quieres eliminar este comentario?'
-        }
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        danger
-        onConfirm={handleConfirmDelete}
-        onCancel={closeConfirmModal}
-      />
     </div>
   );
 }

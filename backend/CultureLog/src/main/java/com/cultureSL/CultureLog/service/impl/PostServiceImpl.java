@@ -10,6 +10,7 @@ import com.cultureSL.CultureLog.mapper.PostMapper;
 import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
+import com.cultureSL.CultureLog.model.enums.Role;
 import com.cultureSL.CultureLog.repository.*;
 import com.cultureSL.CultureLog.service.EmailService;
 import com.cultureSL.CultureLog.service.FollowService;
@@ -280,6 +281,9 @@ public class PostServiceImpl implements PostService {
     private void validatePostAccess(Post post, Long currentUserId) {
         Long authorId = post.getAuthor().getId();
         if (authorId.equals(currentUserId)) return;
+
+        User viewer = userRepository.findById(currentUserId).orElse(null);
+        if (viewer != null && viewer.getRole() == Role.ADMIN) return;
 
         UserSettings settings = post.getAuthor().getSettings();
         ProfilePrivacy privacy = settings != null ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;

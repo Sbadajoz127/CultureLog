@@ -45,13 +45,14 @@ public class JwtService {
      * @param username nombre de usuario (se almacena como claim)
      * @return token JWT firmado como cadena compacta
      */
-    public String generateToken(Long userId, String username) {
+    public String generateToken(Long userId, String username, String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim("username", username)
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(getSigningKey())
@@ -76,6 +77,16 @@ public class JwtService {
      */
     public String extractUsername(String token) {
         return extractClaims(token).get("username", String.class);
+    }
+
+    /**
+     * Extrae el rol del usuario del token JWT.
+     *
+     * @param token token JWT
+     * @return rol del usuario (USER o ADMIN)
+     */
+    public String extractRole(String token) {
+        return extractClaims(token).get("role", String.class);
     }
 
     /**
