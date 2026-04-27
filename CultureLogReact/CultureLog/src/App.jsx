@@ -18,6 +18,7 @@ import Library from './pages/Library';
 import PublicProfile from './pages/PublicProfile';
 import Notifications from './pages/Notifications';
 import PostDetail from './pages/PostDetail';
+import CreatePost from './pages/CreatePost';
 import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
@@ -60,6 +61,7 @@ function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/user/:username" element={<PublicProfile />} />
                     <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/posts/create" element={<CreatePost />} />
                     <Route path="/posts/:postId" element={<PostDetail />} />
                   </Route>
 
