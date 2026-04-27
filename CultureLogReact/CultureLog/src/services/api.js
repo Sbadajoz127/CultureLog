@@ -42,6 +42,14 @@ export function resetPassword(token, newPassword) {
   return api.post('/auth/reset-password', { token, newPassword });
 }
 
+export function verifyEmail(token) {
+  return api.post('/auth/verify-email', { token });
+}
+
+export function resendVerificationEmail(email) {
+  return api.post(`/auth/resend-verification?email=${encodeURIComponent(email)}`);
+}
+
 export function getUserSettings() {
   return api.get('/users/settings');
 }

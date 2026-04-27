@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { loginUser as apiLogin, registerUser as apiRegister } from '../services/api';
+import { loginUser as apiLogin } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -61,12 +61,6 @@ export function AuthProvider({ children }) {
     return data;
   }, [saveSession]);
 
-  const register = useCallback(async (username, password, email) => {
-    const { data } = await apiRegister(username, password, email);
-    saveSession(data);
-    return data;
-  }, [saveSession]);
-
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -87,7 +81,6 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     isAdmin: user?.role === 'ADMIN',
     login,
-    register,
     logout,
     setUser,
   };

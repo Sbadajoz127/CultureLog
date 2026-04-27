@@ -8,21 +8,27 @@ function Login() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
+    setEmailNotVerified(false);
     setIsLoading(true);
 
     try {
       await login(username, password);
       navigate('/home');
     } catch (err) {
+      const data = err.response?.data;
+      if (data?.emailNotVerified) {
+        setEmailNotVerified(true);
+      }
       const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
+        data?.message ||
+        data?.error ||
         'Error al iniciar sesión. Inténtalo de nuevo.';
       setError(msg);
     } finally {
@@ -40,6 +46,13 @@ function Login() {
 
         <form className="login-form" onSubmit={handleSubmit}>
           {error && <p className="auth-error">{error}</p>}
+          {emailNotVerified && (
+            <p style={{ textAlign: 'center', marginBottom: '10px' }}>
+              <a href="#" className="sign-up-link" onClick={(e) => { e.preventDefault(); navigate('/verify-email'); }}>
+                Verificar mi cuenta
+              </a>
+            </p>
+          )}
 
           <div className="input-group">
             <label htmlFor="username">Nombre de usuario</label>

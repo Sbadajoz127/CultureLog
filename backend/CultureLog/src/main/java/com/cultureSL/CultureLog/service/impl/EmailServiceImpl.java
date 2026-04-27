@@ -116,6 +116,34 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
+     * Envía un correo con el código de verificación para activar la cuenta recién registrada.
+     *
+     * @param to    Correo del usuario que se acaba de registrar.
+     * @param token El token único generado (UUID) para validar el correo.
+     */
+    @Override
+    @Async
+    public void sendEmailVerificationCode(String to, String token) {
+        String subject = "Verifica tu cuenta - CultureLog";
+
+        String htmlContent = """
+            <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #448AFF;">¡Bienvenido a CultureLog!</h2>
+                <p>Hola,</p>
+                <p>Gracias por registrarte. Para activar tu cuenta, copia el siguiente código de verificación en la aplicación:</p>
+                <div style="background-color: #f5f5f5; padding: 15px; text-align: center; border-radius: 5px;">
+                    <h1 style="margin: 0; letter-spacing: 2px; color: #333;">%s</h1>
+                </div>
+                <p>Este código expirará en 24 horas.</p>
+                <p style="font-size: 12px; color: #999;">Si no creaste esta cuenta, ignora este correo.</p>
+                <p style="font-size: 12px; color: #999;">El equipo de CultureLog</p>
+            </div>
+            """.formatted(token);
+
+        sendHtmlEmail(to, subject, htmlContent);
+    }
+
+    /**
      * Envía un correo con el token de seguridad para restablecer la contraseña.
      *
      * @param to    Correo del usuario que solicitó el cambio.

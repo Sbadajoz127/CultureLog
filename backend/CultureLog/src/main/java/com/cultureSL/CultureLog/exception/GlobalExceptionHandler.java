@@ -49,6 +49,23 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Maneja excepciones de correo electrónico no verificado.
+     *
+     * @param ex excepción capturada
+     * @return respuesta HTTP 403 con indicador {@code emailNotVerified}
+     */
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailNotVerified(EmailNotVerifiedException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", HttpStatus.FORBIDDEN.getReasonPhrase());
+        body.put("message", ex.getMessage());
+        body.put("emailNotVerified", true);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    /**
      * Maneja excepciones de solicitud incorrecta.
      *
      * @param ex excepción capturada

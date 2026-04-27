@@ -40,6 +40,11 @@ public class DataInitializer implements ApplicationRunner {
             log.info("Asignada fecha de registro (NOW) a {} usuarios existentes sin created_at", updated);
         }
 
+        int enabled = userRepository.enableAllExistingUsers();
+        if (enabled > 0) {
+            log.info("Activadas {} cuentas de usuarios existentes sin verificación previa", enabled);
+        }
+
         seedAdminUser();
     }
 
@@ -59,6 +64,7 @@ public class DataInitializer implements ApplicationRunner {
         admin.setPassword(passwordEncoder.encode(adminPassword));
         admin.setEmail(adminEmail);
         admin.setRole(Role.ADMIN);
+        admin.setEnabled(true);
 
         UserSettings settings = new UserSettings();
         settings.setTheme(AppTheme.DARK);
