@@ -29,6 +29,10 @@
   --accent-muted: color-mix(in srgb, var(--accent-color) 18%, transparent);
   --danger: #e53935;
   --danger-hover: #ff4b4b;
+  --banner-overlay-start: rgba(0, 0, 0, 0.1);
+  --banner-overlay-mid: rgba(0, 0, 0, 0.4);
+  --banner-overlay-end: rgba(0, 0, 0, 0.7);
+  --banner-text-shadow: rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="light"] {
@@ -53,6 +57,10 @@
   --accent-muted: color-mix(in srgb, var(--accent-color) 12%, transparent);
   --danger: #c62828;
   --danger-hover: #e53935;
+  --banner-overlay-start: rgba(255, 255, 255, 0.1);
+  --banner-overlay-mid: rgba(255, 255, 255, 0.5);
+  --banner-overlay-end: rgba(255, 255, 255, 0.85);
+  --banner-text-shadow: rgba(255, 255, 255, 0.8);
 }
 
 /* -----------------------------------------
@@ -3796,9 +3804,9 @@ input[type="password"]::-ms-clear {
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.4) 60%,
-    rgba(0, 0, 0, 0.7) 100%
+    var(--banner-overlay-start) 0%,
+    var(--banner-overlay-mid) 60%,
+    var(--banner-overlay-end) 100%
   );
   pointer-events: none;
 }
@@ -3823,7 +3831,7 @@ input[type="password"]::-ms-clear {
 }
 
 .pub-profile-header.has-banner .pub-profile-username {
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 8px var(--banner-text-shadow);
 }
 
 /* ==================== Clickable Stats ==================== */

@@ -505,21 +505,21 @@ function PublicProfile() {
                     <span className="pub-profile-stat-label">publicaciones</span>
                   </div>
                   <div
-                    className="pub-profile-stat pub-profile-stat-clickable"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => openConnectionsModal('followers')}
-                    onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('followers'); }}
+                    className={`pub-profile-stat${hasAccess ? ' pub-profile-stat-clickable' : ''}`}
+                    role={hasAccess ? 'button' : undefined}
+                    tabIndex={hasAccess ? 0 : undefined}
+                    onClick={hasAccess ? () => openConnectionsModal('followers') : undefined}
+                    onKeyDown={hasAccess ? (e) => { if (e.key === 'Enter') openConnectionsModal('followers'); } : undefined}
                   >
                     <span className="pub-profile-stat-count">{profile.followerCount}</span>
                     <span className="pub-profile-stat-label">seguidores</span>
                   </div>
                   <div
-                    className="pub-profile-stat pub-profile-stat-clickable"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => openConnectionsModal('following')}
-                    onKeyDown={(e) => { if (e.key === 'Enter') openConnectionsModal('following'); }}
+                    className={`pub-profile-stat${hasAccess ? ' pub-profile-stat-clickable' : ''}`}
+                    role={hasAccess ? 'button' : undefined}
+                    tabIndex={hasAccess ? 0 : undefined}
+                    onClick={hasAccess ? () => openConnectionsModal('following') : undefined}
+                    onKeyDown={hasAccess ? (e) => { if (e.key === 'Enter') openConnectionsModal('following'); } : undefined}
                   >
                     <span className="pub-profile-stat-count">{profile.followingCount}</span>
                     <span className="pub-profile-stat-label">seguidos</span>
