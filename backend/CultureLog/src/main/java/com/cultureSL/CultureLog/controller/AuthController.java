@@ -1,10 +1,7 @@
 package com.cultureSL.CultureLog.controller;
 
 import com.cultureSL.CultureLog.config.JwtService;
-import com.cultureSL.CultureLog.dto.AuthResponse;
-import com.cultureSL.CultureLog.dto.LoginRequest;
-import com.cultureSL.CultureLog.dto.RegisterRequest;
-import com.cultureSL.CultureLog.dto.ResetPasswordRequest;
+import com.cultureSL.CultureLog.dto.*;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.service.UserService;
 import jakarta.validation.Valid;
@@ -13,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -32,32 +30,23 @@ public class AuthController {
     private final JwtService jwtService;
 
     /**
-     * Registra un nuevo usuario en el sistema.
+     * Registra un nuevo usuario en el sistema y envía un correo de verificación.
      * <p>Endpoint: {@code POST /api/auth/register}</p>
      *
      * @param request datos de registro (username, password, email)
-     * @return HTTP 201 con {@link AuthResponse} incluyendo el token JWT, o HTTP 400 si hay error
+     * @return HTTP 201 con mensaje indicando que se ha enviado el correo de verificación
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setPassword(request.getPassword());
         newUser.setEmail(request.getEmail());
 
-        User createdUser = userService.registerUser(newUser);
-        String token = jwtService.generateToken(createdUser.getId(), createdUser.getUsername(), createdUser.getRole().name());
+        userService.registerUser(newUser);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new AuthResponse(
-                        createdUser.getId(),
-                        createdUser.getUsername(),
-                        createdUser.getEmail(),
-                        createdUser.getProfilePictureUrl(),
-                        token,
-                        createdUser.getRole().name(),
-                        "Usuario registrado con éxito"
-                ));
+                .body(Map.of("message", "Registro exitoso. Revisa tu correo para verificar tu cuenta."));
     }
 
     /**
@@ -87,6 +76,32 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new AuthResponse(null, null, null, null, null, null, "Credenciales incorrectas"));
         }
+    }
+
+    /**
+     * Verifica el correo electrónico de un usuario recién registrado.
+     * <p>Endpoint: {@code POST /api/auth/verify-email}</p>
+     *
+     * @param request token de verificación recibido por email
+     * @return HTTP 200 con mensaje de éxito
+     */
+    @PostMapping("/verify-email")
+    public ResponseEntity<Map<String, String>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        userService.verifyEmail(request.getToken());
+        return ResponseEntity.ok(Map.of("message", "Cuenta verificada correctamente. Ya puedes iniciar sesión."));
+    }
+
+    /**
+     * Reenvía el correo de verificación a un usuario que aún no ha activado su cuenta.
+     * <p>Endpoint: {@code POST /api/auth/resend-verification?email=...}</p>
+     *
+     * @param email dirección de correo del usuario
+     * @return HTTP 200 con mensaje de confirmación
+     */
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Map<String, String>> resendVerification(@RequestParam String email) {
+        userService.resendVerificationEmail(email);
+        return ResponseEntity.ok(Map.of("message", "Si el correo está registrado y no verificado, recibirás un nuevo código."));
     }
 
     /**

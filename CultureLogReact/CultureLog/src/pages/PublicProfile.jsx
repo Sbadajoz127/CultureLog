@@ -557,7 +557,11 @@ function PublicProfile() {
                 {activeTab === 'saved' && profile.ownProfile && (
                   <div className="pub-profile-content">
                     {loadingSaved ? (
-                      <p className="text-muted">Cargando posts guardados...</p>
+                      <div className="pub-profile-posts-list">
+                        <SkeletonProfilePost />
+                        <SkeletonProfilePost />
+                        <SkeletonProfilePost />
+                      </div>
                     ) : savedPosts.length === 0 ? (
                       <div className="pub-profile-empty">
                         <p className="pub-profile-empty-text">
@@ -624,7 +628,11 @@ function PublicProfile() {
                 {activeTab === 'liked' && profile.ownProfile && (
                   <div className="pub-profile-content">
                     {loadingLiked ? (
-                      <p className="text-muted">Cargando likes...</p>
+                      <div className="pub-profile-posts-list">
+                        <SkeletonProfilePost />
+                        <SkeletonProfilePost />
+                        <SkeletonProfilePost />
+                      </div>
                     ) : likedPosts.length === 0 ? (
                       <div className="pub-profile-empty">
                         <p className="pub-profile-empty-text">

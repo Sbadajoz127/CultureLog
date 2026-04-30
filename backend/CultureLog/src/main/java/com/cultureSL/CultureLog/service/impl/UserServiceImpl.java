@@ -4,6 +4,7 @@ import com.cultureSL.CultureLog.dto.MediaItemResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.dto.UserProfileResponse;
 import com.cultureSL.CultureLog.exception.BadRequestException;
+import com.cultureSL.CultureLog.exception.EmailNotVerifiedException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import com.cultureSL.CultureLog.dto.UserSettingsRequest;
@@ -17,6 +18,7 @@ import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
 import com.cultureSL.CultureLog.model.enums.Role;
 import com.cultureSL.CultureLog.repository.AccountDeletionTokenRepository;
+import com.cultureSL.CultureLog.repository.EmailVerificationTokenRepository;
 import com.cultureSL.CultureLog.repository.FollowRepository;
 import com.cultureSL.CultureLog.repository.MediaItemRepository;
 import com.cultureSL.CultureLog.repository.PasswordResetTokenRepository;
@@ -58,6 +60,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepository;
+    private final EmailVerificationTokenRepository verificationTokenRepository;
     private final AccountDeletionTokenRepository deletionTokenRepository;
     private final EmailService emailService;
     private final ImageStorageService imageStorageService;
@@ -81,6 +84,7 @@ public class UserServiceImpl implements UserService {
 
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
+        user.setEnabled(false);
 
         UserSettings defaultSettings = new UserSettings();
         defaultSettings.setTheme(AppTheme.DARK);
@@ -90,7 +94,14 @@ public class UserServiceImpl implements UserService {
         defaultSettings.setUser(user);
         user.setSettings(defaultSettings);
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        EmailVerificationToken verificationToken = new EmailVerificationToken(savedUser);
+        verificationTokenRepository.save(verificationToken);
+
+        emailService.sendEmailVerificationCode(savedUser.getEmail(), verificationToken.getToken());
+
+        return savedUser;
     }
 
     /** {@inheritDoc} */
@@ -101,6 +112,9 @@ public class UserServiceImpl implements UserService {
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (passwordEncoder.matches(rawPassword, user.getPassword())) {
+                if (!user.isEnabled()) {
+                    throw new EmailNotVerifiedException("Debes verificar tu correo electrónico antes de iniciar sesión.");
+                }
                 return Optional.of(user);
             }
         }
@@ -151,6 +165,50 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         tokenRepository.delete(resetToken);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void verifyEmail(String token) {
+        EmailVerificationToken verificationToken = verificationTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token inválido o no encontrado"));
+
+        if (verificationToken.isExpired()) {
+            verificationTokenRepository.delete(verificationToken);
+            throw new BadRequestException("El token ha expirado. Solicita uno nuevo.");
+        }
+
+        User user = verificationToken.getUser();
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        verificationTokenRepository.delete(verificationToken);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public void resendVerificationEmail(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            log.debug("Solicitud de reenvío de verificación para email no registrado: {}", email);
+            return;
+        }
+
+        User user = userOpt.get();
+        if (user.isEnabled()) {
+            log.debug("El usuario {} ya está verificado", user.getUsername());
+            return;
+        }
+
+        verificationTokenRepository.deleteByUser(user);
+        entityManager.flush();
+
+        EmailVerificationToken verificationToken = new EmailVerificationToken(user);
+        verificationTokenRepository.save(verificationToken);
+
+        emailService.sendEmailVerificationCode(user.getEmail(), verificationToken.getToken());
     }
 
     /** {@inheritDoc} */

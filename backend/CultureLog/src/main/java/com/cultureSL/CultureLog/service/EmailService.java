@@ -43,6 +43,14 @@ public interface EmailService {
     void sendCommentNotification(String toEmail, String commenterUsername);
 
     /**
+     * Envía un email con el código de verificación para activar la cuenta tras el registro.
+     *
+     * @param to    dirección de correo del usuario
+     * @param token token de seguridad (UUID) para validar el correo
+     */
+    void sendEmailVerificationCode(String to, String token);
+
+    /**
      * Envía un email con el enlace para restablecer la contraseña.
      *
      * @param to    dirección de correo del usuario

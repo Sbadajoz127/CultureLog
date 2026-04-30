@@ -80,6 +80,21 @@ public interface UserService {
      */
     void resetPassword(String token, String newPassword);
 
+    /**
+     * Verifica el correo electrónico de un usuario utilizando el token enviado por email.
+     *
+     * @param token token de verificación (UUID)
+     * @throws Exception si el token es inválido o ha expirado
+     */
+    void verifyEmail(String token);
+
+    /**
+     * Reenvía el correo de verificación a un usuario que aún no ha activado su cuenta.
+     *
+     * @param email dirección de correo del usuario
+     */
+    void resendVerificationEmail(String email);
+
     UserSettings updateSettings(Long userId, UserSettingsRequest request);
 
     UserSettings getSettings(Long userId);

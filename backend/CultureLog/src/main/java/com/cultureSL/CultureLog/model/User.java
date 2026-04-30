@@ -56,6 +56,10 @@ public class User {
     @Column(nullable = false, columnDefinition = "varchar(255) default 'USER'")
     private Role role = Role.USER;
 
+    /** Indica si el usuario ha verificado su correo electrónico. */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean enabled = false;
+
     /** Fecha y hora de registro del usuario. */
     @CreationTimestamp
     @Column(updatable = false)
