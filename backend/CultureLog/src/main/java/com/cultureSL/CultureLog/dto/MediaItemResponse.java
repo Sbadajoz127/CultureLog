@@ -50,6 +50,8 @@ public class MediaItemResponse {
     private String externalId;
     /** Nombre de la fuente externa (TMDB, GOOGLE_BOOKS, JIKAN, RAWG). */
     private String externalSource;
+    /** Nombre del álbum (solo para contenido musical). */
+    private String album;
     /** Nombres de las etiquetas asociadas al ítem. */
     private Set<String> tagNames;
 }

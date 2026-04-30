@@ -58,6 +58,14 @@ public class RestClientConfig {
                 .build();
     }
 
+    @Bean("deezerRestClient")
+    public RestClient deezerRestClient() {
+        return RestClient.builder()
+                .baseUrl("https://api.deezer.com")
+                .requestFactory(buildFactory(5, 10))
+                .build();
+    }
+
     private SimpleClientHttpRequestFactory buildFactory(int connectSeconds, int readSeconds) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(connectSeconds));

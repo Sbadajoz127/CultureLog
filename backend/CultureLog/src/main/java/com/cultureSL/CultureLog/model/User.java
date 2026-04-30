@@ -1,8 +1,11 @@
 package com.cultureSL.CultureLog.model;
 
+import com.cultureSL.CultureLog.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +50,20 @@ public class User {
     /** Url de la imagen del banner del usuario. */
     @Column(name = "banner_url")
     private String bannerUrl;
+
+    /** Rol del usuario en el sistema (USER o ADMIN). */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(255) default 'USER'")
+    private Role role = Role.USER;
+
+    /** Indica si el usuario ha verificado su correo electrónico. */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean enabled = false;
+
+    /** Fecha y hora de registro del usuario. */
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
     /**
      * Colección de obras multimedia añadidas por el usuario (Su biblioteca).

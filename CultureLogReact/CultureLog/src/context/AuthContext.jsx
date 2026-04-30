@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { loginUser as apiLogin, registerUser as apiRegister } from '../services/api';
+import { loginUser as apiLogin } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -48,6 +48,7 @@ export function AuthProvider({ children }) {
       username: data.username,
       email: data.email,
       profilePictureUrl: data.profilePictureUrl ?? null,
+      role: data.role ?? 'USER',
     };
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -56,12 +57,6 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (username, password) => {
     const { data } = await apiLogin(username, password);
-    saveSession(data);
-    return data;
-  }, [saveSession]);
-
-  const register = useCallback(async (username, password, email) => {
-    const { data } = await apiRegister(username, password, email);
     saveSession(data);
     return data;
   }, [saveSession]);
@@ -84,8 +79,8 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     isAuthenticated: !!user,
+    isAdmin: user?.role === 'ADMIN',
     login,
-    register,
     logout,
     setUser,
   };

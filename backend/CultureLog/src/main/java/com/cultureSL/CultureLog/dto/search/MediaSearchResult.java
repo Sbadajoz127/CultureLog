@@ -55,4 +55,7 @@ public class MediaSearchResult {
 
     /** Puntuación o valoración media según la fuente externa. */
     private Double rating;
+
+    /** Nombre del álbum (solo para contenido musical). */
+    private String album;
 }

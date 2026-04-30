@@ -13,6 +13,7 @@ export function searchResultToPayload(result) {
     releaseDate: result.releaseDate ?? null,
     imageUrl: result.imageUrl ?? null,
     rating: result.rating ?? null,
+    album: result.album ?? null,
   };
 }
 
@@ -33,5 +34,6 @@ export function mediaItemToRequest(item, overrides = {}) {
     description: overrides.description !== undefined ? overrides.description : item.description ?? null,
     externalId: overrides.externalId !== undefined ? overrides.externalId : item.externalId ?? null,
     externalSource: overrides.externalSource !== undefined ? overrides.externalSource : item.externalSource ?? null,
+    album: overrides.album !== undefined ? overrides.album : item.album ?? null,
   };
 }

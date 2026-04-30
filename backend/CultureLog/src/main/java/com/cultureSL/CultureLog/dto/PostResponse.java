@@ -53,6 +53,8 @@ public class PostResponse {
     private String linkedItemGenre;
     /** Descripción/sinopsis de la obra. */
     private String linkedItemDescription;
+    /** Nombre del álbum (solo para contenido musical). */
+    private String linkedItemAlbum;
 
     /** Número total de likes en la publicación. */
     private int likeCount;

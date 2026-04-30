@@ -123,6 +123,7 @@ public class PostMapper {
                 .linkedItemReleaseDate(linkedItem != null ? linkedItem.getReleaseDate() : null)
                 .linkedItemGenre(linkedItem != null ? linkedItem.getGenre() : null)
                 .linkedItemDescription(linkedItem != null ? linkedItem.getDescription() : null)
+                .linkedItemAlbum(linkedItem != null ? linkedItem.getAlbum() : null)
                 .recentComments(post.getComments().stream()
                         .sorted(Comparator.comparing(c -> c.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                         .limit(3)

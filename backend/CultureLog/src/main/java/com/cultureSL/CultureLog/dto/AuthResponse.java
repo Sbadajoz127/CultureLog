@@ -25,6 +25,8 @@ public class AuthResponse {
     private String profilePictureUrl;
     /** Token JWT para autenticación en endpoints protegidos. */
     private String token;
+    /** Rol del usuario (USER o ADMIN). */
+    private String role;
     /** Mensaje informativo sobre el resultado de la operación (ej. "Login exitoso"). */
     private String message;
 }
