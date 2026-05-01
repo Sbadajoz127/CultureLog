@@ -2,7 +2,6 @@ package com.cultureSL.CultureLog.mapper;
 
 import com.cultureSL.CultureLog.dto.CommentResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
-import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.Post;
 import com.cultureSL.CultureLog.repository.PostLikeRepository;
 import com.cultureSL.CultureLog.repository.PostSaveRepository;
@@ -101,8 +100,6 @@ public class PostMapper {
      * @return DTO completo del post
      */
     private PostResponse buildDto(Post post, boolean isLiked, boolean isSaved) {
-        MediaItem linkedItem = post.getLinkedItem();
-
         return PostResponse.builder()
                 .id(post.getId())
                 .content(post.getContent())
@@ -114,16 +111,16 @@ public class PostMapper {
                 .commentCount(post.getCommentCount())
                 .likedByCurrentUser(isLiked)
                 .savedByCurrentUser(isSaved)
-                .linkedItemId(linkedItem != null ? linkedItem.getId() : null)
-                .linkedItemTitle(linkedItem != null ? linkedItem.getTitle() : null)
-                .linkedItemType(linkedItem != null ? linkedItem.getType().name() : null)
-                .linkedItemRating(linkedItem != null ? linkedItem.getRating() : null)
-                .linkedItemImageUrl(linkedItem != null ? linkedItem.getItemImageUrl() : null)
-                .linkedItemCreator(linkedItem != null ? linkedItem.getCreator() : null)
-                .linkedItemReleaseDate(linkedItem != null ? linkedItem.getReleaseDate() : null)
-                .linkedItemGenre(linkedItem != null ? linkedItem.getGenre() : null)
-                .linkedItemDescription(linkedItem != null ? linkedItem.getDescription() : null)
-                .linkedItemAlbum(linkedItem != null ? linkedItem.getAlbum() : null)
+                .linkedItemId(post.getLinkedItem() != null ? post.getLinkedItem().getId() : null)
+                .linkedItemTitle(post.getLinkedItemTitle())
+                .linkedItemType(post.getLinkedItemType() != null ? post.getLinkedItemType().name() : null)
+                .linkedItemRating(post.getLinkedItemRating())
+                .linkedItemImageUrl(post.getLinkedItemImageUrl())
+                .linkedItemCreator(post.getLinkedItemCreator())
+                .linkedItemReleaseDate(post.getLinkedItemReleaseDate())
+                .linkedItemGenre(post.getLinkedItemGenre())
+                .linkedItemDescription(post.getLinkedItemDescription())
+                .linkedItemAlbum(post.getLinkedItemAlbum())
                 .recentComments(post.getComments().stream()
                         .sorted(Comparator.comparing(c -> c.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                         .limit(3)

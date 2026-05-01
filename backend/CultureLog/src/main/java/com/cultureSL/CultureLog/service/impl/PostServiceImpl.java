@@ -71,6 +71,15 @@ public class PostServiceImpl implements PostService {
                 throw new UnauthorizedException("No puedes vincular un item que no te pertenece");
             }
             post.setLinkedItem(item);
+            post.setLinkedItemTitle(item.getTitle());
+            post.setLinkedItemType(item.getType());
+            post.setLinkedItemRating(item.getRating());
+            post.setLinkedItemImageUrl(item.getItemImageUrl());
+            post.setLinkedItemCreator(item.getCreator());
+            post.setLinkedItemReleaseDate(item.getReleaseDate());
+            post.setLinkedItemGenre(item.getGenre());
+            post.setLinkedItemDescription(item.getDescription());
+            post.setLinkedItemAlbum(item.getAlbum());
         }
 
         Post savedPost = postRepository.save(post);

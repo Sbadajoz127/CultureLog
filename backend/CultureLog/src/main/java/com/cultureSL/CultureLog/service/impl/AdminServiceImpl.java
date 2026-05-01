@@ -171,7 +171,7 @@ public class AdminServiceImpl implements AdminService {
                         .content(post.getContent())
                         .authorUsername(post.getAuthor().getUsername())
                         .authorId(post.getAuthor().getId())
-                        .linkedItemTitle(post.getLinkedItem() != null ? post.getLinkedItem().getTitle() : null)
+                        .linkedItemTitle(post.getLinkedItemTitle())
                         .linkedItemId(post.getLinkedItem() != null ? post.getLinkedItem().getId() : null)
                         .createdAt(post.getCreatedAt())
                         .likeCount(post.getLikeCount())

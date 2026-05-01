@@ -174,7 +174,7 @@ export default function PostDetail() {
               )}
             </div>
 
-            {linkedItem?.id && (
+            {linkedItem?.title && (
               <section className="post-detail-linked-item">
                 {linkedItem.imageUrl ? (
                   <img src={linkedItem.imageUrl} alt={linkedItem.title} className="post-detail-linked-image" />

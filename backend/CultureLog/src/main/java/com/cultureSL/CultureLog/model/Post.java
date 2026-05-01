@@ -5,6 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.cultureSL.CultureLog.model.enums.MediaType;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +54,24 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "media_item_id")
     private MediaItem linkedItem;
+
+    /** Instantánea desnormalizada del ítem vinculado (persiste aunque se borre de la biblioteca). */
+    private String linkedItemTitle;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(20)")
+    private MediaType linkedItemType;
+
+    private Integer linkedItemRating;
+    private String linkedItemImageUrl;
+    private String linkedItemCreator;
+    private LocalDate linkedItemReleaseDate;
+    private String linkedItemGenre;
+
+    @Column(length = 5000)
+    private String linkedItemDescription;
+
+    private String linkedItemAlbum;
 
     /** Lista de comentarios recibidos. */
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

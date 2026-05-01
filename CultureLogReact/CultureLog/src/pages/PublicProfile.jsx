@@ -5,14 +5,12 @@ import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { PostCard } from '../components/PostCard';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
-import { Heart, Lock, Bookmark, Expand } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   getUserProfile,
   followUser,
   unfollowUser,
-  togglePostLike,
-  togglePostSave,
   getFollowers,
   getFollowing,
   getSavedPosts,
@@ -289,41 +287,36 @@ function PublicProfile() {
     }));
   };
 
-  const handleLikeForTab = async (post) => {
-    const wasLiked = post.likedByCurrentUser;
-    const prevCount = post.likeCount;
-
-    if (likedPosts.length > 0) {
-      if (wasLiked) {
-        setLikedPosts((prev) => prev.filter((p) => p.id !== post.id));
-      } else {
-        setLikedPosts((prev) => [{ ...post, likedByCurrentUser: true, likeCount: prevCount + 1 }, ...prev]);
+  const handleSavedPostUpdate = (postId, updates) => {
+    setSavedPosts((prev) => {
+      const updated = prev.map((p) => (p.id === postId ? { ...p, ...updates } : p));
+      if (updates.savedByCurrentUser === false) {
+        return updated.filter((p) => p.id !== postId);
       }
-    }
-
-    try {
-      await togglePostLike(post.id);
-    } catch {
-      toast.error('No se pudo registrar el like.');
-    }
+      return updated;
+    });
+    setLikedPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...updates } : p)));
   };
 
-  const handleSaveForTab = async (post) => {
-    const wasSaved = post.savedByCurrentUser;
+  const handleSavedPostDelete = (postId) => {
+    setSavedPosts((prev) => prev.filter((p) => p.id !== postId));
+    setLikedPosts((prev) => prev.filter((p) => p.id !== postId));
+  };
 
-    if (savedPosts.length > 0) {
-      if (wasSaved) {
-        setSavedPosts((prev) => prev.filter((p) => p.id !== post.id));
-      } else {
-        setSavedPosts((prev) => [{ ...post, savedByCurrentUser: true }, ...prev]);
+  const handleLikedPostUpdate = (postId, updates) => {
+    setLikedPosts((prev) => {
+      const updated = prev.map((p) => (p.id === postId ? { ...p, ...updates } : p));
+      if (updates.likedByCurrentUser === false) {
+        return updated.filter((p) => p.id !== postId);
       }
-    }
+      return updated;
+    });
+    setSavedPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...updates } : p)));
+  };
 
-    try {
-      await togglePostSave(post.id);
-    } catch {
-      toast.error('No se pudo guardar la publicación.');
-    }
+  const handleLikedPostDelete = (postId) => {
+    setLikedPosts((prev) => prev.filter((p) => p.id !== postId));
+    setSavedPosts((prev) => prev.filter((p) => p.id !== postId));
   };
 
   const loadSavedPosts = async () => {
@@ -675,49 +668,14 @@ function PublicProfile() {
                         </button>
                       </div>
                     ) : (
-                      <div className="posts-list">
+                      <div className="pub-profile-posts-list">
                         {savedPosts.map((post) => (
-                          <article key={post.id} className="post-card">
-                            <div className="post-card-header">
-                              <div
-                                className="post-card-author"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => navigate(`/user/${post.authorName}`)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
-                              >
-                                <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
-                                <span className="post-author-link">@{post.authorName}</span>
-                              </div>
-                              <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
-                            </div>
-                            <p className="post-content">{post.content}</p>
-                            <div className="post-footer">
-                              <div className="post-footer-left">
-                                <button
-                                  type="button"
-                                  className={`post-like-btn ${post.likedByCurrentUser ? 'liked' : ''}`}
-                                  onClick={() => handleLikeForTab(post)}
-                                >
-                                  <Heart size={16} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} /> {post.likeCount}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="post-like-btn saved"
-                                  onClick={() => handleSaveForTab(post)}
-                                >
-                                  <Bookmark size={16} fill="currentColor" />
-                                </button>
-                              </div>
-                              <button
-                                type="button"
-                                className="post-like-btn"
-                                onClick={() => navigate(`/posts/${post.id}`)}
-                              >
-                                <Expand size={16} /> Ver publicación
-                              </button>
-                            </div>
-                          </article>
+                          <PostCard
+                            key={post.id}
+                            post={post}
+                            onPostUpdate={handleSavedPostUpdate}
+                            onPostDelete={handleSavedPostDelete}
+                          />
                         ))}
                       </div>
                     )}
@@ -746,49 +704,14 @@ function PublicProfile() {
                         </button>
                       </div>
                     ) : (
-                      <div className="posts-list">
+                      <div className="pub-profile-posts-list">
                         {likedPosts.map((post) => (
-                          <article key={post.id} className="post-card">
-                            <div className="post-card-header">
-                              <div
-                                className="post-card-author"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => navigate(`/user/${post.authorName}`)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
-                              >
-                                <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
-                                <span className="post-author-link">@{post.authorName}</span>
-                              </div>
-                              <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
-                            </div>
-                            <p className="post-content">{post.content}</p>
-                            <div className="post-footer">
-                              <div className="post-footer-left">
-                                <button
-                                  type="button"
-                                  className="post-like-btn liked"
-                                  onClick={() => handleLikeForTab(post)}
-                                >
-                                  <Heart size={16} fill="currentColor" /> {post.likeCount}
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`post-like-btn ${post.savedByCurrentUser ? 'saved' : ''}`}
-                                  onClick={() => handleSaveForTab(post)}
-                                >
-                                  <Bookmark size={16} fill={post.savedByCurrentUser ? 'currentColor' : 'none'} />
-                                </button>
-                              </div>
-                              <button
-                                type="button"
-                                className="post-like-btn"
-                                onClick={() => navigate(`/posts/${post.id}`)}
-                              >
-                                <Expand size={16} /> Ver publicación
-                              </button>
-                            </div>
-                          </article>
+                          <PostCard
+                            key={post.id}
+                            post={post}
+                            onPostUpdate={handleLikedPostUpdate}
+                            onPostDelete={handleLikedPostDelete}
+                          />
                         ))}
                       </div>
                     )}
