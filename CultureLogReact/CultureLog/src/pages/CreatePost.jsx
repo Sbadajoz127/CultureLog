@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProfilePic } from '../context/ProfilePicContext';
 import { AppHeader } from '../components/AppHeader';
@@ -13,6 +13,7 @@ import {
   getMediaItems,
 } from '../services/api';
 import { Search, X, BookOpen, ArrowLeft, Image } from 'lucide-react';
+import { toast } from 'sonner';
 import '../App.css';
 
 const MAX_POST_LENGTH = 2000;
@@ -69,9 +70,10 @@ function CreatePost() {
   const { user } = useAuth();
   const { profilePic } = useProfilePic();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [content, setContent] = useState('');
-  const [linkedItem, setLinkedItem] = useState(null);
+  const [linkedItem, setLinkedItem] = useState(() => location.state?.linkedItem ?? null);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [initialReady, setInitialReady] = useState(false);
@@ -124,6 +126,7 @@ function CreatePost() {
       setSearchResults(Array.isArray(data) ? data : []);
     } catch {
       setSearchResults([]);
+      toast.error('Error al buscar obras.');
     } finally {
       setSearchLoading(false);
     }
@@ -193,6 +196,7 @@ function CreatePost() {
         content: content.trim(),
         linkedMediaItemId: linkedItem?.id ?? null,
       });
+      toast.success('Publicación creada.');
       navigate('/home');
     } catch (err) {
       setError(

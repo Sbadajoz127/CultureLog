@@ -20,6 +20,7 @@ import Notifications from './pages/Notifications';
 import PostDetail from './pages/PostDetail';
 import CreatePost from './pages/CreatePost';
 import AdminDashboard from './pages/AdminDashboard';
+import ThemedToaster from './components/ThemedToaster';
 import './App.css';
 
 function AuthNavigationGuard() {
@@ -46,6 +47,7 @@ function App() {
             <NotificationProvider>
               <ConfirmProvider>
                 <AuthNavigationGuard />
+                <ThemedToaster />
                 <Routes>
                   {/* Public routes */}
                   <Route path="/login" element={<Login />} />

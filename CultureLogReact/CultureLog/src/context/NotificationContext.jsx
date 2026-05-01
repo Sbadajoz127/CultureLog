@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 import {
   getNotifications,
@@ -110,7 +111,7 @@ export function NotificationProvider({ children }) {
       await apiAcceptFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
     } catch {
-      /* silent */
+      toast.error('No se pudo aceptar la solicitud.');
     }
   }, []);
 
@@ -119,7 +120,7 @@ export function NotificationProvider({ children }) {
       await apiRejectFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
     } catch {
-      /* silent */
+      toast.error('No se pudo rechazar la solicitud.');
     }
   }, []);
 

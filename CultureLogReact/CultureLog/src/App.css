@@ -307,11 +307,13 @@ input[type="password"]::-ms-clear {
 ----------------------------------------- */
 .home-container {
   min-height: 100dvh;
+  padding-top: 60px;
 }
 
 .top-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
   width: 100%;
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
@@ -415,7 +417,7 @@ input[type="password"]::-ms-clear {
 
 .home-sidebar {
   position: fixed;
-  top: 110px;
+  top: 100px;
   width: 320px;
   left: calc(50% + 300px);
 }
@@ -3882,6 +3884,28 @@ input[type="password"]::-ms-clear {
   color: var(--text-faint);
 }
 
+.mdm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.mdm-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+.mdm-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Library card clickable area */
 .library-item-clickable {
   display: flex;
@@ -6046,4 +6070,12 @@ input[type="password"]::-ms-clear {
   .confirm-modal-actions button {
     width: 100%;
   }
+}
+
+/* ── Sonner Toast Overrides ── */
+[data-sonner-toaster] {
+  --normal-bg: var(--bg-secondary);
+  --normal-border: var(--accent-color);
+  --normal-text: var(--text-primary);
+  font-family: inherit;
 }

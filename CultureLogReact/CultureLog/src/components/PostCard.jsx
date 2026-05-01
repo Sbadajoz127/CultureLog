@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Expand, Bookmark, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { UserAvatar } from './UserAvatar';
 import { CommentSection } from './CommentSection';
@@ -48,7 +49,7 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
       const { data } = await togglePostLike(post.id);
       onPostUpdate?.(post.id, { likedByCurrentUser: data.liked, likeCount: data.likeCount });
     } catch {
-      /* ignore */
+      toast.error('No se pudo registrar el like.');
     } finally {
       setLiking(false);
     }
@@ -61,7 +62,7 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
       const { data } = await togglePostSave(post.id);
       onPostUpdate?.(post.id, { savedByCurrentUser: data.saved });
     } catch {
-      /* ignore */
+      toast.error('No se pudo guardar la publicación.');
     } finally {
       setSaving(false);
     }
@@ -72,8 +73,9 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
     try {
       await deletePost(post.id);
       onPostDelete?.(post.id);
+      toast.success('Publicación eliminada.');
     } catch {
-      /* ignore */
+      toast.error('No se pudo eliminar la publicación.');
     } finally {
       setDeleting(false);
       setConfirmDeleteOpen(false);

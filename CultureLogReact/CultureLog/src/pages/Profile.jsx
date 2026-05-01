@@ -6,6 +6,7 @@ import { useProfilePic } from '../context/ProfilePicContext';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   uploadImage,
   updateProfilePicture,
@@ -97,8 +98,9 @@ function Profile() {
       const updated = { ...user, bannerUrl: null };
       setUser(updated);
       localStorage.setItem('user', JSON.stringify(updated));
+      toast.success('Banner eliminado.');
     } catch {
-      setError('Error al eliminar el banner.');
+      toast.error('Error al eliminar el banner.');
     }
   };
 
@@ -184,6 +186,7 @@ function Profile() {
         emailNotifications: localEmailNotifications,
       });
 
+      toast.success('Cambios guardados.');
       navigate('/home');
     } catch (err) {
       const msg =

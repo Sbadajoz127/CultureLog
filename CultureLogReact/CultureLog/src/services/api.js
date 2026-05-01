@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const api = axios.create({
   baseURL: '/api',
@@ -20,6 +21,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !url.includes('/auth/')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      toast.warning('Tu sesión ha expirado. Inicia sesión de nuevo.');
       window.dispatchEvent(new Event('auth:expired'));
     }
     return Promise.reject(error);

@@ -7,6 +7,7 @@ import { CommentSection } from '../components/CommentSection';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useAuth } from '../context/AuthContext';
 import { MEDIA_TYPE_LABELS } from '../constants/media';
+import { toast } from 'sonner';
 import { getPostById, getPostComments, togglePostLike, togglePostSave, deletePost } from '../services/api';
 import '../App.css';
 
@@ -83,6 +84,7 @@ export default function PostDetail() {
       await togglePostLike(post.id);
     } catch {
       setPost((prev) => prev ? { ...prev, likedByCurrentUser: wasLiked, likeCount: prevCount } : prev);
+      toast.error('No se pudo registrar el like.');
     }
   };
 
@@ -96,6 +98,7 @@ export default function PostDetail() {
       await togglePostSave(post.id);
     } catch {
       setPost((prev) => prev ? { ...prev, savedByCurrentUser: wasSaved } : prev);
+      toast.error('No se pudo guardar la publicación.');
     }
   };
 
@@ -119,9 +122,10 @@ export default function PostDetail() {
     if (type === 'post') {
       try {
         await deletePost(id);
+        toast.success('Publicación eliminada.');
         navigate('/home');
       } catch {
-        /* ignore */
+        toast.error('No se pudo eliminar la publicación.');
       }
     }
   };

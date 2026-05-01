@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmContext';
 import { AppHeader } from '../components/AppHeader';
@@ -17,6 +18,7 @@ import {
   deleteMediaItem,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
+import { toast } from 'sonner';
 import '../App.css';
 
 function SkeletonLibraryItem() {
@@ -131,6 +133,7 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
 function Library() {
   const { user } = useAuth();
   const confirm = useConfirm();
+  const navigate = useNavigate();
 
   const [activeStatus, setActiveStatus] = useState('POR_VER');
   const [items, setItems] = useState([]);
@@ -144,7 +147,7 @@ function Library() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [searchMsg, setSearchMsg] = useState('');
+
   const [addingKey, setAddingKey] = useState(null);
   const [busyItemId, setBusyItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -201,6 +204,7 @@ function Library() {
     try {
       await deleteMediaItem(item.id);
       await loadItems(activeStatus);
+      toast.success(`«${item.title}» eliminado de tu biblioteca.`);
     } catch (e) {
       setListError(
         e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el ítem.'
@@ -220,7 +224,6 @@ function Library() {
     }
     setSearchLoading(true);
     setSearchError('');
-    setSearchMsg('');
     try {
       const { data } = await searchMedia({
         query: q,
@@ -240,7 +243,6 @@ function Library() {
 
   const addSearchResultWithStatus = async (result, targetStatus) => {
     setAddingKey(`${result.source}-${result.externalId}-${result.title}`);
-    setSearchMsg('');
     setSearchError('');
     try {
       const payload = searchResultToPayload(result);
@@ -251,15 +253,15 @@ function Library() {
         await updateMediaItem(item.id, body);
       }
       if (res.status === 200) {
-        setSearchMsg(
-          `«${result.title}» ya estaba en tu biblioteca.` +
-            (targetStatus !== 'POR_VER'
-              ? ` Estado actualizado a ${MEDIA_STATUS_LABELS[targetStatus]}.`
-              : '')
-        );
+        toast(`«${result.title}» ya estaba en tu biblioteca.` +
+          (targetStatus !== 'POR_VER'
+            ? ` Estado actualizado a ${MEDIA_STATUS_LABELS[targetStatus]}.`
+            : ''));
       } else {
-        setSearchMsg(`«${result.title}» añadido a ${MEDIA_STATUS_LABELS[targetStatus]}.`);
+        toast.success(`«${result.title}» añadido a ${MEDIA_STATUS_LABELS[targetStatus]}.`);
       }
+      setSearchResults([]);
+      setSearchQuery('');
       await loadItems(activeStatus);
     } catch (err) {
       setSearchError(
@@ -335,7 +337,6 @@ function Library() {
             </button>
           </form>
           {searchError && <p className="auth-error library-inline-msg">{searchError}</p>}
-          {searchMsg && <p className="library-success-msg">{searchMsg}</p>}
 
           {searchResults.length > 0 && (
             <ul className="library-search-results">
@@ -431,6 +432,24 @@ function Library() {
       <MediaItemDetailModal
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
+        isOwn
+        alreadyInLibrary
+        onCreatePost={selectedItem ? () => {
+          navigate('/posts/create', {
+            state: {
+              linkedItem: {
+                id: selectedItem.id,
+                title: selectedItem.title,
+                type: selectedItem.type,
+                creator: selectedItem.creator,
+                releaseDate: selectedItem.releaseDate,
+                imageUrl: selectedItem.itemImageUrl,
+                genre: selectedItem.genre,
+                rating: selectedItem.rating,
+              },
+            },
+          });
+        } : undefined}
       />
     </div>
   );

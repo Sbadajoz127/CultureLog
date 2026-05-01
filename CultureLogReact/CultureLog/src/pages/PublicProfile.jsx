@@ -6,6 +6,7 @@ import { UserAvatar } from '../components/UserAvatar';
 import { PostCard } from '../components/PostCard';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
 import { Heart, Lock, Bookmark, Expand } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   getUserProfile,
   followUser,
@@ -16,6 +17,8 @@ import {
   getFollowing,
   getSavedPosts,
   getLikedPosts,
+  getMediaItems,
+  addToLibraryFromSearch,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import '../App.css';
@@ -122,6 +125,7 @@ function PublicProfile() {
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [loadingLiked, setLoadingLiked] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [myLibraryItems, setMyLibraryItems] = useState([]);
   const [connectionsModal, setConnectionsModal] = useState(null);
   const [connectionsLoading, setConnectionsLoading] = useState(false);
   const [connectionsError, setConnectionsError] = useState('');
@@ -152,6 +156,101 @@ function PublicProfile() {
     return () => controller.abort();
   }, [loadProfile]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await getMediaItems({});
+        if (!cancelled) setMyLibraryItems(Array.isArray(data) ? data : []);
+      } catch {
+        if (!cancelled) setMyLibraryItems([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const isItemInMyLibrary = useCallback((item) => {
+    if (!item?.externalId || !item?.externalSource) return false;
+    return myLibraryItems.some(
+      (mi) => mi.externalId === item.externalId
+        && mi.externalSource === item.externalSource
+        && mi.type === item.type
+    );
+  }, [myLibraryItems]);
+
+  const handleAddToLibrary = async (item) => {
+    const payload = {
+      externalId: item.externalId ?? null,
+      source: item.externalSource ?? null,
+      title: item.title,
+      type: item.type,
+      genre: item.genre ?? null,
+      creator: item.creator ?? null,
+      description: item.description ?? null,
+      releaseDate: item.releaseDate ?? null,
+      imageUrl: item.itemImageUrl ?? null,
+      rating: item.rating ?? null,
+      album: item.album ?? null,
+    };
+    try {
+      const { data } = await addToLibraryFromSearch(payload);
+      setMyLibraryItems((prev) => [...prev, data]);
+    } catch {
+      toast.error('No se pudo añadir a tu biblioteca.');
+      throw new Error();
+    }
+  };
+
+  const handleCreatePostFromItem = (item) => {
+    navigate('/posts/create', {
+      state: {
+        linkedItem: {
+          id: item.id,
+          title: item.title,
+          type: item.type,
+          creator: item.creator,
+          releaseDate: item.releaseDate,
+          imageUrl: item.itemImageUrl,
+          genre: item.genre,
+          rating: item.rating,
+        },
+      },
+    });
+  };
+
+  const handleAddAndCreatePost = async (item) => {
+    const payload = {
+      externalId: item.externalId ?? null,
+      source: item.externalSource ?? null,
+      title: item.title,
+      type: item.type,
+      genre: item.genre ?? null,
+      creator: item.creator ?? null,
+      description: item.description ?? null,
+      releaseDate: item.releaseDate ?? null,
+      imageUrl: item.itemImageUrl ?? null,
+      rating: item.rating ?? null,
+      album: item.album ?? null,
+    };
+    const { data: savedItem } = await addToLibraryFromSearch(payload);
+    setMyLibraryItems((prev) => [...prev, savedItem]);
+    toast.success(`«${savedItem.title}» añadido a tu biblioteca.`);
+    navigate('/posts/create', {
+      state: {
+        linkedItem: {
+          id: savedItem.id,
+          title: savedItem.title,
+          type: savedItem.type,
+          creator: savedItem.creator,
+          releaseDate: savedItem.releaseDate,
+          imageUrl: savedItem.itemImageUrl,
+          genre: savedItem.genre,
+          rating: savedItem.rating,
+        },
+      },
+    });
+  };
+
   const handleFollow = async () => {
     if (followLoading || !profile) return;
     setFollowLoading(true);
@@ -169,7 +268,7 @@ function PublicProfile() {
         }
       }
     } catch {
-      /* ignore */
+      toast.error('No se pudo completar la acción.');
     } finally {
       setFollowLoading(false);
     }
@@ -205,7 +304,7 @@ function PublicProfile() {
     try {
       await togglePostLike(post.id);
     } catch {
-      /* ignore */
+      toast.error('No se pudo registrar el like.');
     }
   };
 
@@ -223,7 +322,7 @@ function PublicProfile() {
     try {
       await togglePostSave(post.id);
     } catch {
-      /* ignore */
+      toast.error('No se pudo guardar la publicación.');
     }
   };
 
@@ -712,6 +811,11 @@ function PublicProfile() {
         <MediaItemDetailModal
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
+          isOwn={profile?.ownProfile ?? false}
+          alreadyInLibrary={selectedItem ? isItemInMyLibrary(selectedItem) : false}
+          onAddToLibrary={handleAddToLibrary}
+          onCreatePost={profile?.ownProfile ? () => handleCreatePostFromItem(selectedItem) : undefined}
+          onAddAndCreatePost={!profile?.ownProfile ? handleAddAndCreatePost : undefined}
         />
       </div>
 

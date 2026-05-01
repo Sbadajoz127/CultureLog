@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { X, Star, Calendar, Clock, Tag, BookOpen, User, Layers, Disc3 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { X, Star, Calendar, Clock, Tag, BookOpen, User, Layers, Disc3, Plus, PenSquare } from 'lucide-react';
+import { toast } from 'sonner';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
 
 const SOURCE_LABELS = {
@@ -43,9 +44,26 @@ function RatingDisplay({ rating }) {
   );
 }
 
-export function MediaItemDetailModal({ item, onClose }) {
+export function MediaItemDetailModal({
+  item,
+  onClose,
+  isOwn = false,
+  alreadyInLibrary = false,
+  onAddToLibrary,
+  onCreatePost,
+  onAddAndCreatePost,
+}) {
   const overlayRef = useRef(null);
   const panelRef = useRef(null);
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+
+  useEffect(() => {
+    setAdded(false);
+    setAdding(false);
+    setPublishing(false);
+  }, [item]);
 
   useEffect(() => {
     if (!item) return;
@@ -72,6 +90,36 @@ export function MediaItemDetailModal({ item, onClose }) {
   const releaseDateFmt = formatDate(item.releaseDate);
   const dateAddedFmt = formatDate(item.dateAdded);
   const sourceLabel = SOURCE_LABELS[item.externalSource] || item.externalSource;
+
+  const canAdd = !isOwn && !alreadyInLibrary && !added && !!item.externalId;
+  const showAddBtn = canAdd && !!onAddToLibrary;
+  const showCreatePostBtn = isOwn && !!onCreatePost;
+  const showPublishFromOtherBtn = !isOwn && !!item.externalId && !!onAddAndCreatePost;
+
+  const handleAddToLibrary = async () => {
+    if (adding || added || !onAddToLibrary) return;
+    setAdding(true);
+    try {
+      await onAddToLibrary(item);
+      setAdded(true);
+      toast.success(`«${item.title}» añadido a tu biblioteca.`);
+    } catch {
+      toast.error('No se pudo añadir a tu biblioteca.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleAddAndCreatePost = async () => {
+    if (publishing || !onAddAndCreatePost) return;
+    setPublishing(true);
+    try {
+      await onAddAndCreatePost(item);
+    } catch {
+      toast.error('No se pudo preparar la publicación.');
+      setPublishing(false);
+    }
+  };
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
@@ -144,6 +192,43 @@ export function MediaItemDetailModal({ item, onClose }) {
             )}
 
             <RatingDisplay rating={item.rating} />
+
+            {(showAddBtn || showCreatePostBtn || showPublishFromOtherBtn) && (
+              <div className="mdm-actions">
+                {showAddBtn && (
+                  <button
+                    type="button"
+                    className="login-button mdm-action-btn"
+                    disabled={adding || added}
+                    onClick={handleAddToLibrary}
+                  >
+                    <Plus size={15} />
+                    {adding ? 'Añadiendo…' : added ? 'Añadido' : 'Añadir a biblioteca'}
+                  </button>
+                )}
+                {showCreatePostBtn && (
+                  <button
+                    type="button"
+                    className="login-button mdm-action-btn"
+                    onClick={onCreatePost}
+                  >
+                    <PenSquare size={15} />
+                    Publicar
+                  </button>
+                )}
+                {showPublishFromOtherBtn && (
+                  <button
+                    type="button"
+                    className="login-button mdm-action-btn"
+                    disabled={publishing}
+                    onClick={handleAddAndCreatePost}
+                  >
+                    <PenSquare size={15} />
+                    {publishing ? 'Preparando…' : 'Publicar'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
