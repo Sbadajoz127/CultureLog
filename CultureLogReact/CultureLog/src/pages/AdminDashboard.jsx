@@ -18,6 +18,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
+import { toast } from 'sonner';
 import '../App.css';
 
 const PIE_COLORS = ['#448AFF', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#36A2EB'];
@@ -478,12 +479,9 @@ function CommentsModal({ postId, onClose, onDeleteComment }) {
     try {
       await onDeleteComment(commentId);
       setComments((prev) => prev.filter((c) => c.id !== commentId));
+      toast.success('Comentario eliminado.');
     } catch (err) {
-      await confirm({
-        title: 'Error',
-        message: err.response?.data?.message || 'Error al eliminar comentario',
-        isAlert: true,
-      });
+      toast.error(err.response?.data?.message || 'Error al eliminar comentario.');
     }
   };
 
@@ -690,6 +688,7 @@ export default function AdminDashboard() {
       setUserPage(data.number);
     } catch (err) {
       console.error('Error cargando usuarios:', err);
+      toast.error('Error al cargar usuarios.');
     } finally {
       setUsersLoading(false);
     }
@@ -712,6 +711,7 @@ export default function AdminDashboard() {
       setPostPage(data.number);
     } catch (err) {
       console.error('Error cargando posts:', err);
+      toast.error('Error al cargar publicaciones.');
     } finally {
       setPostsLoading(false);
     }
@@ -724,6 +724,7 @@ export default function AdminDashboard() {
       setStats(data);
     } catch (err) {
       console.error('Error cargando estadísticas:', err);
+      toast.error('Error al cargar estadísticas.');
     } finally {
       setStatsLoading(false);
     }
@@ -788,13 +789,10 @@ export default function AdminDashboard() {
     if (!ok) return;
     try {
       await adminDeleteUser(userId);
+      toast.success(`Usuario «${username}» eliminado.`);
       loadUsers(userPage);
     } catch (err) {
-      await confirm({
-        title: 'Error',
-        message: err.response?.data?.message || 'Error al eliminar usuario',
-        isAlert: true,
-      });
+      toast.error(err.response?.data?.message || 'Error al eliminar usuario.');
     }
   };
 
@@ -808,13 +806,10 @@ export default function AdminDashboard() {
     if (!ok) return;
     try {
       await adminDeletePost(postId);
+      toast.success('Publicación eliminada.');
       loadPosts(postPage);
     } catch (err) {
-      await confirm({
-        title: 'Error',
-        message: err.response?.data?.message || 'Error al eliminar post',
-        isAlert: true,
-      });
+      toast.error(err.response?.data?.message || 'Error al eliminar publicación.');
     }
   };
 

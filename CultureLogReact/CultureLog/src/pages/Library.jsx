@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmContext';
 import { AppHeader } from '../components/AppHeader';
 import {
   MEDIA_STATUS_TABS,
+  MEDIA_STATUS_TABS_WITH_ALL,
   MEDIA_TYPES,
   MEDIA_TYPE_LABELS,
   MEDIA_STATUS_LABELS,
@@ -17,6 +19,8 @@ import {
   deleteMediaItem,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
+import { CustomSelect } from '../components/CustomSelect';
+import { toast } from 'sonner';
 import '../App.css';
 
 function SkeletonLibraryItem() {
@@ -45,6 +49,18 @@ function SkeletonLibraryItem() {
         <div className="skeleton" style={{ width: 72, height: 34, borderRadius: 6 }} />
       </div>
     </article>
+  );
+}
+
+function SkeletonGridItem() {
+  return (
+    <div className="library-grid-card">
+      <div className="skeleton" style={{ width: '100%', height: 200 }} />
+      <div style={{ padding: '10px 12px' }}>
+        <div className="skeleton skeleton-line" style={{ width: '70%', height: 14 }} />
+        <div className="skeleton skeleton-line" style={{ width: '50%', height: 12, marginTop: 6 }} />
+      </div>
+    </div>
   );
 }
 
@@ -128,32 +144,98 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
   );
 }
 
+function LibraryGridCard({ item, onItemClick }) {
+  return (
+    <div
+      className="library-grid-card"
+      role="button"
+      tabIndex={0}
+      onClick={() => onItemClick(item)}
+      onKeyDown={(e) => { if (e.key === 'Enter') onItemClick(item); }}
+    >
+      {item.itemImageUrl ? (
+        <img
+          src={item.itemImageUrl}
+          alt={item.title}
+          className="library-grid-card-img"
+        />
+      ) : (
+        <div className="library-grid-card-img-placeholder">
+          {MEDIA_TYPE_LABELS[item.type] || item.type}
+        </div>
+      )}
+      <div className="library-grid-card-body">
+        <h4 className="library-grid-card-title">{item.title}</h4>
+        <span className="library-grid-card-meta">
+          {MEDIA_TYPE_LABELS[item.type] || item.type}
+          {item.rating != null && <> · {item.rating}/10</>}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const ListIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <line x1="3" y1="4.5" x2="15" y2="4.5" />
+    <line x1="3" y1="9" x2="15" y2="9" />
+    <line x1="3" y1="13.5" x2="15" y2="13.5" />
+  </svg>
+);
+
+const GridIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2.5" y="2.5" width="5" height="5" rx="1" />
+    <rect x="10.5" y="2.5" width="5" height="5" rx="1" />
+    <rect x="2.5" y="10.5" width="5" height="5" rx="1" />
+    <rect x="10.5" y="10.5" width="5" height="5" rx="1" />
+  </svg>
+);
+
 function Library() {
   const { user } = useAuth();
   const confirm = useConfirm();
+  const navigate = useNavigate();
 
-  const [activeStatus, setActiveStatus] = useState('POR_VER');
+  const [activeStatus, setActiveStatus] = useState('');
   const [items, setItems] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState('');
   const [initialReady, setInitialReady] = useState(false);
   const initialDone = useRef(false);
 
+  const [nameFilter, setNameFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [viewMode, setViewMode] = useState('list');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [searchMsg, setSearchMsg] = useState('');
+
   const [addingKey, setAddingKey] = useState(null);
   const [busyItemId, setBusyItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const filteredItems = useMemo(() => {
+    let result = items;
+    if (typeFilter) {
+      result = result.filter((item) => item.type === typeFilter);
+    }
+    if (nameFilter.trim()) {
+      const q = nameFilter.toLowerCase();
+      result = result.filter((item) => item.title.toLowerCase().includes(q));
+    }
+    return result;
+  }, [items, nameFilter, typeFilter]);
 
   const loadItems = useCallback(async (status) => {
     setListLoading(true);
     setListError('');
     try {
-      const { data } = await getMediaItems({ status });
+      const params = status ? { status } : {};
+      const { data } = await getMediaItems(params);
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
       setListError(
@@ -172,6 +254,11 @@ function Library() {
   useEffect(() => {
     loadItems(activeStatus);
   }, [activeStatus, loadItems]);
+
+  useEffect(() => {
+    setNameFilter('');
+    setTypeFilter('');
+  }, [activeStatus]);
 
   const handleStatusChange = async (item, newStatus) => {
     if (newStatus === item.status) return;
@@ -201,6 +288,7 @@ function Library() {
     try {
       await deleteMediaItem(item.id);
       await loadItems(activeStatus);
+      toast.success(`«${item.title}» eliminado de tu biblioteca.`);
     } catch (e) {
       setListError(
         e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el ítem.'
@@ -220,7 +308,6 @@ function Library() {
     }
     setSearchLoading(true);
     setSearchError('');
-    setSearchMsg('');
     try {
       const { data } = await searchMedia({
         query: q,
@@ -240,7 +327,6 @@ function Library() {
 
   const addSearchResultWithStatus = async (result, targetStatus) => {
     setAddingKey(`${result.source}-${result.externalId}-${result.title}`);
-    setSearchMsg('');
     setSearchError('');
     try {
       const payload = searchResultToPayload(result);
@@ -251,15 +337,15 @@ function Library() {
         await updateMediaItem(item.id, body);
       }
       if (res.status === 200) {
-        setSearchMsg(
-          `«${result.title}» ya estaba en tu biblioteca.` +
-            (targetStatus !== 'POR_VER'
-              ? ` Estado actualizado a ${MEDIA_STATUS_LABELS[targetStatus]}.`
-              : '')
-        );
+        toast(`«${result.title}» ya estaba en tu biblioteca.` +
+          (targetStatus !== 'POR_VER'
+            ? ` Estado actualizado a ${MEDIA_STATUS_LABELS[targetStatus]}.`
+            : ''));
       } else {
-        setSearchMsg(`«${result.title}» añadido a ${MEDIA_STATUS_LABELS[targetStatus]}.`);
+        toast.success(`«${result.title}» añadido a ${MEDIA_STATUS_LABELS[targetStatus]}.`);
       }
+      setSearchResults([]);
+      setSearchQuery('');
       await loadItems(activeStatus);
     } catch (err) {
       setSearchError(
@@ -279,9 +365,13 @@ function Library() {
           <SkeletonSearchSection />
           <section className="library-tabs-section">
             <div className="library-status-tabs">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="skeleton" style={{ width: 100, height: 42, borderRadius: 8 }} />
               ))}
+            </div>
+            <div className="library-toolbar">
+              <div className="skeleton" style={{ flex: 1, height: 38, borderRadius: 8 }} />
+              <div className="skeleton" style={{ width: 76, height: 38, borderRadius: 8 }} />
             </div>
             <div className="library-items-list">
               <SkeletonLibraryItem />
@@ -318,24 +408,18 @@ function Library() {
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Consulta de búsqueda"
             />
-            <select
-              className="portal-select"
+            <CustomSelect
+              className="library-search-type-select"
+              options={MEDIA_TYPES}
               value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
-              aria-label="Filtrar por tipo"
-            >
-              {MEDIA_TYPES.map((t) => (
-                <option key={t.value || 'all'} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+              onChange={setSearchType}
+              ariaLabel="Filtrar por tipo"
+            />
             <button type="submit" className="login-button library-search-submit" disabled={searchLoading}>
               {searchLoading ? 'Buscando…' : 'Buscar'}
             </button>
           </form>
           {searchError && <p className="auth-error library-inline-msg">{searchError}</p>}
-          {searchMsg && <p className="library-success-msg">{searchMsg}</p>}
 
           {searchResults.length > 0 && (
             <ul className="library-search-results">
@@ -387,9 +471,9 @@ function Library() {
 
         <section className="library-tabs-section" aria-label="Estados de la biblioteca">
           <div className="library-status-tabs" role="tablist">
-            {MEDIA_STATUS_TABS.map(({ value, label }) => (
+            {MEDIA_STATUS_TABS_WITH_ALL.map(({ value, label }) => (
               <button
-                key={value}
+                key={value || '__all__'}
                 type="button"
                 role="tab"
                 aria-selected={activeStatus === value}
@@ -401,19 +485,72 @@ function Library() {
             ))}
           </div>
 
+          <div className="library-toolbar">
+            <input
+              type="text"
+              className="portal-input library-name-filter"
+              placeholder="Filtrar por nombre…"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              aria-label="Filtrar items por nombre"
+            />
+            <CustomSelect
+              className="library-toolbar-type-select"
+              options={MEDIA_TYPES}
+              value={typeFilter}
+              onChange={setTypeFilter}
+              ariaLabel="Filtrar por tipo de medio"
+            />
+            <div className="library-view-toggle">
+              <button
+                type="button"
+                className={`library-view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+                aria-label="Vista de lista"
+                title="Vista de lista"
+              >
+                <ListIcon />
+              </button>
+              <button
+                type="button"
+                className={`library-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                aria-label="Vista de cuadrícula"
+                title="Vista de cuadrícula"
+              >
+                <GridIcon />
+              </button>
+            </div>
+          </div>
+
           {listError && <p className="auth-error library-inline-msg">{listError}</p>}
 
           {listLoading ? (
-            <div className="library-items-list">
-              <SkeletonLibraryItem />
-              <SkeletonLibraryItem />
-              <SkeletonLibraryItem />
-            </div>
-          ) : items.length === 0 ? (
-            <p className="text-muted library-empty">No hay ítems en esta lista.</p>
-          ) : (
+            viewMode === 'list' ? (
+              <div className="library-items-list">
+                <SkeletonLibraryItem />
+                <SkeletonLibraryItem />
+                <SkeletonLibraryItem />
+              </div>
+            ) : (
+              <div className="library-grid">
+                <SkeletonGridItem />
+                <SkeletonGridItem />
+                <SkeletonGridItem />
+                <SkeletonGridItem />
+                <SkeletonGridItem />
+                <SkeletonGridItem />
+              </div>
+            )
+          ) : filteredItems.length === 0 ? (
+            <p className="text-muted library-empty">
+              {nameFilter.trim() || typeFilter
+                ? 'No se encontraron ítems con esos filtros.'
+                : 'No hay ítems en esta lista.'}
+            </p>
+          ) : viewMode === 'list' ? (
             <div className="library-items-list feed-loaded">
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <LibraryItemCard
                   key={item.id}
                   item={item}
@@ -424,6 +561,16 @@ function Library() {
                 />
               ))}
             </div>
+          ) : (
+            <div className="library-grid feed-loaded">
+              {filteredItems.map((item) => (
+                <LibraryGridCard
+                  key={item.id}
+                  item={item}
+                  onItemClick={setSelectedItem}
+                />
+              ))}
+            </div>
           )}
         </section>
       </main>
@@ -431,6 +578,24 @@ function Library() {
       <MediaItemDetailModal
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
+        isOwn
+        alreadyInLibrary
+        onCreatePost={selectedItem ? () => {
+          navigate('/posts/create', {
+            state: {
+              linkedItem: {
+                id: selectedItem.id,
+                title: selectedItem.title,
+                type: selectedItem.type,
+                creator: selectedItem.creator,
+                releaseDate: selectedItem.releaseDate,
+                imageUrl: selectedItem.itemImageUrl,
+                genre: selectedItem.genre,
+                rating: selectedItem.rating,
+              },
+            },
+          });
+        } : undefined}
       />
     </div>
   );

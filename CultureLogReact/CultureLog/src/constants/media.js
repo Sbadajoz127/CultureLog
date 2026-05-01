@@ -13,6 +13,11 @@ export const MEDIA_STATUS_TABS = MEDIA_STATUS_ORDER.map((value) => ({
   label: MEDIA_STATUS_LABELS[value],
 }));
 
+export const MEDIA_STATUS_TABS_WITH_ALL = [
+  { value: '', label: 'Todos' },
+  ...MEDIA_STATUS_TABS,
+];
+
 /** Tipos del backend (MediaType) para filtros de búsqueda */
 export const MEDIA_TYPES = [
   { value: '', label: 'Todos los tipos' },

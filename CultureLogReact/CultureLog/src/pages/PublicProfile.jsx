@@ -5,17 +5,18 @@ import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { PostCard } from '../components/PostCard';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
-import { Heart, Lock, Bookmark, Expand } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   getUserProfile,
   followUser,
   unfollowUser,
-  togglePostLike,
-  togglePostSave,
   getFollowers,
   getFollowing,
   getSavedPosts,
   getLikedPosts,
+  getMediaItems,
+  addToLibraryFromSearch,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import '../App.css';
@@ -122,6 +123,7 @@ function PublicProfile() {
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [loadingLiked, setLoadingLiked] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [myLibraryItems, setMyLibraryItems] = useState([]);
   const [connectionsModal, setConnectionsModal] = useState(null);
   const [connectionsLoading, setConnectionsLoading] = useState(false);
   const [connectionsError, setConnectionsError] = useState('');
@@ -152,6 +154,101 @@ function PublicProfile() {
     return () => controller.abort();
   }, [loadProfile]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await getMediaItems({});
+        if (!cancelled) setMyLibraryItems(Array.isArray(data) ? data : []);
+      } catch {
+        if (!cancelled) setMyLibraryItems([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const isItemInMyLibrary = useCallback((item) => {
+    if (!item?.externalId || !item?.externalSource) return false;
+    return myLibraryItems.some(
+      (mi) => mi.externalId === item.externalId
+        && mi.externalSource === item.externalSource
+        && mi.type === item.type
+    );
+  }, [myLibraryItems]);
+
+  const handleAddToLibrary = async (item) => {
+    const payload = {
+      externalId: item.externalId ?? null,
+      source: item.externalSource ?? null,
+      title: item.title,
+      type: item.type,
+      genre: item.genre ?? null,
+      creator: item.creator ?? null,
+      description: item.description ?? null,
+      releaseDate: item.releaseDate ?? null,
+      imageUrl: item.itemImageUrl ?? null,
+      rating: item.rating ?? null,
+      album: item.album ?? null,
+    };
+    try {
+      const { data } = await addToLibraryFromSearch(payload);
+      setMyLibraryItems((prev) => [...prev, data]);
+    } catch {
+      toast.error('No se pudo añadir a tu biblioteca.');
+      throw new Error();
+    }
+  };
+
+  const handleCreatePostFromItem = (item) => {
+    navigate('/posts/create', {
+      state: {
+        linkedItem: {
+          id: item.id,
+          title: item.title,
+          type: item.type,
+          creator: item.creator,
+          releaseDate: item.releaseDate,
+          imageUrl: item.itemImageUrl,
+          genre: item.genre,
+          rating: item.rating,
+        },
+      },
+    });
+  };
+
+  const handleAddAndCreatePost = async (item) => {
+    const payload = {
+      externalId: item.externalId ?? null,
+      source: item.externalSource ?? null,
+      title: item.title,
+      type: item.type,
+      genre: item.genre ?? null,
+      creator: item.creator ?? null,
+      description: item.description ?? null,
+      releaseDate: item.releaseDate ?? null,
+      imageUrl: item.itemImageUrl ?? null,
+      rating: item.rating ?? null,
+      album: item.album ?? null,
+    };
+    const { data: savedItem } = await addToLibraryFromSearch(payload);
+    setMyLibraryItems((prev) => [...prev, savedItem]);
+    toast.success(`«${savedItem.title}» añadido a tu biblioteca.`);
+    navigate('/posts/create', {
+      state: {
+        linkedItem: {
+          id: savedItem.id,
+          title: savedItem.title,
+          type: savedItem.type,
+          creator: savedItem.creator,
+          releaseDate: savedItem.releaseDate,
+          imageUrl: savedItem.itemImageUrl,
+          genre: savedItem.genre,
+          rating: savedItem.rating,
+        },
+      },
+    });
+  };
+
   const handleFollow = async () => {
     if (followLoading || !profile) return;
     setFollowLoading(true);
@@ -169,7 +266,7 @@ function PublicProfile() {
         }
       }
     } catch {
-      /* ignore */
+      toast.error('No se pudo completar la acción.');
     } finally {
       setFollowLoading(false);
     }
@@ -190,41 +287,36 @@ function PublicProfile() {
     }));
   };
 
-  const handleLikeForTab = async (post) => {
-    const wasLiked = post.likedByCurrentUser;
-    const prevCount = post.likeCount;
-
-    if (likedPosts.length > 0) {
-      if (wasLiked) {
-        setLikedPosts((prev) => prev.filter((p) => p.id !== post.id));
-      } else {
-        setLikedPosts((prev) => [{ ...post, likedByCurrentUser: true, likeCount: prevCount + 1 }, ...prev]);
+  const handleSavedPostUpdate = (postId, updates) => {
+    setSavedPosts((prev) => {
+      const updated = prev.map((p) => (p.id === postId ? { ...p, ...updates } : p));
+      if (updates.savedByCurrentUser === false) {
+        return updated.filter((p) => p.id !== postId);
       }
-    }
-
-    try {
-      await togglePostLike(post.id);
-    } catch {
-      /* ignore */
-    }
+      return updated;
+    });
+    setLikedPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...updates } : p)));
   };
 
-  const handleSaveForTab = async (post) => {
-    const wasSaved = post.savedByCurrentUser;
+  const handleSavedPostDelete = (postId) => {
+    setSavedPosts((prev) => prev.filter((p) => p.id !== postId));
+    setLikedPosts((prev) => prev.filter((p) => p.id !== postId));
+  };
 
-    if (savedPosts.length > 0) {
-      if (wasSaved) {
-        setSavedPosts((prev) => prev.filter((p) => p.id !== post.id));
-      } else {
-        setSavedPosts((prev) => [{ ...post, savedByCurrentUser: true }, ...prev]);
+  const handleLikedPostUpdate = (postId, updates) => {
+    setLikedPosts((prev) => {
+      const updated = prev.map((p) => (p.id === postId ? { ...p, ...updates } : p));
+      if (updates.likedByCurrentUser === false) {
+        return updated.filter((p) => p.id !== postId);
       }
-    }
+      return updated;
+    });
+    setSavedPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...updates } : p)));
+  };
 
-    try {
-      await togglePostSave(post.id);
-    } catch {
-      /* ignore */
-    }
+  const handleLikedPostDelete = (postId) => {
+    setLikedPosts((prev) => prev.filter((p) => p.id !== postId));
+    setSavedPosts((prev) => prev.filter((p) => p.id !== postId));
   };
 
   const loadSavedPosts = async () => {
@@ -576,49 +668,14 @@ function PublicProfile() {
                         </button>
                       </div>
                     ) : (
-                      <div className="posts-list">
+                      <div className="pub-profile-posts-list">
                         {savedPosts.map((post) => (
-                          <article key={post.id} className="post-card">
-                            <div className="post-card-header">
-                              <div
-                                className="post-card-author"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => navigate(`/user/${post.authorName}`)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
-                              >
-                                <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
-                                <span className="post-author-link">@{post.authorName}</span>
-                              </div>
-                              <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
-                            </div>
-                            <p className="post-content">{post.content}</p>
-                            <div className="post-footer">
-                              <div className="post-footer-left">
-                                <button
-                                  type="button"
-                                  className={`post-like-btn ${post.likedByCurrentUser ? 'liked' : ''}`}
-                                  onClick={() => handleLikeForTab(post)}
-                                >
-                                  <Heart size={16} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} /> {post.likeCount}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="post-like-btn saved"
-                                  onClick={() => handleSaveForTab(post)}
-                                >
-                                  <Bookmark size={16} fill="currentColor" />
-                                </button>
-                              </div>
-                              <button
-                                type="button"
-                                className="post-like-btn"
-                                onClick={() => navigate(`/posts/${post.id}`)}
-                              >
-                                <Expand size={16} /> Ver publicación
-                              </button>
-                            </div>
-                          </article>
+                          <PostCard
+                            key={post.id}
+                            post={post}
+                            onPostUpdate={handleSavedPostUpdate}
+                            onPostDelete={handleSavedPostDelete}
+                          />
                         ))}
                       </div>
                     )}
@@ -647,49 +704,14 @@ function PublicProfile() {
                         </button>
                       </div>
                     ) : (
-                      <div className="posts-list">
+                      <div className="pub-profile-posts-list">
                         {likedPosts.map((post) => (
-                          <article key={post.id} className="post-card">
-                            <div className="post-card-header">
-                              <div
-                                className="post-card-author"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => navigate(`/user/${post.authorName}`)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${post.authorName}`); }}
-                              >
-                                <UserAvatar src={post.authorProfilePictureUrl} name={post.authorName} size="small" />
-                                <span className="post-author-link">@{post.authorName}</span>
-                              </div>
-                              <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
-                            </div>
-                            <p className="post-content">{post.content}</p>
-                            <div className="post-footer">
-                              <div className="post-footer-left">
-                                <button
-                                  type="button"
-                                  className="post-like-btn liked"
-                                  onClick={() => handleLikeForTab(post)}
-                                >
-                                  <Heart size={16} fill="currentColor" /> {post.likeCount}
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`post-like-btn ${post.savedByCurrentUser ? 'saved' : ''}`}
-                                  onClick={() => handleSaveForTab(post)}
-                                >
-                                  <Bookmark size={16} fill={post.savedByCurrentUser ? 'currentColor' : 'none'} />
-                                </button>
-                              </div>
-                              <button
-                                type="button"
-                                className="post-like-btn"
-                                onClick={() => navigate(`/posts/${post.id}`)}
-                              >
-                                <Expand size={16} /> Ver publicación
-                              </button>
-                            </div>
-                          </article>
+                          <PostCard
+                            key={post.id}
+                            post={post}
+                            onPostUpdate={handleLikedPostUpdate}
+                            onPostDelete={handleLikedPostDelete}
+                          />
                         ))}
                       </div>
                     )}
@@ -712,6 +734,11 @@ function PublicProfile() {
         <MediaItemDetailModal
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
+          isOwn={profile?.ownProfile ?? false}
+          alreadyInLibrary={selectedItem ? isItemInMyLibrary(selectedItem) : false}
+          onAddToLibrary={handleAddToLibrary}
+          onCreatePost={profile?.ownProfile ? () => handleCreatePostFromItem(selectedItem) : undefined}
+          onAddAndCreatePost={!profile?.ownProfile ? handleAddAndCreatePost : undefined}
         />
       </div>
 

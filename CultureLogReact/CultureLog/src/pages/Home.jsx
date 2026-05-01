@@ -6,6 +6,7 @@ import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { PostCard } from '../components/PostCard';
 import { FEED_TABS, postMatchesFeedTab } from '../constants/media';
+import { toast } from 'sonner';
 import {
   getFeed,
   getSuggestedUsers,
@@ -150,7 +151,7 @@ function Home() {
       loadFeed(0, false);
       setFeedPage(0);
     } catch {
-      /* ignore */
+      toast.error('No se pudo seguir al usuario.');
     }
   };
 
