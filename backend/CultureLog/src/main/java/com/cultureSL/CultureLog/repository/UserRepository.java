@@ -103,8 +103,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param query    texto a buscar en el username.
      * @param userId   ID del usuario actual (para excluirlo de los resultados).
      * @param pageable configuración de paginación.
-     * @return lista de usuarios que coinciden con la búsqueda.
+     * @return página de usuarios que coinciden con la búsqueda.
      */
-    @Query("SELECT u FROM User u WHERE u.id <> :userId AND LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%'))")
-    List<User> searchByUsername(@Param("query") String query, @Param("userId") Long userId, Pageable pageable);
+    @Query(value = "SELECT u FROM User u WHERE u.id <> :userId AND LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%'))",
+           countQuery = "SELECT COUNT(u) FROM User u WHERE u.id <> :userId AND LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<User> searchByUsername(@Param("query") String query, @Param("userId") Long userId, Pageable pageable);
 }

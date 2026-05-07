@@ -29,7 +29,9 @@ import com.cultureSL.CultureLog.service.UserService;
 import com.cultureSL.CultureLog.service.ImageStorageService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -472,13 +474,11 @@ public class UserServiceImpl implements UserService {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
-    public List<UserSuggestionResponse> searchUsers(String query, Long userId) {
-        if (query == null || query.trim().length() < 2) {
-            return Collections.emptyList();
+    public Page<UserSuggestionResponse> searchUsers(String query, Long userId, Pageable pageable) {
+        if (query == null || query.trim().isEmpty()) {
+            return Page.empty(pageable);
         }
-        return userRepository.searchByUsername(query.trim(), userId, PageRequest.of(0, 10))
-                .stream()
-                .map(u -> new UserSuggestionResponse(u.getId(), u.getUsername(), u.getProfilePictureUrl()))
-                .toList();
+        return userRepository.searchByUsername(query.trim(), userId, pageable)
+                .map(u -> new UserSuggestionResponse(u.getId(), u.getUsername(), u.getProfilePictureUrl()));
     }
 }

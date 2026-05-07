@@ -6,6 +6,10 @@ import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.model.UserSettings;
 import com.cultureSL.CultureLog.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -41,18 +45,25 @@ public class UserController {
 
     /**
      * Busca usuarios por nombre de usuario.
-     * <p>Endpoint: {@code GET /api/users/search?q=nombre}</p>
+     * <p>Endpoint: {@code GET /api/users/search?q=termino&page=0&size=10}</p>
      *
      * @param authentication contexto de autenticación con el ID del usuario
-     * @param q              texto a buscar (mínimo 2 caracteres)
-     * @return HTTP 200 con la lista de usuarios encontrados
+     * @param q              término de búsqueda
+     * @param page           número de página (por defecto 0)
+     * @param size           tamaño de página (por defecto 10)
+     * @return HTTP 200 con la página de usuarios encontrados
      */
     @GetMapping("/search")
-    public ResponseEntity<List<UserSuggestionResponse>> searchUsers(
+    public ResponseEntity<Page<UserSuggestionResponse>> searchUsers(
             Authentication authentication,
-            @RequestParam String q) {
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         Long userId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(userService.searchUsers(q, userId));
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.ASC, "username"));
+        return ResponseEntity.ok(userService.searchUsers(q, userId, pageable));
     }
 
     /**

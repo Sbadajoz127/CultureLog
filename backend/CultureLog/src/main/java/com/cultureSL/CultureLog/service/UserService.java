@@ -5,6 +5,8 @@ import com.cultureSL.CultureLog.dto.UserSettingsRequest;
 import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.model.UserSettings;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -149,9 +151,10 @@ public interface UserService {
     /**
      * Busca usuarios por nombre de usuario.
      *
-     * @param query  texto a buscar
-     * @param userId ID del usuario que realiza la búsqueda (se excluye de resultados)
-     * @return lista de usuarios encontrados
+     * @param query    texto a buscar
+     * @param userId   ID del usuario que realiza la búsqueda (se excluye de resultados)
+     * @param pageable paginación
+     * @return página de usuarios encontrados
      */
-    List<UserSuggestionResponse> searchUsers(String query, Long userId);
+    Page<UserSuggestionResponse> searchUsers(String query, Long userId, Pageable pageable);
 }

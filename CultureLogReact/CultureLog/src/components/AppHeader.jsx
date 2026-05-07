@@ -68,8 +68,8 @@ export function AppHeader({ active = 'home', userName }) {
       setSearchLoading(true);
       try {
         if (searchType === 'users') {
-          const { data } = await searchUsers(searchQuery.trim());
-          setSearchResults(Array.isArray(data) ? data : []);
+          const { data } = await searchUsers({ query: searchQuery.trim(), size: 5 });
+          setSearchResults(Array.isArray(data?.content) ? data.content : []);
         } else {
           const { data } = await searchPosts({ query: searchQuery.trim(), size: 5 });
           setPostResults(Array.isArray(data?.content) ? data.content : []);
@@ -104,13 +104,18 @@ export function AppHeader({ active = 'home', userName }) {
 
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
-    if (searchType === 'posts' && searchQuery.trim().length >= 2) {
-      setShowResults(false);
-      setDrawerOpen(false);
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-      setPostResults([]);
+    const q = searchQuery.trim();
+    if (q.length < 2) return;
+    setShowResults(false);
+    setDrawerOpen(false);
+    if (searchType === 'posts') {
+      navigate(`/search?q=${encodeURIComponent(q)}`);
+    } else {
+      navigate(`/search/users?q=${encodeURIComponent(q)}`);
     }
+    setSearchQuery('');
+    setPostResults([]);
+    setSearchResults([]);
   };
 
   const handleNavClick = (path) => {
@@ -172,6 +177,15 @@ export function AppHeader({ active = 'home', userName }) {
               <span className="header-search-result-name">@{u.username}</span>
             </div>
           ))}
+          {searchResults.length > 0 && searchQuery.trim().length >= 2 && (
+            <button
+              type="button"
+              className="header-search-view-all"
+              onClick={handleSearchSubmit}
+            >
+              Ver todos los resultados <ChevronRight size={16} />
+            </button>
+          )}
         </>
       )}
 

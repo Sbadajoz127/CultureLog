@@ -154,8 +154,8 @@ export function getSuggestedUsers() {
   return api.get('/users/suggestions');
 }
 
-export function searchUsers(query) {
-  return api.get(`/users/search?q=${encodeURIComponent(query)}`);
+export function searchUsers({ query, page = 0, size = 10 } = {}) {
+  return api.get('/users/search', { params: { q: query, page, size } });
 }
 
 export function followUser(targetId) {
