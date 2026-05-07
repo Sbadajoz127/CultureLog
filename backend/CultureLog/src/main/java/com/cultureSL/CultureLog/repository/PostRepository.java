@@ -135,4 +135,27 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      */
     @Query("SELECT p FROM Post p JOIN PostSave ps ON ps.post = p WHERE ps.user.id = :userId ORDER BY ps.savedAt DESC")
     Page<Post> findSavedPostsByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    /**
+     * Busca publicaciones por título del ítem vinculado o contenido del post.
+     * Solo devuelve posts visibles para el usuario (propios o de usuarios seguidos/públicos).
+     */
+    @Query(value = "SELECT DISTINCT p FROM Post p " +
+           "LEFT JOIN FETCH p.author a " +
+           "LEFT JOIN FETCH p.linkedItem " +
+           "LEFT JOIN a.settings s " +
+           "WHERE (LOWER(p.linkedItemTitle) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "       OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "AND (p.author.id = :userId " +
+           "     OR p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
+           "     OR (s IS NULL OR s.profilePrivacy = 'PUBLICO'))",
+           countQuery = "SELECT COUNT(DISTINCT p) FROM Post p " +
+           "LEFT JOIN p.author a " +
+           "LEFT JOIN a.settings s " +
+           "WHERE (LOWER(p.linkedItemTitle) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "       OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "AND (p.author.id = :userId " +
+           "     OR p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
+           "     OR (s IS NULL OR s.profilePrivacy = 'PUBLICO'))")
+    Page<Post> searchPosts(@Param("query") String query, @Param("userId") Long userId, Pageable pageable);
 }

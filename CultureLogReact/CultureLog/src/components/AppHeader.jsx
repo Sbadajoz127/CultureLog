@@ -1,13 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Menu, X, Home, BookOpen, User, Shield, LogOut } from 'lucide-react';
+import { Search, Menu, X, Home, BookOpen, User, Shield, LogOut, FileText, Film, Tv, Book, Music, Gamepad2, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProfilePic } from '../context/ProfilePicContext';
 import { UserAvatar } from './UserAvatar';
 import { NotificationBell } from './NotificationBell';
-import { searchUsers } from '../services/api';
+import { searchUsers, searchPosts } from '../services/api';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import '../App.css';
+
+const MEDIA_TYPE_ICONS = {
+  PELICULA: Film,
+  SERIE: Tv,
+  LIBRO: Book,
+  MUSICA: Music,
+  VIDEOJUEGO: Gamepad2,
+};
 
 /**
  * @param {'home'|'library'|'profile'} active
@@ -19,7 +27,9 @@ export function AppHeader({ active = 'home', userName }) {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('users');
   const [searchResults, setSearchResults] = useState([]);
+  const [postResults, setPostResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -51,28 +61,56 @@ export function AppHeader({ active = 'home', userName }) {
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
       setSearchResults([]);
+      setPostResults([]);
       return;
     }
     const timer = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const { data } = await searchUsers(searchQuery.trim());
-        setSearchResults(Array.isArray(data) ? data : []);
+        if (searchType === 'users') {
+          const { data } = await searchUsers(searchQuery.trim());
+          setSearchResults(Array.isArray(data) ? data : []);
+        } else {
+          const { data } = await searchPosts({ query: searchQuery.trim(), size: 5 });
+          setPostResults(Array.isArray(data?.content) ? data.content : []);
+        }
       } catch {
         setSearchResults([]);
+        setPostResults([]);
       } finally {
         setSearchLoading(false);
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, searchType]);
 
   const handleSelectUser = (username) => {
     setSearchQuery('');
     setSearchResults([]);
+    setPostResults([]);
     setShowResults(false);
     setDrawerOpen(false);
     navigate(`/user/${username}`);
+  };
+
+  const handleSelectPost = (postId) => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setPostResults([]);
+    setShowResults(false);
+    setDrawerOpen(false);
+    navigate(`/posts/${postId}`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (searchType === 'posts' && searchQuery.trim().length >= 2) {
+      setShowResults(false);
+      setDrawerOpen(false);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setPostResults([]);
+    }
   };
 
   const handleNavClick = (path) => {
@@ -80,25 +118,112 @@ export function AppHeader({ active = 'home', userName }) {
     navigate(path);
   };
 
-  const searchDropdown = (showResults && (searchResults.length > 0 || searchLoading || searchQuery.trim().length >= 2)) && (
+  const handleSearchTypeChange = (type) => {
+    setSearchType(type);
+    setSearchResults([]);
+    setPostResults([]);
+  };
+
+  const hasUserResults = searchResults.length > 0;
+  const hasPostResults = postResults.length > 0;
+  const showDropdown = showResults && (hasUserResults || hasPostResults || searchLoading || searchQuery.trim().length >= 2);
+
+  const searchDropdown = showDropdown && (
     <div className="header-search-dropdown">
-      {searchLoading && <p className="header-search-hint">Buscando...</p>}
-      {!searchLoading && searchResults.length === 0 && searchQuery.trim().length >= 2 && (
-        <p className="header-search-hint">No se encontraron usuarios</p>
-      )}
-      {searchResults.map((u) => (
-        <div
-          key={u.id}
-          className="header-search-result"
-          role="button"
-          tabIndex={0}
-          onClick={() => handleSelectUser(u.username)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleSelectUser(u.username); }}
+      <div className="header-search-tabs">
+        <button
+          type="button"
+          className={`header-search-tab ${searchType === 'users' ? 'active' : ''}`}
+          onClick={() => handleSearchTypeChange('users')}
         >
-          <UserAvatar src={u.profilePictureUrl} name={u.username} size="small" />
-          <span className="header-search-result-name">@{u.username}</span>
-        </div>
-      ))}
+          <User size={14} /> Usuarios
+        </button>
+        <button
+          type="button"
+          className={`header-search-tab ${searchType === 'posts' ? 'active' : ''}`}
+          onClick={() => handleSearchTypeChange('posts')}
+        >
+          <FileText size={14} /> Publicaciones
+        </button>
+      </div>
+
+      {searchLoading && <p className="header-search-hint">Buscando...</p>}
+
+      {searchType === 'users' && (
+        <>
+          {!searchLoading && searchResults.length === 0 && searchQuery.trim().length >= 2 && (
+            <div className="header-search-no-results">
+              <div className="header-search-no-results-icon">
+                <User size={20} />
+              </div>
+              <p className="header-search-no-results-text">No se encontraron usuarios</p>
+            </div>
+          )}
+          {searchResults.map((u) => (
+            <div
+              key={u.id}
+              className="header-search-result"
+              role="button"
+              tabIndex={0}
+              onClick={() => handleSelectUser(u.username)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSelectUser(u.username); }}
+            >
+              <UserAvatar src={u.profilePictureUrl} name={u.username} size="small" />
+              <span className="header-search-result-name">@{u.username}</span>
+            </div>
+          ))}
+        </>
+      )}
+
+      {searchType === 'posts' && (
+        <>
+          {!searchLoading && postResults.length === 0 && searchQuery.trim().length >= 2 && (
+            <div className="header-search-no-results">
+              <div className="header-search-no-results-icon">
+                <Search size={20} />
+              </div>
+              <p className="header-search-no-results-text">No se encontraron publicaciones</p>
+            </div>
+          )}
+          {postResults.map((p) => {
+            const IconComponent = MEDIA_TYPE_ICONS[p.linkedItemType] || FileText;
+            return (
+              <div
+                key={p.id}
+                className="header-search-result header-search-result-post"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleSelectPost(p.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSelectPost(p.id); }}
+              >
+                <div className="header-search-post-icon">
+                  <IconComponent size={18} />
+                </div>
+                <div className="header-search-post-info">
+                  <span className="header-search-post-title">
+                    {p.linkedItemTitle || 'Sin título vinculado'}
+                  </span>
+                  <span className="header-search-post-author">por @{p.authorName}</span>
+                </div>
+                {p.linkedItemType && (
+                  <span className="header-search-post-type">
+                    {p.linkedItemType}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+          {postResults.length > 0 && searchQuery.trim().length >= 2 && (
+            <button
+              type="button"
+              className="header-search-view-all"
+              onClick={handleSearchSubmit}
+            >
+              Ver todos los resultados <ChevronRight size={16} />
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 
@@ -145,17 +270,17 @@ export function AppHeader({ active = 'home', userName }) {
 
       <div className="header-right header-user-cluster">
         <div className="header-search-wrap" ref={searchRef}>
-          <div className="header-search-input-wrap">
+          <form className="header-search-input-wrap" onSubmit={handleSearchSubmit}>
             <Search size={16} className="header-search-icon" />
             <input
               type="text"
               className="header-search-input"
-              placeholder="Buscar usuarios..."
+              placeholder={searchType === 'users' ? 'Buscar usuarios...' : 'Buscar películas, series...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setShowResults(true)}
             />
-          </div>
+          </form>
           {searchDropdown}
         </div>
         <NotificationBell />
@@ -216,17 +341,17 @@ export function AppHeader({ active = 'home', userName }) {
 
             <div className="mobile-search-section" ref={mobileSearchRef}>
               <div className="header-search-wrap">
-                <div className="header-search-input-wrap">
+                <form className="header-search-input-wrap" onSubmit={handleSearchSubmit}>
                   <Search size={16} className="header-search-icon" />
                   <input
                     type="text"
                     className="header-search-input"
-                    placeholder="Buscar usuarios..."
+                    placeholder={searchType === 'users' ? 'Buscar usuarios...' : 'Buscar películas, series...'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setShowResults(true)}
                   />
-                </div>
+                </form>
                 {searchDropdown}
               </div>
             </div>

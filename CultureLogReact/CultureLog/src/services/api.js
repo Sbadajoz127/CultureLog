@@ -126,6 +126,10 @@ export function getLikedPosts({ page = 0, size = 10 } = {}) {
   return api.get('/posts/liked', { params: { page, size } });
 }
 
+export function searchPosts({ query, page = 0, size = 10 } = {}) {
+  return api.get('/posts/search', { params: { q: query, page, size } });
+}
+
 export function getPostById(postId) {
   return api.get(`/posts/${postId}`);
 }

@@ -147,4 +147,15 @@ public interface PostService {
      * @return página de posts con like
      */
     Page<PostResponse> getLikedPosts(Long userId, Pageable pageable);
+
+    /**
+     * Busca publicaciones por título del ítem vinculado o contenido del post.
+     * Solo devuelve posts visibles para el usuario (propios, de usuarios seguidos o públicos).
+     *
+     * @param query    término de búsqueda
+     * @param userId   ID del usuario que realiza la búsqueda
+     * @param pageable configuración de paginación
+     * @return página de posts que coinciden con la búsqueda
+     */
+    Page<PostResponse> searchPosts(String query, Long userId, Pageable pageable);
 }

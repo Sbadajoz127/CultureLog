@@ -19,6 +19,7 @@ import PublicProfile from './pages/PublicProfile';
 import Notifications from './pages/Notifications';
 import PostDetail from './pages/PostDetail';
 import CreatePost from './pages/CreatePost';
+import SearchPosts from './pages/SearchPosts';
 import AdminDashboard from './pages/AdminDashboard';
 import ThemedToaster from './components/ThemedToaster';
 import './App.css';
@@ -65,6 +66,7 @@ function App() {
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="/posts/create" element={<CreatePost />} />
                     <Route path="/posts/:postId" element={<PostDetail />} />
+                    <Route path="/search" element={<SearchPosts />} />
                   </Route>
 
                   {/* Admin routes */}

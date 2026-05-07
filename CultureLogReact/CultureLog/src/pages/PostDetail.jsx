@@ -227,6 +227,7 @@ export default function PostDetail() {
 
             <CommentSection
               postId={post.id}
+              postAuthorId={post.authorId}
               comments={comments}
               setComments={setComments}
               onCommentCountChange={handleCommentCountChange}

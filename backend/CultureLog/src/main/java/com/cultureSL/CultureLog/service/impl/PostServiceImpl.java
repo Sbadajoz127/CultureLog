@@ -337,4 +337,15 @@ public class PostServiceImpl implements PostService {
         Page<Post> likedPosts = postRepository.findLikedPostsByUserId(userId, pageable);
         return postMapper.toPageDto(likedPosts, userId);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PostResponse> searchPosts(String query, Long userId, Pageable pageable) {
+        if (query == null || query.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Post> posts = postRepository.searchPosts(query.trim(), userId, pageable);
+        return postMapper.toPageDto(posts, userId);
+    }
 }

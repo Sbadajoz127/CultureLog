@@ -86,6 +86,31 @@ public class PostController {
     }
 
     /**
+     * Busca publicaciones por título de obra vinculada o contenido del post.
+     * <p>Endpoint: {@code GET /api/posts/search?q=termino&page=0&size=10}</p>
+     *
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @param q              término de búsqueda
+     * @param page           número de página (por defecto 0)
+     * @param size           tamaño de página (por defecto 10)
+     * @return HTTP 200 con la página de posts que coinciden con la búsqueda
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<PostResponse>> searchPosts(
+            Authentication authentication,
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return ResponseEntity.ok(postService.searchPosts(q, userId, pageable));
+    }
+
+    /**
      * Alterna el "Me gusta" en una publicación (like/unlike).
      * <p>Endpoint: {@code POST /api/posts/{postId}/like}</p>
      *

@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 import { UserAvatar } from './UserAvatar';
-import { addPostComment } from '../services/api';
+import { ConfirmModal } from './ConfirmModal';
+import { addPostComment, deletePostComment } from '../services/api';
 
 const MAX_COMMENT_LENGTH = 1000;
 
@@ -14,8 +18,9 @@ function formatDate(iso) {
   }
 }
 
-export function CommentSection({ postId, comments, setComments, onCommentCountChange, loading, error, showTitle = false }) {
+export function CommentSection({ postId, postAuthorId, comments, setComments, onCommentCountChange, loading, error, showTitle = false }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -24,6 +29,36 @@ export function CommentSection({ postId, comments, setComments, onCommentCountCh
   const [submittingReplyId, setSubmittingReplyId] = useState(null);
   const [submitError, setSubmitError] = useState('');
   const [expandedReplies, setExpandedReplies] = useState({});
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const canDeleteComment = (comment) => {
+    if (!user) return false;
+    return user.id === comment.authorId || user.id === postAuthorId;
+  };
+
+  const handleDeleteClick = (comment) => {
+    setCommentToDelete(comment);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!commentToDelete) return;
+    setDeleting(true);
+    try {
+      await deletePostComment(commentToDelete.id);
+      setComments((prev) => prev.filter((c) => c.id !== commentToDelete.id && c.parentCommentId !== commentToDelete.id));
+      onCommentCountChange?.(-1);
+      toast.success('Comentario eliminado');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'No se pudo eliminar el comentario');
+    } finally {
+      setDeleting(false);
+      setDeleteModalOpen(false);
+      setCommentToDelete(null);
+    }
+  };
 
   const commentTree = useMemo(() => {
     const list = Array.isArray(comments) ? comments : [];
@@ -129,6 +164,16 @@ export function CommentSection({ postId, comments, setComments, onCommentCountCh
             </span>
             <span className="text-dim">{formatDate(reply.createdAt)}</span>
           </div>
+          {canDeleteComment(reply) && (
+            <button
+              type="button"
+              className="comment-delete-btn"
+              onClick={() => handleDeleteClick(reply)}
+              title="Eliminar comentario"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
         <p>{reply.text}</p>
         <div className="post-detail-comment-actions-row">
@@ -161,6 +206,16 @@ export function CommentSection({ postId, comments, setComments, onCommentCountCh
             </span>
             <span className="text-dim">{formatDate(c.createdAt)}</span>
           </div>
+          {canDeleteComment(c) && (
+            <button
+              type="button"
+              className="comment-delete-btn"
+              onClick={() => handleDeleteClick(c)}
+              title="Eliminar comentario"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
         <p>{c.text}</p>
 
@@ -260,6 +315,17 @@ export function CommentSection({ postId, comments, setComments, onCommentCountCh
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Eliminar comentario"
+        message="¿Estás seguro de que quieres eliminar este comentario? Esta acción no se puede deshacer."
+        confirmText={deleting ? 'Eliminando...' : 'Eliminar'}
+        cancelText="Cancelar"
+        danger
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteModalOpen(false)}
+      />
     </section>
   );
 }

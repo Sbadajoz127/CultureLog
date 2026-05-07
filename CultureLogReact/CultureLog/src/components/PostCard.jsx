@@ -217,6 +217,7 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
           <div className="post-comments-separator" />
           <CommentSection
             postId={post.id}
+            postAuthorId={post.authorId}
             comments={comments}
             setComments={setComments}
             onCommentCountChange={handleCommentCountChange}
