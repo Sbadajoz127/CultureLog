@@ -18,6 +18,28 @@ export function searchResultToPayload(result) {
 }
 
 /**
+ * Construye el payload para crear un ítem personalizado (no proveniente de APIs externas).
+ */
+export function buildCustomItemPayload(formData) {
+  return {
+    title: formData.title,
+    type: formData.type,
+    status: formData.status || 'POR_VER',
+    genre: formData.genre || null,
+    creator: formData.creator || null,
+    releaseDate: formData.releaseDate || null,
+    description: formData.description || null,
+    comment: formData.comment || null,
+    rating: formData.rating || null,
+    itemImageUrl: formData.imageUrl || null,
+    externalId: null,
+    externalSource: null,
+    album: formData.album || null,
+    custom: true,
+  };
+}
+
+/**
  * Construye el cuerpo MediaItemRequest a partir de un ítem devuelto por GET /api/items.
  */
 export function mediaItemToRequest(item, overrides = {}) {

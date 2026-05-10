@@ -4131,6 +4131,8 @@ input[type="password"]::-ms-clear {
   backdrop-filter: blur(4px);
   animation: mdm-fade-in 0.2s ease;
   padding: clamp(16px, 3vw, 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 @keyframes mdm-fade-in {
@@ -6867,4 +6869,253 @@ input[type="password"]::-ms-clear {
 
 .search-users-placeholder-icon {
   margin-bottom: 12px;
+}
+
+/* -----------------------------------------
+   CUSTOM MEDIA ITEM - Modal & Badges
+----------------------------------------- */
+
+.create-custom-modal {
+  max-width: 540px;
+  padding: 0;
+}
+
+.create-custom-modal .mdm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+
+.create-custom-modal .mdm-title {
+  font-size: 1.15rem;
+  padding-right: 0;
+}
+
+.create-custom-modal .mdm-close {
+  position: static;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.create-custom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+.ccm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ccm-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.ccm-row {
+  display: flex;
+  gap: 12px;
+}
+
+.ccm-field-half {
+  flex: 1;
+}
+
+.ccm-select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.ccm-textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.ccm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.ccm-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ccm-cancel-btn:hover:not(:disabled) {
+  background: var(--hover-overlay);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.ccm-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ccm-submit-btn {
+  min-width: 160px;
+}
+
+/* Image upload field */
+.ccm-image-upload {
+  position: relative;
+}
+
+.ccm-file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.ccm-image-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-input);
+  border: 1.5px dashed var(--border-medium);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.ccm-image-select-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background: var(--accent-muted);
+}
+
+.ccm-image-preview-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.ccm-image-preview {
+  width: 100px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.ccm-image-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger);
+  color: #ffffff;
+  border: 2px solid var(--bg-card);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ccm-image-remove:hover {
+  background: var(--danger-hover);
+}
+
+/* CTA for custom item in library search */
+.library-custom-item-cta {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.library-custom-item-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-color);
+  background: var(--accent-muted);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.library-custom-item-btn:hover {
+  background: color-mix(in srgb, var(--accent-color) 25%, transparent);
+  border-color: var(--accent-color);
+}
+
+/* Badge for custom/unofficial items */
+.custom-item-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-left: 8px;
+  background: color-mix(in srgb, #ff9800 15%, transparent);
+  color: #ff9800;
+  border: 1px solid color-mix(in srgb, #ff9800 30%, transparent);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.custom-item-badge-feed {
+  font-size: 0.72rem;
+  margin-left: 10px;
+}
+
+@media (max-width: 600px) {
+  .ccm-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .ccm-actions {
+    flex-direction: column;
+  }
+
+  .ccm-submit-btn,
+  .ccm-cancel-btn {
+    width: 100%;
+  }
+
+  .create-custom-modal {
+    max-width: 100%;
+  }
+
+  .create-custom-form {
+    padding: 16px;
+  }
+
+  .library-custom-item-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

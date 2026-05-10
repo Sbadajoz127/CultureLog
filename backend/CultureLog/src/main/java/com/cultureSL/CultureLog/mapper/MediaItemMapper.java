@@ -41,6 +41,7 @@ public class MediaItemMapper {
                 .externalId(item.getExternalId())
                 .externalSource(item.getExternalSource())
                 .album(item.getAlbum())
+                .custom(item.isCustom())
                 .tagNames(item.getTags().stream()
                         .map(Tag::getName)
                         .collect(Collectors.toSet()))

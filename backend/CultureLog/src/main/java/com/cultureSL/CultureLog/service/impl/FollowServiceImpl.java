@@ -4,12 +4,14 @@ import com.cultureSL.CultureLog.dto.FollowRequestResponse;
 import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.exception.BadRequestException;
 import com.cultureSL.CultureLog.exception.ResourceNotFoundException;
+import com.cultureSL.CultureLog.exception.UnauthorizedException;
 import com.cultureSL.CultureLog.model.Follow;
 import com.cultureSL.CultureLog.model.User;
 import com.cultureSL.CultureLog.model.UserSettings;
 import com.cultureSL.CultureLog.model.enums.FollowStatus;
 import com.cultureSL.CultureLog.model.enums.NotificationType;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
+import com.cultureSL.CultureLog.model.enums.Role;
 import com.cultureSL.CultureLog.repository.FollowRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
 import com.cultureSL.CultureLog.service.EmailService;
@@ -45,7 +47,7 @@ public class FollowServiceImpl implements FollowService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public void followUser(Long followerId, Long followedId) {
+    public String followUser(Long followerId, Long followedId) {
         if (followerId.equals(followedId)) {
             throw new BadRequestException("No puedes seguirte a ti mismo");
         }
@@ -97,13 +99,16 @@ public class FollowServiceImpl implements FollowService {
                 notifType,
                 null
         );
+
+        return follow.getStatus().name();
     }
 
     /** {@inheritDoc} */
     @Override
     @Transactional
     public void unfollowUser(Long followerId, Long followedId) {
-        Follow follow = followRepository.findByFollowerIdAndFollowedIdAndStatus(followerId, followedId, FollowStatus.ACCEPTED)
+        Follow follow = followRepository.findByFollowerIdAndFollowedId(followerId, followedId)
+                .filter(f -> f.getStatus() == FollowStatus.ACCEPTED || f.getStatus() == FollowStatus.PENDING)
                 .orElseThrow(() -> new ResourceNotFoundException("No sigues a este usuario"));
 
         followRepository.delete(follow);
@@ -169,8 +174,7 @@ public class FollowServiceImpl implements FollowService {
         Follow follow = followRepository.findByFollowerIdAndFollowedIdAndStatus(followerId, followedId, FollowStatus.PENDING)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud de seguimiento no encontrada"));
 
-        follow.setStatus(FollowStatus.REJECTED);
-        followRepository.save(follow);
+        followRepository.delete(follow);
     }
 
     /** {@inheritDoc} */
@@ -198,7 +202,8 @@ public class FollowServiceImpl implements FollowService {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
-    public List<UserSuggestionResponse> getFollowersSummary(Long userId) {
+    public List<UserSuggestionResponse> getFollowersSummary(Long userId, Long viewerId) {
+        validateProfileAccess(userId, viewerId);
         return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED)
                 .stream()
                 .map(f -> new UserSuggestionResponse(
@@ -211,7 +216,8 @@ public class FollowServiceImpl implements FollowService {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
-    public List<UserSuggestionResponse> getFollowingSummary(Long userId) {
+    public List<UserSuggestionResponse> getFollowingSummary(Long userId, Long viewerId) {
+        validateProfileAccess(userId, viewerId);
         return followRepository.findByFollowerIdAndStatus(userId, FollowStatus.ACCEPTED)
                 .stream()
                 .map(f -> new UserSuggestionResponse(
@@ -219,5 +225,31 @@ public class FollowServiceImpl implements FollowService {
                         f.getFollowed().getUsername(),
                         f.getFollowed().getProfilePictureUrl()))
                 .toList();
+    }
+
+    private void validateProfileAccess(Long targetUserId, Long viewerId) {
+        if (targetUserId.equals(viewerId)) return;
+
+        User viewer = userRepository.findById(viewerId).orElse(null);
+        if (viewer != null && viewer.getRole() == Role.ADMIN) return;
+
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        UserSettings settings = target.getSettings();
+        ProfilePrivacy privacy = (settings != null) ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;
+
+        if (privacy == ProfilePrivacy.PUBLICO) return;
+
+        boolean hasAccess;
+        if (privacy == ProfilePrivacy.SOLO_AMIGOS) {
+            hasAccess = followRepository.existsMutualFollow(viewerId, targetUserId);
+        } else {
+            hasAccess = followRepository.existsByFollowerIdAndFollowedIdAndStatus(
+                    viewerId, targetUserId, FollowStatus.ACCEPTED);
+        }
+
+        if (!hasAccess) {
+            throw new UnauthorizedException("No tienes permiso para ver las conexiones de este usuario");
+        }
     }
 }

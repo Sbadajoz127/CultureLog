@@ -257,9 +257,14 @@ function PublicProfile() {
         await unfollowUser(profile.id);
         setProfile((p) => ({ ...p, followStatus: 'NONE', followerCount: Math.max(0, p.followerCount - 1) }));
         toast.success('Has dejado de seguir a este usuario.');
+      } else if (profile.followStatus === 'PENDING') {
+        await unfollowUser(profile.id);
+        setProfile((p) => ({ ...p, followStatus: 'NONE' }));
+        toast.success('Solicitud de seguimiento cancelada.');
       } else if (profile.followStatus === 'NONE') {
-        await followUser(profile.id);
-        if (profile.profilePrivacy !== 'PUBLICO') {
+        const { data } = await followUser(profile.id);
+        const resultStatus = data?.status || 'ACCEPTED';
+        if (resultStatus === 'PENDING') {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
           toast.success('Solicitud de seguimiento enviada.');
         } else {
@@ -389,7 +394,7 @@ function PublicProfile() {
       case 'ACCEPTED':
         return 'Siguiendo';
       case 'PENDING':
-        return 'Solicitud pendiente';
+        return 'Cancelar solicitud';
       case 'REJECTED':
         return 'Solicitud rechazada';
       case 'BLOCKED':
@@ -458,7 +463,7 @@ function PublicProfile() {
                       type="button"
                       className={`${followBtnClass()}${followLoading ? ' loading' : ''}`}
                       onClick={handleFollow}
-                      disabled={followLoading || profile.followStatus === 'PENDING' || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
+                      disabled={followLoading || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
                     >
                       {followBtnLabel()}
                     </button>

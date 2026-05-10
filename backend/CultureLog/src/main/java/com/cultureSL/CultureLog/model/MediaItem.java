@@ -90,6 +90,10 @@ public class MediaItem {
     /** Nombre del álbum (solo para contenido musical). */
     private String album;
 
+    /** Indica si el ítem fue creado manualmente por el usuario (no proviene de APIs externas). */
+    @Column(nullable = false)
+    private boolean custom = false;
+
     /** Usuario propietario de este ítem. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

@@ -146,11 +146,15 @@ function Home() {
   const handleFollow = async (targetId) => {
     if (followingIds.has(targetId)) return;
     try {
-      await followUser(targetId);
-      setFollowingIds((prev) => new Set(prev).add(targetId));
-      toast.success('Ahora sigues a este usuario.');
-      loadFeed(0, false);
-      setFeedPage(0);
+      const { data } = await followUser(targetId);
+      if (data?.status === 'PENDING') {
+        toast.success('Solicitud de seguimiento enviada.');
+      } else {
+        setFollowingIds((prev) => new Set(prev).add(targetId));
+        toast.success('Ahora sigues a este usuario.');
+        loadFeed(0, false);
+        setFeedPage(0);
+      }
     } catch {
       toast.error('No se pudo seguir al usuario.');
     }

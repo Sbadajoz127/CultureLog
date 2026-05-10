@@ -80,6 +80,7 @@ public class PostServiceImpl implements PostService {
             post.setLinkedItemGenre(item.getGenre());
             post.setLinkedItemDescription(item.getDescription());
             post.setLinkedItemAlbum(item.getAlbum());
+            post.setLinkedItemCustom(item.isCustom());
         }
 
         Post savedPost = postRepository.save(post);
@@ -122,6 +123,7 @@ public class PostServiceImpl implements PostService {
     public LikeResponse toggleLike(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
+        validatePostAccess(post, userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
@@ -172,6 +174,7 @@ public class PostServiceImpl implements PostService {
     public Comment addComment(Long postId, Long userId, String text, Long parentCommentId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
+        validatePostAccess(post, userId);
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
@@ -316,6 +319,7 @@ public class PostServiceImpl implements PostService {
     public boolean toggleSave(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
+        validatePostAccess(post, userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 

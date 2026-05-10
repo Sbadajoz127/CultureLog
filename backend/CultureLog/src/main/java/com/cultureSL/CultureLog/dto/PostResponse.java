@@ -55,6 +55,8 @@ public class PostResponse {
     private String linkedItemDescription;
     /** Nombre del álbum (solo para contenido musical). */
     private String linkedItemAlbum;
+    /** Indica si el ítem vinculado fue creado manualmente por un usuario (no oficial). */
+    private boolean linkedItemCustom;
 
     /** Número total de likes en la publicación. */
     private int likeCount;

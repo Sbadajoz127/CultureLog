@@ -24,10 +24,11 @@ public interface FollowService {
      *
      * @param followerId ID del usuario que inicia el seguimiento
      * @param followedId ID del usuario a seguir
+     * @return el estado resultante de la relación ({@code ACCEPTED} o {@code PENDING})
      * @throws com.cultureSL.CultureLog.exception.BadRequestException       si el usuario intenta seguirse a sí mismo o ya lo sigue
      * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si alguno de los usuarios no existe
      */
-    void followUser(Long followerId, Long followedId);
+    String followUser(Long followerId, Long followedId);
 
     /**
      * Elimina la relación de seguimiento entre dos usuarios.
@@ -96,10 +97,10 @@ public interface FollowService {
     void acceptFollowRequest(Long followedId, Long followerId);
 
     /**
-     * Rechaza una solicitud de seguimiento pendiente, actualizando su estado a REJECTED.
+     * Rechaza una solicitud de seguimiento pendiente eliminando la relación.
      * <p>
-     * La relación se conserva en la base de datos para impedir que el usuario
-     * vuelva a enviar una solicitud.
+     * La relación se elimina de la base de datos, permitiendo al usuario
+     * enviar una nueva solicitud en el futuro.
      * </p>
      *
      * @param followedId ID del usuario que rechaza (el que recibió la solicitud)
@@ -126,17 +127,23 @@ public interface FollowService {
 
     /**
      * Obtiene la lista de seguidores de un usuario en formato ligero.
+     * Verifica que el visor tenga acceso según la privacidad del perfil consultado.
      *
-     * @param userId ID del usuario consultado
+     * @param userId   ID del usuario consultado
+     * @param viewerId ID del usuario que solicita la lista
      * @return lista de usuarios seguidores
+     * @throws com.cultureSL.CultureLog.exception.UnauthorizedException si el visor no tiene acceso
      */
-    List<UserSuggestionResponse> getFollowersSummary(Long userId);
+    List<UserSuggestionResponse> getFollowersSummary(Long userId, Long viewerId);
 
     /**
      * Obtiene la lista de seguidos de un usuario en formato ligero.
+     * Verifica que el visor tenga acceso según la privacidad del perfil consultado.
      *
-     * @param userId ID del usuario consultado
+     * @param userId   ID del usuario consultado
+     * @param viewerId ID del usuario que solicita la lista
      * @return lista de usuarios seguidos
+     * @throws com.cultureSL.CultureLog.exception.UnauthorizedException si el visor no tiene acceso
      */
-    List<UserSuggestionResponse> getFollowingSummary(Long userId);
+    List<UserSuggestionResponse> getFollowingSummary(Long userId, Long viewerId);
 }
