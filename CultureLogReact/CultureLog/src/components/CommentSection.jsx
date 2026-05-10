@@ -103,7 +103,9 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
       onCommentCountChange?.(1);
       setCommentText('');
     } catch (err) {
-      setSubmitError(err.response?.data?.message || err.response?.data?.error || 'No se pudo enviar el comentario.');
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo enviar el comentario.';
+      setSubmitError(msg);
+      toast.error(msg);
     } finally {
       setSubmittingComment(false);
     }
@@ -137,7 +139,9 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
       setReplyOpenForRootId(null);
       setExpandedReplies((prev) => ({ ...prev, [rootId]: true }));
     } catch (err) {
-      setSubmitError(err.response?.data?.message || err.response?.data?.error || 'No se pudo enviar la respuesta.');
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo enviar la respuesta.';
+      setSubmitError(msg);
+      toast.error(msg);
     } finally {
       setSubmittingReplyId(null);
     }

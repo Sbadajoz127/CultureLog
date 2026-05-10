@@ -20,6 +20,7 @@ import {
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import { CustomSelect } from '../components/CustomSelect';
+import { SearchX } from 'lucide-react';
 import { toast } from 'sonner';
 import '../App.css';
 
@@ -214,6 +215,8 @@ function Library() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
 
+  const [hasSearched, setHasSearched] = useState(false);
+  const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [addingKey, setAddingKey] = useState(null);
   const [busyItemId, setBusyItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -267,10 +270,11 @@ function Library() {
       const body = mediaItemToRequest(item, { status: newStatus });
       await updateMediaItem(item.id, body);
       await loadItems(activeStatus);
+      toast.success(`Estado de «${item.title}» actualizado a ${MEDIA_STATUS_LABELS[newStatus]}.`);
     } catch (e) {
-      setListError(
-        e.response?.data?.message || e.response?.data?.error || 'No se pudo actualizar el estado.'
-      );
+      const msg = e.response?.data?.message || e.response?.data?.error || 'No se pudo actualizar el estado.';
+      setListError(msg);
+      toast.error(msg);
     } finally {
       setBusyItemId(null);
     }
@@ -290,9 +294,9 @@ function Library() {
       await loadItems(activeStatus);
       toast.success(`«${item.title}» eliminado de tu biblioteca.`);
     } catch (e) {
-      setListError(
-        e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el ítem.'
-      );
+      const msg = e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el ítem.';
+      setListError(msg);
+      toast.error(msg);
     } finally {
       setBusyItemId(null);
     }
@@ -304,10 +308,12 @@ function Library() {
     if (q.length < 2) {
       setSearchError('Escribe al menos 2 caracteres.');
       setSearchResults([]);
+      setHasSearched(false);
       return;
     }
     setSearchLoading(true);
     setSearchError('');
+    setLastSearchQuery(q);
     try {
       const { data } = await searchMedia({
         query: q,
@@ -322,6 +328,7 @@ function Library() {
       setSearchResults([]);
     } finally {
       setSearchLoading(false);
+      setHasSearched(true);
     }
   };
 
@@ -346,11 +353,13 @@ function Library() {
       }
       setSearchResults([]);
       setSearchQuery('');
+      setHasSearched(false);
+      setLastSearchQuery('');
       await loadItems(activeStatus);
     } catch (err) {
-      setSearchError(
-        err.response?.data?.message || err.response?.data?.error || 'No se pudo añadir a la biblioteca.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo añadir a la biblioteca.';
+      setSearchError(msg);
+      toast.error(msg);
     } finally {
       setAddingKey(null);
     }
@@ -421,6 +430,13 @@ function Library() {
           </form>
           {searchError && <p className="auth-error library-inline-msg">{searchError}</p>}
 
+          {searchLoading && (
+            <div className="library-search-loading">
+              <div className="library-search-spinner" />
+              <p className="text-muted">Buscando en catálogos externos…</p>
+            </div>
+          )}
+
           {searchResults.length > 0 && (
             <ul className="library-search-results">
               {searchResults.map((r, idx) => {
@@ -466,6 +482,20 @@ function Library() {
                 );
               })}
             </ul>
+          )}
+
+          {!searchLoading && hasSearched && searchResults.length === 0 && !searchError && (
+            <div className="library-search-empty">
+              <div className="library-search-empty-icon">
+                <SearchX size={28} />
+              </div>
+              <p className="library-search-empty-title">
+                Sin resultados para &laquo;{lastSearchQuery}&raquo;
+              </p>
+              <p className="library-search-empty-hint">
+                Prueba con otro término o cambia el tipo de medio.
+              </p>
+            </div>
           )}
         </section>
 

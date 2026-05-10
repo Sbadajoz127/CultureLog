@@ -124,6 +124,7 @@ export function NotificationProvider({ children }) {
       await apiAcceptFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
       setPendingRequestsCount((c) => Math.max(0, c - 1));
+      toast.success('Solicitud de seguimiento aceptada.');
     } catch {
       toast.error('No se pudo aceptar la solicitud.');
     }
@@ -134,6 +135,7 @@ export function NotificationProvider({ children }) {
       await apiRejectFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
       setPendingRequestsCount((c) => Math.max(0, c - 1));
+      toast.success('Solicitud de seguimiento rechazada.');
     } catch {
       toast.error('No se pudo rechazar la solicitud.');
     }

@@ -184,9 +184,9 @@ function CreatePost() {
         return [item, ...prev];
       });
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.response?.data?.error || 'No se pudo vincular la obra.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo vincular la obra.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setAddingItemId(null);
     }
@@ -205,9 +205,9 @@ function CreatePost() {
       toast.success('Publicación creada.');
       navigate('/home');
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.response?.data?.error || 'No se pudo publicar.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo publicar.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

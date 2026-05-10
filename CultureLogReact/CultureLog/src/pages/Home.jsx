@@ -148,6 +148,7 @@ function Home() {
     try {
       await followUser(targetId);
       setFollowingIds((prev) => new Set(prev).add(targetId));
+      toast.success('Ahora sigues a este usuario.');
       loadFeed(0, false);
       setFeedPage(0);
     } catch {

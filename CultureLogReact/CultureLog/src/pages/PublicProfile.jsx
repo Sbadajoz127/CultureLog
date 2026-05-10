@@ -256,12 +256,15 @@ function PublicProfile() {
       if (profile.followStatus === 'ACCEPTED') {
         await unfollowUser(profile.id);
         setProfile((p) => ({ ...p, followStatus: 'NONE', followerCount: Math.max(0, p.followerCount - 1) }));
+        toast.success('Has dejado de seguir a este usuario.');
       } else if (profile.followStatus === 'NONE') {
         await followUser(profile.id);
         if (profile.profilePrivacy !== 'PUBLICO') {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
+          toast.success('Solicitud de seguimiento enviada.');
         } else {
           setProfile((p) => ({ ...p, followStatus: 'ACCEPTED', followerCount: p.followerCount + 1 }));
+          toast.success('Ahora sigues a este usuario.');
           loadProfile(undefined, { silent: true });
         }
       }
