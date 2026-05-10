@@ -296,7 +296,14 @@ public class PostServiceImpl implements PostService {
 
         UserSettings settings = post.getAuthor().getSettings();
         ProfilePrivacy privacy = settings != null ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;
-        boolean canAccess = privacy == ProfilePrivacy.PUBLICO || followService.isFollowing(currentUserId, authorId);
+
+        boolean canAccess;
+        switch (privacy) {
+            case PUBLICO -> canAccess = true;
+            case SOLO_AMIGOS -> canAccess = followService.isMutualFollow(currentUserId, authorId);
+            case PRIVADO -> canAccess = followService.isFollowing(currentUserId, authorId);
+            default -> canAccess = false;
+        }
 
         if (!canAccess) {
             throw new UnauthorizedException("No tienes permiso para ver esta publicación");

@@ -74,6 +74,19 @@ public class FollowController {
     }
 
     /**
+     * Obtiene el n?mero de solicitudes de seguimiento pendientes sin cargar sus datos.
+     * <p>Endpoint: {@code GET /api/follows/pending-count}</p>
+     *
+     * @param authentication contexto de autenticaci?n con el ID del usuario
+     * @return HTTP 200 con el n?mero de solicitudes pendientes
+     */
+    @GetMapping("/pending-count")
+    public ResponseEntity<Long> getPendingRequestsCount(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(followService.getPendingRequestsCount(userId));
+    }
+
+    /**
      * Acepta una solicitud de seguimiento pendiente.
      * <p>Endpoint: {@code POST /api/follows/accept?followerId=...}</p>
      *

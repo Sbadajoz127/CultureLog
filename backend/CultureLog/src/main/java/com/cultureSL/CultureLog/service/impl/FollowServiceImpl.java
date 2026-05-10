@@ -119,6 +119,13 @@ public class FollowServiceImpl implements FollowService {
     /** {@inheritDoc} */
     @Override
     @Transactional(readOnly = true)
+    public boolean isMutualFollow(Long userA, Long userB) {
+        return followRepository.existsMutualFollow(userA, userB);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
     public List<Follow> getFollowers(Long userId) {
         return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED);
     }
@@ -164,6 +171,13 @@ public class FollowServiceImpl implements FollowService {
 
         follow.setStatus(FollowStatus.REJECTED);
         followRepository.save(follow);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional(readOnly = true)
+    public long getPendingRequestsCount(Long userId) {
+        return followRepository.countByFollowedIdAndStatus(userId, FollowStatus.PENDING);
     }
 
     /** {@inheritDoc} */

@@ -2945,6 +2945,9 @@ input[type="password"]::-ms-clear {
 
 .notification-dropdown-header {
   padding: 14px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .notification-dropdown-header h3 {
@@ -2952,6 +2955,24 @@ input[type="password"]::-ms-clear {
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+}
+
+.notification-mark-all-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.notification-mark-all-btn:hover {
+  background: var(--accent-muted);
+  color: var(--accent-color);
 }
 
 .notification-tabs {
@@ -3231,11 +3252,12 @@ input[type="password"]::-ms-clear {
 
 .nc-layout {
   display: flex;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 24px 16px;
   gap: 24px;
   min-height: calc(100dvh - 60px);
+  justify-content: center;
 }
 
 .nc-sidebar {
@@ -3301,6 +3323,7 @@ input[type="password"]::-ms-clear {
 .nc-main {
   flex: 1;
   min-width: 0;
+  max-width: 680px;
 }
 
 .nc-topbar {
@@ -3316,6 +3339,14 @@ input[type="password"]::-ms-clear {
   color: var(--text-primary);
 }
 
+.nc-actions-panel {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 94px;
+  align-self: flex-start;
+}
+
 .nc-mark-all-btn {
   display: flex;
   align-items: center;
@@ -3328,12 +3359,18 @@ input[type="password"]::-ms-clear {
   font-weight: 600;
   padding: 7px 14px;
   cursor: pointer;
+  white-space: nowrap;
   transition: background-color 0.15s, border-color 0.15s;
 }
 
-.nc-mark-all-btn:hover {
+.nc-mark-all-btn:hover:not(:disabled) {
   background-color: var(--hover-overlay);
   border-color: var(--accent-color);
+}
+
+.nc-mark-all-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 /* Empty state */
@@ -3655,6 +3692,18 @@ input[type="password"]::-ms-clear {
 
 /* --- Responsive --- */
 
+@media (max-width: 960px) {
+  .nc-actions-panel {
+    display: none;
+  }
+
+  .nc-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
 @media (max-width: 768px) {
   .nc-layout {
     flex-direction: column;
@@ -3677,6 +3726,10 @@ input[type="password"]::-ms-clear {
     flex: 1;
     padding: 8px 10px;
     font-size: 0.85rem;
+  }
+
+  .nc-main {
+    max-width: 100%;
   }
 }
 
@@ -6036,6 +6089,24 @@ input[type="password"]::-ms-clear {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
+}
+
+.cp-external-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cp-external-search-row .cp-search-input-wrap {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.cp-search-type-select .cselect-trigger {
+  height: 42px;
+  padding: 0 14px;
+  white-space: nowrap;
 }
 
 .cp-search-icon {

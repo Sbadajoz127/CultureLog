@@ -48,6 +48,16 @@ public interface FollowService {
     boolean isFollowing(Long followerId, Long followedId);
 
     /**
+     * Comprueba si dos usuarios se siguen mutuamente (ambos con estado ACCEPTED).
+     * Utilizado para la privacidad {@code SOLO_AMIGOS}.
+     *
+     * @param userA ID del primer usuario
+     * @param userB ID del segundo usuario
+     * @return {@code true} si ambos se siguen mutuamente
+     */
+    boolean isMutualFollow(Long userA, Long userB);
+
+    /**
      * Obtiene la lista de seguidores de un usuario (relaciones con estado ACCEPTED).
      *
      * @param userId ID del usuario
@@ -105,6 +115,14 @@ public interface FollowService {
      * @return lista de solicitudes pendientes mapeadas a DTO
      */
     List<FollowRequestResponse> getPendingRequests(Long userId);
+
+    /**
+     * Cuenta las solicitudes de seguimiento pendientes recibidas por un usuario.
+     *
+     * @param userId ID del usuario que recibió las solicitudes
+     * @return número de solicitudes pendientes
+     */
+    long getPendingRequestsCount(Long userId);
 
     /**
      * Obtiene la lista de seguidores de un usuario en formato ligero.

@@ -26,30 +26,56 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      * Genera el Feed de Noticias (Timeline) para un usuario.
      * <p>
      * Utiliza una consulta JPQL personalizada con {@code JOIN FETCH} para precargar
-     * las relaciones del post (autor, ?tem vinculado, comentarios y autores de comentarios),
-     * evitando el problema N+1 y posibles {@code LazyInitializationException}.
+     * las relaciones del post (autor, ítem vinculado), evitando el problema N+1.
      * </p>
      * <p>
-     * Selecciona publicaciones que cumplan una de las siguientes condiciones:
+     * Selecciona publicaciones que cumplan TODAS las condiciones:
      * <ol>
-     *   <li>El autor es el propio usuario solicitante.</li>
-     *   <li>El autor es alguien a quien el usuario sigue con estado {@code ACCEPTED}.</li>
+     *   <li>El autor NO es el propio usuario solicitante.</li>
+     *   <li>El autor es alguien a quien el usuario sigue (estado {@code ACCEPTED})
+     *       O tiene el perfil configurado como {@code PUBLICO}.</li>
+     *   <li>El usuario NO ha interactuado con el post (like, guardado o comentario).</li>
      * </ol>
      * </p>
-     * Los resultados se ordenan cronol?gicamente descendente (lo m?s nuevo primero).
-     * Se incluye una {@code countQuery} separada para compatibilidad con la paginaci?n.
+     * Los resultados se ordenan cronológicamente descendente (lo más nuevo primero).
      *
      * @param userId   ID del usuario que visualiza el feed.
-     * @param pageable configuraci?n de paginaci?n.
-     * @return p?gina de posts para el feed con relaciones precargadas.
+     * @param pageable configuración de paginación.
+     * @return página de posts para el feed con relaciones precargadas.
      */
     @Query(value = "SELECT DISTINCT p FROM Post p " +
-           "LEFT JOIN FETCH p.author " +
+           "LEFT JOIN FETCH p.author a " +
            "LEFT JOIN FETCH p.linkedItem " +
-           "WHERE p.author.id = :userId OR p.author.id IN " +
-           "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED')",
-           countQuery = "SELECT COUNT(DISTINCT p) FROM Post p WHERE p.author.id = :userId OR p.author.id IN " +
-           "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED')")
+           "LEFT JOIN a.settings s " +
+           "WHERE p.author.id <> :userId " +
+           "AND (" +
+           "  (s IS NOT NULL AND s.profilePrivacy = 'PUBLICO') " +
+           "  OR (s IS NOT NULL AND s.profilePrivacy = 'PRIVADO' " +
+           "      AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED')) " +
+           "  OR (s IS NOT NULL AND s.profilePrivacy = 'SOLO_AMIGOS' " +
+           "      AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
+           "      AND p.author.id IN (SELECT f2.follower.id FROM Follow f2 WHERE f2.followed.id = :userId AND f2.status = 'ACCEPTED')) " +
+           "  OR (s IS NULL) " +
+           ") " +
+           "AND p.id NOT IN (SELECT pl.post.id FROM PostLike pl WHERE pl.user.id = :userId) " +
+           "AND p.id NOT IN (SELECT ps.post.id FROM PostSave ps WHERE ps.user.id = :userId) " +
+           "AND p.id NOT IN (SELECT c.post.id FROM Comment c WHERE c.author.id = :userId)",
+           countQuery = "SELECT COUNT(DISTINCT p) FROM Post p " +
+           "LEFT JOIN p.author a " +
+           "LEFT JOIN a.settings s " +
+           "WHERE p.author.id <> :userId " +
+           "AND (" +
+           "  (s IS NOT NULL AND s.profilePrivacy = 'PUBLICO') " +
+           "  OR (s IS NOT NULL AND s.profilePrivacy = 'PRIVADO' " +
+           "      AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED')) " +
+           "  OR (s IS NOT NULL AND s.profilePrivacy = 'SOLO_AMIGOS' " +
+           "      AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
+           "      AND p.author.id IN (SELECT f2.follower.id FROM Follow f2 WHERE f2.followed.id = :userId AND f2.status = 'ACCEPTED')) " +
+           "  OR (s IS NULL) " +
+           ") " +
+           "AND p.id NOT IN (SELECT pl.post.id FROM PostLike pl WHERE pl.user.id = :userId) " +
+           "AND p.id NOT IN (SELECT ps.post.id FROM PostSave ps WHERE ps.user.id = :userId) " +
+           "AND p.id NOT IN (SELECT c.post.id FROM Comment c WHERE c.author.id = :userId)")
     Page<Post> findNewsFeed(@Param("userId") Long userId, Pageable pageable);
 
     /**
@@ -147,15 +173,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
            "WHERE (LOWER(p.linkedItemTitle) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "       OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +
            "AND (p.author.id = :userId " +
-           "     OR p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
-           "     OR (s IS NULL OR s.profilePrivacy = 'PUBLICO'))",
+           "     OR (s IS NULL OR s.profilePrivacy = 'PUBLICO') " +
+           "     OR (s IS NOT NULL AND s.profilePrivacy = 'PRIVADO' " +
+           "         AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED')) " +
+           "     OR (s IS NOT NULL AND s.profilePrivacy = 'SOLO_AMIGOS' " +
+           "         AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
+           "         AND p.author.id IN (SELECT f2.follower.id FROM Follow f2 WHERE f2.followed.id = :userId AND f2.status = 'ACCEPTED')))",
            countQuery = "SELECT COUNT(DISTINCT p) FROM Post p " +
            "LEFT JOIN p.author a " +
            "LEFT JOIN a.settings s " +
            "WHERE (LOWER(p.linkedItemTitle) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "       OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +
            "AND (p.author.id = :userId " +
-           "     OR p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
-           "     OR (s IS NULL OR s.profilePrivacy = 'PUBLICO'))")
+           "     OR (s IS NULL OR s.profilePrivacy = 'PUBLICO') " +
+           "     OR (s IS NOT NULL AND s.profilePrivacy = 'PRIVADO' " +
+           "         AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED')) " +
+           "     OR (s IS NOT NULL AND s.profilePrivacy = 'SOLO_AMIGOS' " +
+           "         AND p.author.id IN (SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId AND f.status = 'ACCEPTED') " +
+           "         AND p.author.id IN (SELECT f2.follower.id FROM Follow f2 WHERE f2.followed.id = :userId AND f2.status = 'ACCEPTED')))")
     Page<Post> searchPosts(@Param("query") String query, @Param("userId") Long userId, Pageable pageable);
 }

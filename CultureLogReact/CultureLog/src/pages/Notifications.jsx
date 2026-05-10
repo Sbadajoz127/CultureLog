@@ -140,6 +140,8 @@ export default function Notifications() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const {
+    unreadCount,
+    pendingRequestsCount,
     pendingRequests,
     loadingRequests,
     fetchPendingRequests,
@@ -217,6 +219,7 @@ export default function Notifications() {
   }
 
   const unreadLocal = allNotifs.filter((n) => !n.read).length;
+  const unreadDisplay = Math.max(unreadCount, unreadLocal);
   const grouped = groupByDate(allNotifs);
 
   return (
@@ -233,7 +236,7 @@ export default function Notifications() {
             >
               <Inbox size={18} />
               <span>Actividad</span>
-              {unreadLocal > 0 && <span className="nc-sidebar-badge">{unreadLocal}</span>}
+              {unreadDisplay > 0 && <span className="nc-sidebar-badge">{unreadDisplay}</span>}
             </button>
             <button
               type="button"
@@ -242,29 +245,21 @@ export default function Notifications() {
             >
               <Users size={18} />
               <span>Solicitudes</span>
-              {pendingRequests.length > 0 && (
-                <span className="nc-sidebar-badge">{pendingRequests.length}</span>
+              {pendingRequestsCount > 0 && (
+                <span className="nc-sidebar-badge">{pendingRequestsCount}</span>
               )}
             </button>
           </nav>
         </aside>
 
-        {/* --- Main content --- */}
+        {/* --- Main content (center) --- */}
         <main className="nc-main">
-          {/* Header bar */}
           <div className="nc-topbar">
             <h1 className="nc-title">
               {tab === 'activity' ? 'Actividad' : 'Solicitudes de seguimiento'}
             </h1>
-            {tab === 'activity' && unreadLocal > 0 && (
-              <button type="button" className="nc-mark-all-btn" onClick={handleMarkAllRead}>
-                <CheckCheck size={15} />
-                Marcar todas como leídas
-              </button>
-            )}
           </div>
 
-          {/* Activity tab */}
           {tab === 'activity' && !initialReady && <SkeletonActivityList />}
           {tab === 'activity' && initialReady && (
             <div className="nc-activity-list feed-loaded">
@@ -330,7 +325,6 @@ export default function Notifications() {
             </div>
           )}
 
-          {/* Requests tab */}
           {tab === 'requests' && loadingRequests && pendingRequests.length === 0 && (
             <SkeletonRequestsList />
           )}
@@ -381,6 +375,21 @@ export default function Notifications() {
             </div>
           )}
         </main>
+
+        {/* --- Right panel --- */}
+        <aside className="nc-actions-panel">
+          {tab === 'activity' && (
+            <button
+              type="button"
+              className="nc-mark-all-btn"
+              onClick={handleMarkAllRead}
+              disabled={unreadCount === 0 && unreadLocal === 0}
+            >
+              <CheckCheck size={15} />
+              Marcar todas como leídas
+            </button>
+          )}
+        </aside>
       </div>
     </>
   );

@@ -721,9 +721,15 @@ function PublicProfile() {
             ) : (
               <div className="pub-profile-private">
                 <div className="pub-profile-private-icon"><Lock size={48} /></div>
-                <h3 className="pub-profile-private-title">Esta cuenta es privada</h3>
+                <h3 className="pub-profile-private-title">
+                  {profile.profilePrivacy === 'SOLO_AMIGOS'
+                    ? 'Esta cuenta es solo para amigos'
+                    : 'Esta cuenta es privada'}
+                </h3>
                 <p className="pub-profile-private-text">
-                  Sigue a este usuario para ver sus publicaciones y biblioteca.
+                  {profile.profilePrivacy === 'SOLO_AMIGOS'
+                    ? 'Este usuario debe seguirte de vuelta para que puedas ver sus publicaciones y biblioteca.'
+                    : 'Sigue a este usuario para ver sus publicaciones y biblioteca.'}
                 </p>
               </div>
             )}

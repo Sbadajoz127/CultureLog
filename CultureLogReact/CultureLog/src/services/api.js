@@ -194,6 +194,10 @@ export function getPendingFollowRequests() {
   return api.get('/follows/pending');
 }
 
+export function getPendingFollowRequestsCount() {
+  return api.get('/follows/pending-count');
+}
+
 export function acceptFollowRequest(followerId) {
   return api.post(`/follows/accept?followerId=${followerId}`);
 }
