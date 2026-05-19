@@ -136,7 +136,7 @@ export default function PostDetail() {
       <main className="feed post-detail-page">
         <button
           type="button"
-          className="post-detail-back-btn"
+          className="post-detail-back-btn post-detail-back-top"
           onClick={() => navigate(-1)}
           aria-label="Volver"
         >
@@ -240,6 +240,15 @@ export default function PostDetail() {
             />
           </article>
         )}
+
+        <button
+          type="button"
+          className="post-detail-back-btn post-detail-back-bottom"
+          onClick={() => navigate(-1)}
+          aria-label="Volver"
+        >
+          <ArrowLeft size={20} /> Volver
+        </button>
       </main>
 
       <ConfirmModal

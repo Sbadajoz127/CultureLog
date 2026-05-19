@@ -3038,12 +3038,11 @@ input[type="password"]::-ms-clear {
   }
 
   .post-card-header {
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
   }
 
   .post-card-header-right {
-    align-self: flex-end;
+    flex-shrink: 0;
   }
 
   .post-footer {
@@ -4087,9 +4086,20 @@ input[type="password"]::-ms-clear {
   color: var(--accent-color);
 }
 
+.post-detail-back-bottom {
+  display: none;
+}
+
 @media (max-width: 1200px) {
-  .post-detail-back-btn {
-    right: 16px;
+  .post-detail-back-top {
+    display: none;
+  }
+
+  .post-detail-back-bottom {
+    display: inline-flex;
+    position: static;
+    align-self: flex-end;
+    box-shadow: none;
   }
 }
 
@@ -4844,8 +4854,7 @@ input[type="password"]::-ms-clear {
 }
 
 .pub-profile-stat-clickable:focus {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
+  outline: none;
 }
 
 .pub-profile-stat-clickable .pub-profile-stat-count {
@@ -6898,35 +6907,16 @@ input[type="password"]::-ms-clear {
     animation: notifDropdownInMobile 0.15s ease-out;
   }
 
-  .post-detail-back-btn {
-    position: static;
-    margin-bottom: 16px;
-  }
-
   .post-detail-card {
-    padding: 0;
+    padding: 20px 16px;
   }
 
   .pub-profile-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0;
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      black 8px,
-      black calc(100% - 8px),
-      transparent
-    );
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent,
-      black 8px,
-      black calc(100% - 8px),
-      transparent
-    );
   }
 
   .pub-profile-tabs::-webkit-scrollbar {
@@ -7260,28 +7250,13 @@ input[type="password"]::-ms-clear {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     flex-wrap: nowrap;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .pub-profile-library-tabs::-webkit-scrollbar {
     display: none;
   }
 
-  .delete-modal-actions {
-    flex-direction: column;
-  }
-
-  .delete-modal-actions button {
-    width: 100%;
-  }
-
-  .confirm-modal-actions {
-    flex-direction: column;
-  }
-
-  .confirm-modal-actions button {
-    width: 100%;
-  }
 }
 
 /* ── Sonner Toast Overrides ── */
