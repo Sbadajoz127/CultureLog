@@ -73,6 +73,9 @@ public class Post {
 
     private String linkedItemAlbum;
 
+    /** Indica si el ítem vinculado fue creado manualmente por un usuario (no oficial). */
+    private boolean linkedItemCustom = false;
+
     /** Lista de comentarios recibidos. */
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 20)

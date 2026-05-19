@@ -352,10 +352,14 @@ public class UserServiceImpl implements UserService {
         User viewer = userRepository.findById(viewerUserId).orElse(null);
         boolean isAdmin = viewer != null && viewer.getRole() == Role.ADMIN;
 
-        boolean hasAccess = isOwn
-                || isAdmin
-                || privacy == ProfilePrivacy.PUBLICO
-                || (followStatus.equals("ACCEPTED"));
+        boolean hasAccess;
+        if (isOwn || isAdmin || privacy == ProfilePrivacy.PUBLICO) {
+            hasAccess = true;
+        } else if (privacy == ProfilePrivacy.SOLO_AMIGOS) {
+            hasAccess = followRepository.existsMutualFollow(viewerUserId, targetUserId);
+        } else {
+            hasAccess = followStatus.equals("ACCEPTED");
+        }
 
         List<PostResponse> posts = Collections.emptyList();
         List<MediaItemResponse> libraryItems = Collections.emptyList();

@@ -184,7 +184,10 @@ export default function PostDetail() {
                   </div>
                 )}
                 <div className="post-detail-linked-body">
-                  <h3 className="post-detail-linked-title">{linkedItem.title}</h3>
+                  <h3 className="post-detail-linked-title">
+                    {linkedItem.title}
+                    {post.linkedItemCustom && <span className="custom-item-badge">Personalizado</span>}
+                  </h3>
                   <p className="text-muted">
                     {MEDIA_TYPE_LABELS[linkedItem.type] || linkedItem.type}
                     {linkedItem.creator ? ` · ${linkedItem.creator}` : ''}

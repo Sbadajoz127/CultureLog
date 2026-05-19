@@ -102,6 +102,10 @@ export function deleteMediaItem(id) {
   return api.delete(`/items/${id}`);
 }
 
+export function createCustomMediaItem(body) {
+  return api.post('/items', body);
+}
+
 export function getFeed({ page = 0, size = 10 } = {}) {
   return api.get('/posts/feed', { params: { page, size } });
 }
@@ -192,6 +196,10 @@ export function markAllAsRead() {
 
 export function getPendingFollowRequests() {
   return api.get('/follows/pending');
+}
+
+export function getPendingFollowRequestsCount() {
+  return api.get('/follows/pending-count');
 }
 
 export function acceptFollowRequest(followerId) {

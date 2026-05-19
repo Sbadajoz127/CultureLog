@@ -52,6 +52,8 @@ public class MediaItemResponse {
     private String externalSource;
     /** Nombre del álbum (solo para contenido musical). */
     private String album;
+    /** Indica si el ítem fue creado manualmente por el usuario. */
+    private boolean custom;
     /** Nombres de las etiquetas asociadas al ítem. */
     private Set<String> tagNames;
 }

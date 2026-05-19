@@ -8,6 +8,7 @@ import {
   markAsRead as apiMarkAsRead,
   markAllAsRead as apiMarkAllAsRead,
   getPendingFollowRequests,
+  getPendingFollowRequestsCount,
   acceptFollowRequest as apiAcceptFollow,
   rejectFollowRequest as apiRejectFollow,
 } from '../services/api';
@@ -25,6 +26,7 @@ export function useNotifications() {
 export function NotificationProvider({ children }) {
   const { isAuthenticated } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -38,6 +40,16 @@ export function NotificationProvider({ children }) {
     try {
       const { data } = await getUnreadCount();
       setUnreadCount(data);
+    } catch {
+      /* silent */
+    }
+  }, [isAuthenticated]);
+
+  const fetchPendingRequestsCount = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const { data } = await getPendingFollowRequestsCount();
+      setPendingRequestsCount(data);
     } catch {
       /* silent */
     }
@@ -75,6 +87,7 @@ export function NotificationProvider({ children }) {
     try {
       const { data } = await getPendingFollowRequests();
       setPendingRequests(data || []);
+      setPendingRequestsCount((data || []).length);
     } catch {
       /* silent */
     } finally {
@@ -110,6 +123,8 @@ export function NotificationProvider({ children }) {
     try {
       await apiAcceptFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
+      setPendingRequestsCount((c) => Math.max(0, c - 1));
+      toast.success('Solicitud de seguimiento aceptada.');
     } catch {
       toast.error('No se pudo aceptar la solicitud.');
     }
@@ -119,6 +134,8 @@ export function NotificationProvider({ children }) {
     try {
       await apiRejectFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
+      setPendingRequestsCount((c) => Math.max(0, c - 1));
+      toast.success('Solicitud de seguimiento rechazada.');
     } catch {
       toast.error('No se pudo rechazar la solicitud.');
     }
@@ -127,6 +144,7 @@ export function NotificationProvider({ children }) {
   useEffect(() => {
     if (!isAuthenticated) {
       setUnreadCount(0);
+      setPendingRequestsCount(0);
       setNotifications([]);
       setUnreadNotifications([]);
       setPendingRequests([]);
@@ -134,12 +152,17 @@ export function NotificationProvider({ children }) {
     }
 
     fetchUnreadCount();
-    intervalRef.current = setInterval(fetchUnreadCount, POLL_INTERVAL);
+    fetchPendingRequestsCount();
+    intervalRef.current = setInterval(() => {
+      fetchUnreadCount();
+      fetchPendingRequestsCount();
+    }, POLL_INTERVAL);
     return () => clearInterval(intervalRef.current);
-  }, [isAuthenticated, fetchUnreadCount]);
+  }, [isAuthenticated, fetchUnreadCount, fetchPendingRequestsCount]);
 
   const value = {
     unreadCount,
+    pendingRequestsCount,
     notifications,
     unreadNotifications,
     pendingRequests,
@@ -149,6 +172,7 @@ export function NotificationProvider({ children }) {
     fetchNotifications,
     fetchUnreadNotifications,
     fetchPendingRequests,
+    fetchPendingRequestsCount,
     fetchUnreadCount,
     markRead,
     markAllRead,

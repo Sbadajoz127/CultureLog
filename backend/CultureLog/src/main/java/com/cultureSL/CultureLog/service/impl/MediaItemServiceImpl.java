@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Implementación del servicio de gestión de la biblioteca multimedia.
@@ -68,6 +69,16 @@ public class MediaItemServiceImpl implements MediaItemService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
+        boolean isCustom = Boolean.TRUE.equals(request.getCustom())
+                || "USER_CREATED".equals(request.getExternalSource());
+
+        if (isCustom && (request.getExternalId() == null || request.getExternalId().isBlank())) {
+            request.setExternalId("CUSTOM-" + UUID.randomUUID());
+        }
+        if (isCustom) {
+            request.setExternalSource("USER_CREATED");
+        }
+
         if (duplicateFinder
                 .findDuplicate(
                         userId,
@@ -93,6 +104,7 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setExternalId(request.getExternalId());
         item.setExternalSource(request.getExternalSource());
         item.setAlbum(request.getAlbum());
+        item.setCustom(isCustom);
         item.setDateAdded(LocalDate.now());
         item.setUser(user);
 

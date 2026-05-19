@@ -53,4 +53,6 @@ public class MediaItemRequest {
     private String externalSource;
     /** Nombre del álbum (solo para contenido musical). */
     private String album;
+    /** Indica si el ítem es personalizado (creado manualmente, no desde APIs externas). */
+    private Boolean custom;
 }

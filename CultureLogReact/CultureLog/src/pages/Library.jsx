@@ -10,16 +10,19 @@ import {
   MEDIA_TYPE_LABELS,
   MEDIA_STATUS_LABELS,
 } from '../constants/media';
-import { mediaItemToRequest, searchResultToPayload } from '../utils/mediaItem';
+import { mediaItemToRequest, searchResultToPayload, buildCustomItemPayload } from '../utils/mediaItem';
 import {
   getMediaItems,
   searchMedia,
   addToLibraryFromSearch,
   updateMediaItem,
   deleteMediaItem,
+  createCustomMediaItem,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
+import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
 import { CustomSelect } from '../components/CustomSelect';
+import { SearchX, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import '../App.css';
 
@@ -96,7 +99,10 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
             <div className="library-item-cover library-item-cover-placeholder" aria-hidden />
           )}
           <div className="library-item-body">
-            <h4 className="library-item-title">{item.title}</h4>
+            <h4 className="library-item-title">
+              {item.title}
+              {item.custom && <span className="custom-item-badge">Personalizado</span>}
+            </h4>
             <p className="library-item-meta text-muted">
               {MEDIA_TYPE_LABELS[item.type] || item.type}
               {item.creator ? ` · ${item.creator}` : ''}
@@ -170,6 +176,7 @@ function LibraryGridCard({ item, onItemClick }) {
           {MEDIA_TYPE_LABELS[item.type] || item.type}
           {item.rating != null && <> · {item.rating}/10</>}
         </span>
+        {item.custom && <span className="custom-item-badge">Personalizado</span>}
       </div>
     </div>
   );
@@ -214,9 +221,13 @@ function Library() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
 
+  const [hasSearched, setHasSearched] = useState(false);
+  const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [addingKey, setAddingKey] = useState(null);
   const [busyItemId, setBusyItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [customSubmitting, setCustomSubmitting] = useState(false);
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -267,10 +278,11 @@ function Library() {
       const body = mediaItemToRequest(item, { status: newStatus });
       await updateMediaItem(item.id, body);
       await loadItems(activeStatus);
+      toast.success(`Estado de «${item.title}» actualizado a ${MEDIA_STATUS_LABELS[newStatus]}.`);
     } catch (e) {
-      setListError(
-        e.response?.data?.message || e.response?.data?.error || 'No se pudo actualizar el estado.'
-      );
+      const msg = e.response?.data?.message || e.response?.data?.error || 'No se pudo actualizar el estado.';
+      setListError(msg);
+      toast.error(msg);
     } finally {
       setBusyItemId(null);
     }
@@ -290,9 +302,9 @@ function Library() {
       await loadItems(activeStatus);
       toast.success(`«${item.title}» eliminado de tu biblioteca.`);
     } catch (e) {
-      setListError(
-        e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el ítem.'
-      );
+      const msg = e.response?.data?.message || e.response?.data?.error || 'No se pudo eliminar el ítem.';
+      setListError(msg);
+      toast.error(msg);
     } finally {
       setBusyItemId(null);
     }
@@ -304,10 +316,12 @@ function Library() {
     if (q.length < 2) {
       setSearchError('Escribe al menos 2 caracteres.');
       setSearchResults([]);
+      setHasSearched(false);
       return;
     }
     setSearchLoading(true);
     setSearchError('');
+    setLastSearchQuery(q);
     try {
       const { data } = await searchMedia({
         query: q,
@@ -322,6 +336,7 @@ function Library() {
       setSearchResults([]);
     } finally {
       setSearchLoading(false);
+      setHasSearched(true);
     }
   };
 
@@ -346,13 +361,31 @@ function Library() {
       }
       setSearchResults([]);
       setSearchQuery('');
+      setHasSearched(false);
+      setLastSearchQuery('');
       await loadItems(activeStatus);
     } catch (err) {
-      setSearchError(
-        err.response?.data?.message || err.response?.data?.error || 'No se pudo añadir a la biblioteca.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo añadir a la biblioteca.';
+      setSearchError(msg);
+      toast.error(msg);
     } finally {
       setAddingKey(null);
+    }
+  };
+
+  const handleCustomItemSubmit = async (formData) => {
+    setCustomSubmitting(true);
+    try {
+      const payload = buildCustomItemPayload(formData);
+      await createCustomMediaItem(payload);
+      toast.success(`«${formData.title}» añadido a tu biblioteca.`);
+      setCustomModalOpen(false);
+      await loadItems(activeStatus);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo crear el ítem.';
+      toast.error(msg);
+    } finally {
+      setCustomSubmitting(false);
     }
   };
 
@@ -421,6 +454,13 @@ function Library() {
           </form>
           {searchError && <p className="auth-error library-inline-msg">{searchError}</p>}
 
+          {searchLoading && (
+            <div className="library-search-loading">
+              <div className="library-search-spinner" />
+              <p className="text-muted">Buscando en catálogos externos…</p>
+            </div>
+          )}
+
           {searchResults.length > 0 && (
             <ul className="library-search-results">
               {searchResults.map((r, idx) => {
@@ -467,6 +507,31 @@ function Library() {
               })}
             </ul>
           )}
+
+          {!searchLoading && hasSearched && searchResults.length === 0 && !searchError && (
+            <div className="library-search-empty">
+              <div className="library-search-empty-icon">
+                <SearchX size={28} />
+              </div>
+              <p className="library-search-empty-title">
+                Sin resultados para &laquo;{lastSearchQuery}&raquo;
+              </p>
+              <p className="library-search-empty-hint">
+                Prueba con otro término o cambia el tipo de medio.
+              </p>
+            </div>
+          )}
+
+          <div className="library-custom-item-cta">
+            <button
+              type="button"
+              className="library-custom-item-btn"
+              onClick={() => setCustomModalOpen(true)}
+            >
+              <PlusCircle size={18} />
+              <span>¿No encuentras lo que buscas? Añade un ítem manualmente</span>
+            </button>
+          </div>
         </section>
 
         <section className="library-tabs-section" aria-label="Estados de la biblioteca">
@@ -596,6 +661,13 @@ function Library() {
             },
           });
         } : undefined}
+      />
+
+      <CreateCustomItemModal
+        open={customModalOpen}
+        onClose={() => setCustomModalOpen(false)}
+        onSubmit={handleCustomItemSubmit}
+        submitting={customSubmitting}
       />
     </div>
   );

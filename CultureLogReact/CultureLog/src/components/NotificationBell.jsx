@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Heart, MessageCircle, UserPlus, BookOpen, Check, X } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, BookOpen, Check, CheckCheck, X } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { UserAvatar } from './UserAvatar';
 import '../App.css';
@@ -34,6 +34,7 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const {
     unreadCount,
+    pendingRequestsCount,
     unreadNotifications,
     pendingRequests,
     loadingUnread,
@@ -41,6 +42,7 @@ export function NotificationBell() {
     fetchUnreadNotifications,
     fetchPendingRequests,
     markRead,
+    markAllRead,
     acceptRequest,
     rejectRequest,
   } = useNotifications();
@@ -94,9 +96,9 @@ export function NotificationBell() {
         aria-label="Notificaciones"
       >
         <Bell size={22} />
-        {unreadCount > 0 && (
+        {(unreadCount + pendingRequestsCount) > 0 && (
           <span className="notification-badge">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {(unreadCount + pendingRequestsCount) > 99 ? '99+' : unreadCount + pendingRequestsCount}
           </span>
         )}
       </button>
@@ -105,6 +107,17 @@ export function NotificationBell() {
         <div className="notification-dropdown">
           <div className="notification-dropdown-header">
             <h3>Notificaciones</h3>
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                className="notification-mark-all-btn"
+                title="Marcar todas como leídas"
+                aria-label="Marcar todas como leídas"
+                onClick={() => markAllRead()}
+              >
+                <CheckCheck size={16} />
+              </button>
+            )}
           </div>
 
           <div className="notification-tabs">
@@ -114,6 +127,9 @@ export function NotificationBell() {
               onClick={() => setTab('activity')}
             >
               Actividad
+              {unreadCount > 0 && (
+                <span className="notification-tab-badge">{unreadCount}</span>
+              )}
             </button>
             <button
               type="button"
@@ -121,8 +137,8 @@ export function NotificationBell() {
               onClick={() => setTab('requests')}
             >
               Solicitudes
-              {pendingRequests.length > 0 && (
-                <span className="notification-tab-badge">{pendingRequests.length}</span>
+              {pendingRequestsCount > 0 && (
+                <span className="notification-tab-badge">{pendingRequestsCount}</span>
               )}
             </button>
           </div>

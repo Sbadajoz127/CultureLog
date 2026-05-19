@@ -256,12 +256,20 @@ function PublicProfile() {
       if (profile.followStatus === 'ACCEPTED') {
         await unfollowUser(profile.id);
         setProfile((p) => ({ ...p, followStatus: 'NONE', followerCount: Math.max(0, p.followerCount - 1) }));
+        toast.success('Has dejado de seguir a este usuario.');
+      } else if (profile.followStatus === 'PENDING') {
+        await unfollowUser(profile.id);
+        setProfile((p) => ({ ...p, followStatus: 'NONE' }));
+        toast.success('Solicitud de seguimiento cancelada.');
       } else if (profile.followStatus === 'NONE') {
-        await followUser(profile.id);
-        if (profile.profilePrivacy !== 'PUBLICO') {
+        const { data } = await followUser(profile.id);
+        const resultStatus = data?.status || 'ACCEPTED';
+        if (resultStatus === 'PENDING') {
           setProfile((p) => ({ ...p, followStatus: 'PENDING' }));
+          toast.success('Solicitud de seguimiento enviada.');
         } else {
           setProfile((p) => ({ ...p, followStatus: 'ACCEPTED', followerCount: p.followerCount + 1 }));
+          toast.success('Ahora sigues a este usuario.');
           loadProfile(undefined, { silent: true });
         }
       }
@@ -386,7 +394,7 @@ function PublicProfile() {
       case 'ACCEPTED':
         return 'Siguiendo';
       case 'PENDING':
-        return 'Solicitud pendiente';
+        return 'Cancelar solicitud';
       case 'REJECTED':
         return 'Solicitud rechazada';
       case 'BLOCKED':
@@ -455,7 +463,7 @@ function PublicProfile() {
                       type="button"
                       className={`${followBtnClass()}${followLoading ? ' loading' : ''}`}
                       onClick={handleFollow}
-                      disabled={followLoading || profile.followStatus === 'PENDING' || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
+                      disabled={followLoading || profile.followStatus === 'REJECTED' || profile.followStatus === 'BLOCKED'}
                     >
                       {followBtnLabel()}
                     </button>
@@ -721,9 +729,15 @@ function PublicProfile() {
             ) : (
               <div className="pub-profile-private">
                 <div className="pub-profile-private-icon"><Lock size={48} /></div>
-                <h3 className="pub-profile-private-title">Esta cuenta es privada</h3>
+                <h3 className="pub-profile-private-title">
+                  {profile.profilePrivacy === 'SOLO_AMIGOS'
+                    ? 'Esta cuenta es solo para amigos'
+                    : 'Esta cuenta es privada'}
+                </h3>
                 <p className="pub-profile-private-text">
-                  Sigue a este usuario para ver sus publicaciones y biblioteca.
+                  {profile.profilePrivacy === 'SOLO_AMIGOS'
+                    ? 'Este usuario debe seguirte de vuelta para que puedas ver sus publicaciones y biblioteca.'
+                    : 'Sigue a este usuario para ver sus publicaciones y biblioteca.'}
                 </p>
               </div>
             )}

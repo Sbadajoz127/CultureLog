@@ -110,10 +110,11 @@ function Profile() {
     try {
       await requestAccountDeletion();
       setDeleteStep('code');
+      toast.success('Código de confirmación enviado a tu correo.');
     } catch (err) {
-      setDeleteError(
-        err.response?.data?.message || err.response?.data?.error || 'Error al solicitar eliminación.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Error al solicitar eliminación.';
+      setDeleteError(msg);
+      toast.error(msg);
     } finally {
       setDeleteLoading(false);
     }
@@ -128,12 +129,13 @@ function Profile() {
     setDeleteError('');
     try {
       await confirmAccountDeletion(deletionCode.trim());
+      toast.success('Cuenta eliminada correctamente.');
       logout();
       navigate('/login');
     } catch (err) {
-      setDeleteError(
-        err.response?.data?.message || err.response?.data?.error || 'Código incorrecto o expirado.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Código incorrecto o expirado.';
+      setDeleteError(msg);
+      toast.error(msg);
     } finally {
       setDeleteLoading(false);
     }
@@ -193,7 +195,9 @@ function Profile() {
         err.response?.data?.message ||
         err.response?.data ||
         'Error al guardar los cambios. Inténtalo de nuevo.';
-      setError(typeof msg === 'string' ? msg : 'Error al guardar los cambios.');
+      const errorText = typeof msg === 'string' ? msg : 'Error al guardar los cambios.';
+      setError(errorText);
+      toast.error(errorText);
     } finally {
       setSaving(false);
     }

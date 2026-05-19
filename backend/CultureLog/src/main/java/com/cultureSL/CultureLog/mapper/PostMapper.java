@@ -121,6 +121,7 @@ public class PostMapper {
                 .linkedItemGenre(post.getLinkedItemGenre())
                 .linkedItemDescription(post.getLinkedItemDescription())
                 .linkedItemAlbum(post.getLinkedItemAlbum())
+                .linkedItemCustom(post.isLinkedItemCustom())
                 .recentComments(post.getComments().stream()
                         .sorted(Comparator.comparing(c -> c.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                         .limit(3)

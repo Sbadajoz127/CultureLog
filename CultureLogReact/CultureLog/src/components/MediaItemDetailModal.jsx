@@ -164,6 +164,9 @@ export function MediaItemDetailModal({
               <span className="mdm-badge mdm-badge-status">
                 {MEDIA_STATUS_LABELS[item.status] || item.status}
               </span>
+              {item.custom && (
+                <span className="custom-item-badge">Personalizado</span>
+              )}
             </div>
 
             {item.creator && (

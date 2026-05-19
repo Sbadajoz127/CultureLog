@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useProfilePic } from '../context/ProfilePicContext';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
-import { MEDIA_TYPE_LABELS } from '../constants/media';
+import { MEDIA_TYPE_LABELS, MEDIA_TYPES } from '../constants/media';
+import { CustomSelect } from '../components/CustomSelect';
 import { searchResultToPayload } from '../utils/mediaItem';
 import {
   createPost,
@@ -85,6 +86,7 @@ function CreatePost() {
   const [libraryFilter, setLibraryFilter] = useState('');
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [addingItemId, setAddingItemId] = useState(null);
@@ -122,7 +124,11 @@ function CreatePost() {
     if (q.length < 2) { setSearchResults([]); return; }
     setSearchLoading(true);
     try {
-      const { data } = await searchMedia({ query: q, page: 0 });
+      const { data } = await searchMedia({
+        query: q,
+        type: searchType || undefined,
+        page: 0,
+      });
       setSearchResults(Array.isArray(data) ? data : []);
     } catch {
       setSearchResults([]);
@@ -130,7 +136,7 @@ function CreatePost() {
     } finally {
       setSearchLoading(false);
     }
-  }, [searchTerm]);
+  }, [searchTerm, searchType]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -178,9 +184,9 @@ function CreatePost() {
         return [item, ...prev];
       });
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.response?.data?.error || 'No se pudo vincular la obra.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo vincular la obra.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setAddingItemId(null);
     }
@@ -199,9 +205,9 @@ function CreatePost() {
       toast.success('Publicación creada.');
       navigate('/home');
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.response?.data?.error || 'No se pudo publicar.'
-      );
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo publicar.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -395,25 +401,34 @@ function CreatePost() {
 
                 {activeSearchTab === 'external' && (
                   <div className="cp-external-panel">
-                    <div className="cp-search-input-wrap">
-                      <Search size={16} className="cp-search-icon" />
-                      <input
-                        type="text"
-                        placeholder="Buscar en catálogos externos…"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="cp-search-input"
+                    <div className="cp-external-search-row">
+                      <div className="cp-search-input-wrap">
+                        <Search size={16} className="cp-search-icon" />
+                        <input
+                          type="text"
+                          placeholder="Buscar en catálogos externos…"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="cp-search-input"
+                        />
+                        {searchTerm && (
+                          <button
+                            type="button"
+                            className="cp-search-clear"
+                            onClick={() => { setSearchTerm(''); setSearchResults([]); }}
+                            aria-label="Limpiar búsqueda"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                      <CustomSelect
+                        className="cp-search-type-select"
+                        options={MEDIA_TYPES}
+                        value={searchType}
+                        onChange={setSearchType}
+                        ariaLabel="Filtrar por tipo de obra"
                       />
-                      {searchTerm && (
-                        <button
-                          type="button"
-                          className="cp-search-clear"
-                          onClick={() => { setSearchTerm(''); setSearchResults([]); }}
-                          aria-label="Limpiar búsqueda"
-                        >
-                          <X size={14} />
-                        </button>
-                      )}
                     </div>
                     {searchLoading && (
                       <p className="text-muted cp-loading-hint">Buscando…</p>

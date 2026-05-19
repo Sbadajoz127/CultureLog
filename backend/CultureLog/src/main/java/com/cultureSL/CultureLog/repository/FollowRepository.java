@@ -107,6 +107,20 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     long countByFollowerIdAndStatus(Long followerId, FollowStatus status);
 
     /**
+     * Verifica si existe un seguimiento mutuo entre dos usuarios (ambos se siguen con estado ACCEPTED).
+     * Utilizado para la privacidad {@code SOLO_AMIGOS}.
+     *
+     * @param userA ID del primer usuario.
+     * @param userB ID del segundo usuario.
+     * @return {@code true} si ambos se siguen mutuamente con estado ACCEPTED.
+     */
+    @Query("SELECT CASE WHEN " +
+           "(EXISTS (SELECT 1 FROM Follow f1 WHERE f1.follower.id = :userA AND f1.followed.id = :userB AND f1.status = 'ACCEPTED') " +
+           " AND EXISTS (SELECT 1 FROM Follow f2 WHERE f2.follower.id = :userB AND f2.followed.id = :userA AND f2.status = 'ACCEPTED')) " +
+           "THEN true ELSE false END")
+    boolean existsMutualFollow(@Param("userA") Long userA, @Param("userB") Long userB);
+
+    /**
      * Elimina todas las relaciones de seguimiento donde el usuario es seguidor o seguido.
      * Se utiliza al eliminar la cuenta de un usuario.
      *
