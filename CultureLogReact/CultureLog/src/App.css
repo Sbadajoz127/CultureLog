@@ -917,6 +917,13 @@ input[type="password"]::-ms-clear {
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.cselect-trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cselect-trigger:hover {
@@ -1131,6 +1138,10 @@ input[type="password"]::-ms-clear {
   border-left: 3px solid var(--accent-color);
   font-size: 0.9rem;
   color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .posts-list {
@@ -1254,6 +1265,21 @@ input[type="password"]::-ms-clear {
     scrollbar-width: none;
     padding-left: 4px;
     padding-right: 4px;
+    position: relative;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8px,
+      black calc(100% - 8px),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8px,
+      black calc(100% - 8px),
+      transparent
+    );
   }
 
   .feed-category-nav::-webkit-scrollbar {
@@ -2933,6 +2959,20 @@ input[type="password"]::-ms-clear {
   .pub-profile-library-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
+
+  .post-card-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .post-card-header-right {
+    align-self: flex-end;
+  }
+
+  .post-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 
 /* -----------------------------------------
@@ -2987,8 +3027,8 @@ input[type="password"]::-ms-clear {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 380px;
-  max-height: 480px;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(480px, calc(100dvh - 100px));
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
@@ -3440,6 +3480,99 @@ input[type="password"]::-ms-clear {
   cursor: default;
 }
 
+.nc-mark-all-btn--topbar {
+  display: none;
+}
+
+/* --- Mobile Header (visible solo en móvil <768px) --- */
+.nc-mobile-header {
+  display: none;
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 16px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.nc-mobile-tabs {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.nc-mobile-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 24px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.nc-mobile-tab:hover {
+  background-color: var(--hover-overlay);
+  color: var(--text-primary);
+}
+
+.nc-mobile-tab.active {
+  background-color: var(--accent-muted);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+.nc-mobile-badge {
+  background-color: var(--danger);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nc-mobile-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent-muted);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.nc-mobile-action:hover:not(:disabled) {
+  background-color: var(--accent-color);
+  color: #fff;
+}
+
+.nc-mobile-action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* Empty state */
 .nc-empty-state {
   display: flex;
@@ -3764,47 +3897,50 @@ input[type="password"]::-ms-clear {
     display: none;
   }
 
-  .nc-topbar {
+  .nc-mobile-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
   }
-}
 
-@media (max-width: 768px) {
   .nc-layout {
-    flex-direction: column;
-    gap: 16px;
+    gap: 0;
     padding: 16px;
+    margin-top: 115px;
   }
 
   .nc-sidebar {
-    width: 100%;
-    position: static;
-  }
-
-  .nc-sidebar-nav {
-    flex-direction: row;
-    padding: 6px;
-  }
-
-  .nc-sidebar-item {
-    justify-content: center;
-    flex: 1;
-    padding: 8px 10px;
-    font-size: 0.85rem;
+    display: none;
   }
 
   .nc-main {
     max-width: 100%;
   }
+
+  .nc-topbar {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
-  .nc-topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .nc-mobile-header {
+    padding: 8px 12px;
+  }
+
+  .nc-mobile-tab {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .nc-mobile-tab-text {
+    display: none;
+  }
+
+  .nc-mobile-action {
+    width: 36px;
+    height: 36px;
   }
 
   .nc-request-card {
@@ -4022,6 +4158,12 @@ input[type="password"]::-ms-clear {
   opacity: 1;
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
+}
+
+@media (hover: none) {
+  .comment-delete-btn {
+    opacity: 0.6;
+  }
 }
 
 .post-detail-comment-actions-row {
@@ -4691,7 +4833,7 @@ input[type="password"]::-ms-clear {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: 340px;
+  width: min(340px, calc(100vw - 32px));
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
@@ -6565,6 +6707,29 @@ input[type="password"]::-ms-clear {
   }
 }
 
+/* --- 960px: Tablet adjustments --- */
+@media (max-width: 960px) {
+  .header-right {
+    gap: 8px;
+  }
+
+  .pub-profile-stats {
+    gap: 20px;
+  }
+
+  .pub-profile-header {
+    gap: 16px;
+  }
+
+  .pub-profile-stat-value {
+    font-size: 1.1rem;
+  }
+
+  .library-toolbar {
+    gap: 8px;
+  }
+}
+
 /* --- 768px: Mobile layout --- */
 @media (max-width: 768px) {
   .mobile-menu-btn {
@@ -6678,6 +6843,20 @@ input[type="password"]::-ms-clear {
     scrollbar-width: none;
     justify-content: flex-start;
     gap: 0;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8px,
+      black calc(100% - 8px),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8px,
+      black calc(100% - 8px),
+      transparent
+    );
   }
 
   .pub-profile-tabs::-webkit-scrollbar {
@@ -6833,20 +7012,6 @@ input[type="password"]::-ms-clear {
     min-width: 0;
   }
 
-  .post-card-header {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .post-card-header-right {
-    align-self: flex-end;
-  }
-
-  .post-footer {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
   .composer-work-row {
     flex-direction: column;
     align-items: stretch;
@@ -6925,6 +7090,20 @@ input[type="password"]::-ms-clear {
     scrollbar-width: none;
     flex-wrap: nowrap;
     justify-content: flex-start;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8px,
+      black calc(100% - 8px),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8px,
+      black calc(100% - 8px),
+      transparent
+    );
   }
 
   .library-status-tabs::-webkit-scrollbar {
@@ -6940,6 +7119,14 @@ input[type="password"]::-ms-clear {
 
   .library-item-status-group {
     min-width: 0;
+  }
+
+  .post-detail-comment-children {
+    margin-left: 12px;
+  }
+
+  .post-toggle-replies-btn {
+    margin-left: 12px;
   }
 
   .library-grid {
@@ -7321,6 +7508,11 @@ input[type="password"]::-ms-clear {
   border-radius: 4px;
   margin-left: 8px;
   background: color-mix(in srgb, #ff9800 15%, transparent);
+  flex-shrink: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: #ff9800;
   border: 1px solid color-mix(in srgb, #ff9800 30%, transparent);
   vertical-align: middle;

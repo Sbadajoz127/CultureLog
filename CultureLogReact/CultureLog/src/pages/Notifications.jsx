@@ -225,6 +225,42 @@ export default function Notifications() {
   return (
     <>
       <AppHeader userName={user?.username} />
+      {/* --- Mobile Header (visible solo en móvil) --- */}
+      <div className="nc-mobile-header">
+        <div className="nc-mobile-tabs">
+          <button
+            type="button"
+            className={`nc-mobile-tab ${tab === 'activity' ? 'active' : ''}`}
+            onClick={() => setTab('activity')}
+          >
+            <Inbox size={16} />
+            <span className="nc-mobile-tab-text">Actividad</span>
+            {unreadDisplay > 0 && <span className="nc-mobile-badge">{unreadDisplay}</span>}
+          </button>
+          <button
+            type="button"
+            className={`nc-mobile-tab ${tab === 'requests' ? 'active' : ''}`}
+            onClick={() => setTab('requests')}
+          >
+            <Users size={16} />
+            <span className="nc-mobile-tab-text">Solicitudes</span>
+            {pendingRequestsCount > 0 && (
+              <span className="nc-mobile-badge">{pendingRequestsCount}</span>
+            )}
+          </button>
+        </div>
+        {tab === 'activity' && (
+          <button
+            type="button"
+            className="nc-mobile-action"
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0 && unreadLocal === 0}
+            title="Marcar todas como leídas"
+          >
+            <CheckCheck size={18} />
+          </button>
+        )}
+      </div>
       <div className="nc-layout">
         {/* --- Sidebar --- */}
         <aside className="nc-sidebar">
@@ -258,6 +294,18 @@ export default function Notifications() {
             <h1 className="nc-title">
               {tab === 'activity' ? 'Actividad' : 'Solicitudes de seguimiento'}
             </h1>
+            {tab === 'activity' && (
+              <button
+                type="button"
+                className="nc-mark-all-btn nc-mark-all-btn--topbar"
+                onClick={handleMarkAllRead}
+                disabled={unreadCount === 0 && unreadLocal === 0}
+                title="Marcar todas como leídas"
+              >
+                <CheckCheck size={16} />
+                <span className="nc-mark-all-btn-text">Marcar todas</span>
+              </button>
+            )}
           </div>
 
           {tab === 'activity' && !initialReady && <SkeletonActivityList />}
