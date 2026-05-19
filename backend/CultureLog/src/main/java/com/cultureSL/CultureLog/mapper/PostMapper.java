@@ -108,7 +108,7 @@ public class PostMapper {
                 .authorName(post.getAuthor().getUsername())
                 .authorProfilePictureUrl(post.getAuthor().getProfilePictureUrl())
                 .likeCount(post.getLikeCount())
-                .commentCount(post.getCommentCount())
+                .commentCount(post.getComments().size())
                 .likedByCurrentUser(isLiked)
                 .savedByCurrentUser(isSaved)
                 .linkedItemId(post.getLinkedItem() != null ? post.getLinkedItem().getId() : null)

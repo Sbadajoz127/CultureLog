@@ -5,6 +5,7 @@ import com.cultureSL.CultureLog.model.UserSettings;
 import com.cultureSL.CultureLog.model.enums.AppTheme;
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
 import com.cultureSL.CultureLog.model.enums.Role;
+import com.cultureSL.CultureLog.repository.PostRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataInitializer implements ApplicationRunner {
 
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${admin.username:#{null}}")
@@ -43,6 +45,11 @@ public class DataInitializer implements ApplicationRunner {
         int enabled = userRepository.enableAllExistingUsers();
         if (enabled > 0) {
             log.info("Activadas {} cuentas de usuarios existentes sin verificación previa", enabled);
+        }
+
+        int synced = postRepository.syncAllCommentCounts();
+        if (synced > 0) {
+            log.info("Sincronizados contadores de comentarios en {} publicaciones", synced);
         }
 
         seedAdminUser();

@@ -42,8 +42,9 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
     setDeleting(true);
     try {
       await deletePostComment(commentToDelete.id);
+      const repliesCount = comments.filter((c) => c.parentCommentId === commentToDelete.id).length;
       setComments((prev) => prev.filter((c) => c.id !== commentToDelete.id && c.parentCommentId !== commentToDelete.id));
-      onCommentCountChange?.(-1);
+      onCommentCountChange?.(-(1 + repliesCount));
       toast.success('Comentario eliminado');
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo eliminar el comentario');
