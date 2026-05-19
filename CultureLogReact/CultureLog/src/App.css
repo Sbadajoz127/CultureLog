@@ -1722,6 +1722,7 @@ input[type="password"]::-ms-clear {
 .profile-action-btn {
   flex: 1;
   padding: 14px;
+  justify-content: center;
 }
 
 /* Mi biblioteca */
@@ -4144,6 +4145,7 @@ input[type="password"]::-ms-clear {
   margin-top: 8px;
   color: var(--text-secondary);
   line-height: 1.4;
+  text-align: justify;
 }
 
 .post-detail-comments {
@@ -6911,6 +6913,10 @@ input[type="password"]::-ms-clear {
     padding: 20px 16px;
   }
 
+  .post-detail-card .post-delete-label {
+    display: none;
+  }
+
   .pub-profile-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -7214,12 +7220,8 @@ input[type="password"]::-ms-clear {
     flex: none;
   }
 
-  .profile-form-actions {
-    flex-direction: column;
-  }
-
-  .profile-action-btn {
-    width: 100%;
+  .profile-btn-extra {
+    display: none;
   }
 
   .admin-stats-cards {

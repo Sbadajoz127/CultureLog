@@ -9,6 +9,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { getNotifications } from '../services/api';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import '../App.css';
 
 const ICON_MAP = {
@@ -43,7 +44,7 @@ function timeAgo(dateStr) {
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
-function dateLabel(dateStr) {
+function dateLabel(dateStr, isMobile) {
   const date = new Date(dateStr);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -52,14 +53,20 @@ function dateLabel(dateStr) {
   if (diff === 0) return 'Hoy';
   if (diff === 1) return 'Ayer';
   if (diff < 7) return `Hace ${diff} días`;
+  if (isMobile) {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yy = String(date.getFullYear()).slice(-2);
+    return `${dd}/${mm}/${yy}`;
+  }
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function groupByDate(items) {
+function groupByDate(items, isMobile) {
   const groups = [];
   let currentLabel = null;
   for (const item of items) {
-    const label = dateLabel(item.createdAt);
+    const label = dateLabel(item.createdAt, isMobile);
     if (label !== currentLabel) {
       currentLabel = label;
       groups.push({ label, items: [] });
@@ -139,6 +146,7 @@ const PAGE_SIZE = 15;
 export default function Notifications() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const {
     unreadCount,
     pendingRequestsCount,
@@ -220,7 +228,7 @@ export default function Notifications() {
 
   const unreadLocal = allNotifs.filter((n) => !n.read).length;
   const unreadDisplay = Math.max(unreadCount, unreadLocal);
-  const grouped = groupByDate(allNotifs);
+  const grouped = groupByDate(allNotifs, isMobile);
 
   return (
     <>

@@ -24,6 +24,8 @@ import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
 import { CustomSelect } from '../components/CustomSelect';
 import { SearchX, PlusCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatReleaseDate } from '../utils/dateFormat';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import '../App.css';
 
 function SkeletonLibraryItem() {
@@ -82,6 +84,7 @@ function SkeletonSearchSection() {
 }
 
 function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const busy = busyId === item.id;
   const tagList = item.tagNames ? Array.from(item.tagNames) : [];
 
@@ -106,7 +109,7 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
             <p className="library-item-meta text-muted">
               {MEDIA_TYPE_LABELS[item.type] || item.type}
               {item.creator ? ` · ${item.creator}` : ''}
-              {item.releaseDate ? ` · ${item.releaseDate}` : ''}
+              {item.releaseDate ? ` · ${formatReleaseDate(item.releaseDate, isMobile)}` : ''}
             </p>
             {tagList.length > 0 && (
               <div className="tags-container">

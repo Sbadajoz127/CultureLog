@@ -390,7 +390,7 @@ function Profile() {
                 Cancelar
               </button>
               <button type="submit" className="login-button profile-action-btn" disabled={saving}>
-                {saving ? 'Guardando...' : 'Guardar cambios'}
+                {saving ? 'Guardando...' : <><span>Guardar</span><span className="profile-btn-extra"> cambios</span></>}
               </button>
             </div>
           </form>

@@ -15,6 +15,8 @@ import {
 } from '../services/api';
 import { Search, X, BookOpen, ArrowLeft, Image } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatReleaseDate } from '../utils/dateFormat';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import '../App.css';
 
 const MAX_POST_LENGTH = 2000;
@@ -72,6 +74,7 @@ function CreatePost() {
   const { profilePic } = useProfilePic();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [content, setContent] = useState('');
   const [linkedItem, setLinkedItem] = useState(() => location.state?.linkedItem ?? null);
@@ -268,7 +271,7 @@ function CreatePost() {
                     <p className="cp-linked-meta">{linkedItem.creator}</p>
                   )}
                   {linkedItem.releaseDate && (
-                    <p className="cp-linked-meta">{linkedItem.releaseDate}</p>
+                    <p className="cp-linked-meta">{formatReleaseDate(linkedItem.releaseDate, isMobile)}</p>
                   )}
                   {linkedItem.genre && (
                     <p className="cp-linked-meta">{linkedItem.genre}</p>
@@ -462,7 +465,7 @@ function CreatePost() {
                               <div className="cp-item-info">
                                 <span className="cp-item-title">{result.title}</span>
                                 <span className="cp-item-creator">
-                                  {[result.creator, result.releaseDate].filter(Boolean).join(' · ')}
+                                  {[result.creator, result.releaseDate ? formatReleaseDate(result.releaseDate, isMobile) : null].filter(Boolean).join(' · ')}
                                 </span>
                               </div>
                               <span className="post-category-tag">
