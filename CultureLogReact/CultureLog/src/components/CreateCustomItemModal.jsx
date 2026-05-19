@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { X, ImagePlus, Trash2 } from 'lucide-react';
 import { MEDIA_TYPES, MEDIA_STATUS_TABS } from '../constants/media';
 import { uploadImage } from '../services/api';
+import { CustomSelect } from './CustomSelect';
 
-const TYPE_OPTIONS = MEDIA_TYPES.filter((t) => t.value);
+const TYPE_OPTIONS = [{ value: '', label: 'Seleccionar tipo' }, ...MEDIA_TYPES.filter((t) => t.value)];
 const STATUS_OPTIONS = MEDIA_STATUS_TABS;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -168,32 +169,25 @@ export function CreateCustomItemModal({ open, onClose, onSubmit, submitting = fa
 
           <div className="ccm-row">
             <div className="ccm-field ccm-field-half">
-              <label htmlFor="ccm-type" className="ccm-label">Tipo *</label>
-              <select
-                id="ccm-type"
-                className="portal-input ccm-select"
+              <label className="ccm-label">Tipo *</label>
+              <CustomSelect
+                className="ccm-custom-select"
+                options={TYPE_OPTIONS}
                 value={type}
-                onChange={(e) => setType(e.target.value)}
-              >
-                <option value="">Seleccionar tipo</option>
-                {TYPE_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
+                onChange={setType}
+                ariaLabel="Seleccionar tipo de medio"
+              />
             </div>
 
             <div className="ccm-field ccm-field-half">
-              <label htmlFor="ccm-status" className="ccm-label">Estado</label>
-              <select
-                id="ccm-status"
-                className="portal-input ccm-select"
+              <label className="ccm-label">Estado</label>
+              <CustomSelect
+                className="ccm-custom-select"
+                options={STATUS_OPTIONS}
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
+                onChange={setStatus}
+                ariaLabel="Seleccionar estado"
+              />
             </div>
           </div>
 

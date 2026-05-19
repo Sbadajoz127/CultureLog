@@ -22,7 +22,7 @@ import {
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
 import { CustomSelect } from '../components/CustomSelect';
-import { SearchX, PlusCircle } from 'lucide-react';
+import { SearchX, PlusCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import '../App.css';
 
@@ -143,7 +143,8 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
           disabled={busy}
           onClick={() => onDelete(item)}
         >
-          Eliminar
+          <Trash2 size={16} className="library-item-delete-icon" />
+          <span className="library-item-delete-text">Eliminar</span>
         </button>
       </div>
     </article>

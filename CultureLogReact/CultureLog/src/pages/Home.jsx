@@ -168,6 +168,42 @@ function Home() {
 
   const filteredPosts = posts.filter((p) => postMatchesFeedTab(p, activeTab));
 
+  const renderSuggestionsInline = () => {
+    if (suggestions.length === 0) return null;
+    return (
+      <div className="suggestions-card suggestions-inline">
+        <h4 className="suggestions-title">Sugerencias para ti</h4>
+        <div className="suggestions-list suggestions-list-inline">
+          {suggestions.slice(0, 3).map((u) => {
+            const isFollowed = followingIds.has(u.id);
+            return (
+              <div key={u.id} className={`suggestion-item suggestion-item-inline ${isFollowed ? 'followed' : ''}`}>
+                <div
+                  className="suggestion-user suggestion-user-link"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/user/${u.username}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/user/${u.username}`); }}
+                >
+                  <UserAvatar src={u.profilePictureUrl} name={u.username} size="small" />
+                  <span className="suggestion-username">@{u.username}</span>
+                </div>
+                <button
+                  type="button"
+                  className={`suggestion-follow-btn ${isFollowed ? 'following' : ''}`}
+                  onClick={() => handleFollow(u.id)}
+                  disabled={isFollowed}
+                >
+                  {isFollowed ? 'Siguiendo' : 'Seguir'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   if (!initialReady) {
     return (
       <div className="home-container">
@@ -223,14 +259,16 @@ function Home() {
 
           <div className="posts-list">
             {filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onPostUpdate={handlePostUpdate}
-                  onPostDelete={handlePostDelete}
-                  showAuthorLink
-                />
+              filteredPosts.map((post, index) => (
+                <div key={post.id}>
+                  <PostCard
+                    post={post}
+                    onPostUpdate={handlePostUpdate}
+                    onPostDelete={handlePostDelete}
+                    showAuthorLink
+                  />
+                  {index === 2 && renderSuggestionsInline()}
+                </div>
               ))
             ) : (
               <div className="bg-card feed-placeholder">
