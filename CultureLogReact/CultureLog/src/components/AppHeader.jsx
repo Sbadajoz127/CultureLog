@@ -33,8 +33,10 @@ export function AppHeader({ active = 'home', userName }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const searchRef = useRef(null);
-  const mobileSearchRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const mobileSearchSectionRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -47,16 +49,23 @@ export function AppHeader({ active = 'home', userName }) {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
+      const isInsideDesktopSearch = searchRef.current && searchRef.current.contains(e.target);
+      const isInsideMobileSearch = mobileSearchSectionRef.current && mobileSearchSectionRef.current.contains(e.target);
+      
+      if (!isInsideDesktopSearch && !isInsideMobileSearch) {
         setShowResults(false);
-      }
-      if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)) {
-        setShowResults(false);
+        setSearchExpanded(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (searchExpanded && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchExpanded]);
 
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
@@ -283,27 +292,39 @@ export function AppHeader({ active = 'home', userName }) {
       </nav>
 
       <div className="header-right header-user-cluster">
-        <div className="header-search-wrap" ref={searchRef}>
-          <form className="header-search-input-wrap" onSubmit={handleSearchSubmit}>
-            <Search size={16} className="header-search-icon" />
-            <input
-              type="text"
-              className="header-search-input"
-              placeholder={searchType === 'users' ? 'Buscar usuarios...' : 'Buscar películas, series...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setShowResults(true)}
-            />
-          </form>
-          {searchDropdown}
+        <div className="header-search-container" ref={searchRef}>
+          <button
+            type="button"
+            className={`header-search-toggle ${searchExpanded ? 'active' : ''}`}
+            onClick={() => setSearchExpanded(prev => !prev)}
+            aria-label={searchExpanded ? 'Cerrar buscador' : 'Abrir buscador'}
+          >
+            <Search size={20} />
+          </button>
+          <div className={`header-search-panel ${searchExpanded ? 'open' : 'closed'}`}>
+            <form className="header-search-input-wrap" onSubmit={handleSearchSubmit}>
+              <Search size={16} className="header-search-icon" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="header-search-input"
+                placeholder={searchType === 'users' ? 'Buscar usuarios...' : 'Buscar películas, series...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowResults(true)}
+              />
+            </form>
+            {searchDropdown}
+          </div>
         </div>
         <NotificationBell />
         <button type="button" className="header-user-btn" onClick={() => navigate(`/user/${userName}`)}>
           <UserAvatar src={profilePic} name={userName} size="small" />
           <span>@{userName}</span>
         </button>
-        <button type="button" className="logout-button" onClick={handleLogout}>
-          Cerrar sesión
+        <button type="button" className="logout-button" onClick={handleLogout} aria-label="Cerrar sesión">
+          <LogOut size={18} className="logout-icon" />
+          <span className="logout-text">Cerrar sesión</span>
         </button>
         {isMobile && (
           <button
@@ -353,21 +374,105 @@ export function AppHeader({ active = 'home', userName }) {
 
             <hr className="mobile-drawer-divider" />
 
-            <div className="mobile-search-section" ref={mobileSearchRef}>
-              <div className="header-search-wrap">
-                <form className="header-search-input-wrap" onSubmit={handleSearchSubmit}>
-                  <Search size={16} className="header-search-icon" />
-                  <input
-                    type="text"
-                    className="header-search-input"
-                    placeholder={searchType === 'users' ? 'Buscar usuarios...' : 'Buscar películas, series...'}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setShowResults(true)}
-                  />
-                </form>
-                {searchDropdown}
-              </div>
+            <div className="mobile-search-section" ref={mobileSearchSectionRef}>
+              <form className="mobile-search-form" onSubmit={handleSearchSubmit}>
+                <Search size={18} className="mobile-search-icon" />
+                <input
+                  type="text"
+                  className="mobile-search-input"
+                  placeholder="Buscar usuarios o publicaciones..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setShowResults(true)}
+                />
+              </form>
+              {showResults && searchQuery.trim().length >= 2 && (
+                <div className="mobile-search-results">
+                  <div className="mobile-search-tabs">
+                    <button
+                      type="button"
+                      className={`mobile-search-tab ${searchType === 'users' ? 'active' : ''}`}
+                      onClick={() => handleSearchTypeChange('users')}
+                    >
+                      <User size={14} /> Usuarios
+                    </button>
+                    <button
+                      type="button"
+                      className={`mobile-search-tab ${searchType === 'posts' ? 'active' : ''}`}
+                      onClick={() => handleSearchTypeChange('posts')}
+                    >
+                      <FileText size={14} /> Publicaciones
+                    </button>
+                  </div>
+
+                  {searchLoading && <p className="mobile-search-hint">Buscando...</p>}
+
+                  {searchType === 'users' && !searchLoading && (
+                    <>
+                      {searchResults.length === 0 ? (
+                        <p className="mobile-search-hint">No se encontraron usuarios</p>
+                      ) : (
+                        searchResults.map((u) => (
+                          <div
+                            key={u.id}
+                            className="mobile-search-result"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleSelectUser(u.username)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSelectUser(u.username); }}
+                          >
+                            <UserAvatar src={u.profilePictureUrl} name={u.username} size="small" />
+                            <span className="mobile-search-result-name">@{u.username}</span>
+                          </div>
+                        ))
+                      )}
+                    </>
+                  )}
+
+                  {searchType === 'posts' && !searchLoading && (
+                    <>
+                      {postResults.length === 0 ? (
+                        <p className="mobile-search-hint">No se encontraron publicaciones</p>
+                      ) : (
+                        postResults.map((p) => {
+                          const IconComponent = MEDIA_TYPE_ICONS[p.linkedItemType] || FileText;
+                          return (
+                            <div
+                              key={p.id}
+                              className="mobile-search-result mobile-search-result-post"
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleSelectPost(p.id)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleSelectPost(p.id); }}
+                            >
+                              <div className="mobile-search-post-icon">
+                                <IconComponent size={18} />
+                              </div>
+                              <div className="mobile-search-post-info">
+                                <span className="mobile-search-post-title">
+                                  {p.linkedItemTitle || 'Sin título vinculado'}
+                                </span>
+                                <span className="mobile-search-post-author">por @{p.authorName}</span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </>
+                  )}
+
+                  {((searchType === 'users' && searchResults.length > 0) || 
+                    (searchType === 'posts' && postResults.length > 0)) && (
+                    <button
+                      type="button"
+                      className="mobile-search-view-all"
+                      onClick={handleSearchSubmit}
+                    >
+                      Ver todos los resultados <ChevronRight size={16} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             <hr className="mobile-drawer-divider" />
