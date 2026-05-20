@@ -3,9 +3,10 @@ package com.cultureSL.CultureLog.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
 
 /**
@@ -66,9 +67,11 @@ public class RestClientConfig {
                 .build();
     }
 
-    private SimpleClientHttpRequestFactory buildFactory(int connectSeconds, int readSeconds) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofSeconds(connectSeconds));
+    private JdkClientHttpRequestFactory buildFactory(int connectSeconds, int readSeconds) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(connectSeconds))
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(readSeconds));
         return factory;
     }
