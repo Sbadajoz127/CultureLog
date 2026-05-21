@@ -48,11 +48,13 @@ export function MediaItemDetailModal({
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
 
   useEffect(() => {
     setAdded(false);
     setAdding(false);
     setPublishing(false);
+    setDescExpanded(false);
   }, [item]);
 
   useEffect(() => {
@@ -241,7 +243,18 @@ export function MediaItemDetailModal({
             <h3 className="mdm-section-title">
               <BookOpen size={16} /> Sinopsis
             </h3>
-            <p className="mdm-section-text">{item.description}</p>
+            <p className={`mdm-section-text${!descExpanded && item.description.length > 300 ? ' mdm-section-text--clamped' : ''}`}>
+              {item.description}
+            </p>
+            {item.description.length > 300 && (
+              <button
+                type="button"
+                className="mdm-read-more-btn"
+                onClick={() => setDescExpanded((v) => !v)}
+              >
+                {descExpanded ? 'Leer menos' : 'Leer más'}
+              </button>
+            )}
           </div>
         )}
 

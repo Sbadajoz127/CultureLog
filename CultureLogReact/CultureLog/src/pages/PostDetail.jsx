@@ -24,6 +24,7 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [confirmModal, setConfirmModal] = useState({ open: false, type: null, id: null });
+  const [descExpanded, setDescExpanded] = useState(false);
 
   const linkedItem = useMemo(() => ({
     id: post?.linkedItemId,
@@ -61,6 +62,7 @@ export default function PostDetail() {
 
   useEffect(() => {
     load();
+    setDescExpanded(false);
   }, [load]);
 
   const handleLike = async () => {
@@ -190,10 +192,19 @@ export default function PostDetail() {
                   </p>
                   {linkedItem.album && <p className="text-muted">Álbum: {linkedItem.album}</p>}
                   {linkedItem.genre && <p className="text-muted">Género: {linkedItem.genre}</p>}
-                  <p className="post-detail-linked-description">
+                  <p className={`post-detail-linked-description${!descExpanded && linkedItemDescriptionText.length > 300 ? ' post-detail-linked-description--clamped' : ''}`}>
                     <strong>Descripción: </strong>
                     {linkedItemDescriptionText}
                   </p>
+                  {linkedItemDescriptionText.length > 300 && (
+                    <button
+                      type="button"
+                      className="mdm-read-more-btn"
+                      onClick={() => setDescExpanded((v) => !v)}
+                    >
+                      {descExpanded ? 'Leer menos' : 'Leer más'}
+                    </button>
+                  )}
                 </div>
               </section>
             )}

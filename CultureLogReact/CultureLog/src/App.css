@@ -4148,6 +4148,13 @@ input[type="password"]::-ms-clear {
   text-align: justify;
 }
 
+.post-detail-linked-description--clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .post-detail-comments {
   display: grid;
   gap: 10px;
@@ -4567,6 +4574,27 @@ input[type="password"]::-ms-clear {
   line-height: 1.6;
   color: var(--text-muted);
   white-space: pre-line;
+}
+
+.mdm-section-text--clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mdm-read-more-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 0 0;
+}
+
+.mdm-read-more-btn:hover {
+  text-decoration: underline;
 }
 
 .mdm-comment {
