@@ -9,21 +9,15 @@ import { useAuth } from '../context/AuthContext';
 import { MEDIA_TYPE_LABELS } from '../constants/media';
 import { toast } from 'sonner';
 import { getPostById, getPostComments, togglePostLike, togglePostSave, deletePost } from '../services/api';
+import { formatDateTime, formatReleaseDate } from '../utils/dateFormat';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import '../App.css';
-
-function formatDate(iso) {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-  } catch {
-    return iso;
-  }
-}
 
 export default function PostDetail() {
   const { user } = useAuth();
   const { postId } = useParams();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -136,7 +130,7 @@ export default function PostDetail() {
       <main className="feed post-detail-page">
         <button
           type="button"
-          className="post-detail-back-btn"
+          className="post-detail-back-btn post-detail-back-top"
           onClick={() => navigate(-1)}
           aria-label="Volver"
         >
@@ -166,10 +160,10 @@ export default function PostDetail() {
                   )}
                 </div>
               </div>
-              <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+              <span className="text-dim post-date">{formatDateTime(post.createdAt, isMobile)}</span>
               {post.authorId === user?.id && (
                 <button type="button" className="post-like-btn post-delete-btn" onClick={openDeletePostModal}>
-                  <Trash2 size={16} /> Eliminar
+                  <Trash2 size={16} /> <span className="post-delete-label">Eliminar</span>
                 </button>
               )}
             </div>
@@ -191,7 +185,7 @@ export default function PostDetail() {
                   <p className="text-muted">
                     {MEDIA_TYPE_LABELS[linkedItem.type] || linkedItem.type}
                     {linkedItem.creator ? ` · ${linkedItem.creator}` : ''}
-                    {linkedItem.releaseDate ? ` · ${linkedItem.releaseDate}` : ''}
+                    {linkedItem.releaseDate ? ` · ${formatReleaseDate(linkedItem.releaseDate, isMobile)}` : ''}
                     {linkedItem.rating != null ? ` · ${linkedItem.rating}/10` : ''}
                   </p>
                   {linkedItem.album && <p className="text-muted">Álbum: {linkedItem.album}</p>}
@@ -240,6 +234,15 @@ export default function PostDetail() {
             />
           </article>
         )}
+
+        <button
+          type="button"
+          className="post-detail-back-btn post-detail-back-bottom"
+          onClick={() => navigate(-1)}
+          aria-label="Volver"
+        >
+          <ArrowLeft size={20} /> Volver
+        </button>
       </main>
 
       <ConfirmModal

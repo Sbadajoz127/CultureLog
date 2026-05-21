@@ -232,6 +232,8 @@ public class PostServiceImpl implements PostService {
 
         Long postId = comment.getPost().getId();
         Post post = comment.getPost();
+
+        int totalToDelete = 1 + comment.getReplies().size();
         
         // Limpiar referencia del padre si es una respuesta
         if (comment.getParentComment() != null) {
@@ -243,7 +245,7 @@ public class PostServiceImpl implements PostService {
         
         commentRepository.delete(comment);
         commentRepository.flush();
-        postRepository.updateCommentCount(postId, -1);
+        postRepository.updateCommentCount(postId, -totalToDelete);
     }
 
     /** {@inheritDoc} */

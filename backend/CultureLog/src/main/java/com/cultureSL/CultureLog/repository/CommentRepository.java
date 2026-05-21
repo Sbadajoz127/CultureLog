@@ -26,4 +26,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * @return Lista de comentarios ordenados por fecha de creación ascendente.
      */
     List<Comment> findByPostIdOrderByCreatedAtAsc(Long postId);
+
+    long countByPostId(Long postId);
 }

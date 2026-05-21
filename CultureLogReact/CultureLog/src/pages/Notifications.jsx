@@ -9,6 +9,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { getNotifications } from '../services/api';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import '../App.css';
 
 const ICON_MAP = {
@@ -43,7 +44,7 @@ function timeAgo(dateStr) {
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
-function dateLabel(dateStr) {
+function dateLabel(dateStr, isMobile) {
   const date = new Date(dateStr);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -52,14 +53,20 @@ function dateLabel(dateStr) {
   if (diff === 0) return 'Hoy';
   if (diff === 1) return 'Ayer';
   if (diff < 7) return `Hace ${diff} días`;
+  if (isMobile) {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yy = String(date.getFullYear()).slice(-2);
+    return `${dd}/${mm}/${yy}`;
+  }
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function groupByDate(items) {
+function groupByDate(items, isMobile) {
   const groups = [];
   let currentLabel = null;
   for (const item of items) {
-    const label = dateLabel(item.createdAt);
+    const label = dateLabel(item.createdAt, isMobile);
     if (label !== currentLabel) {
       currentLabel = label;
       groups.push({ label, items: [] });
@@ -139,6 +146,7 @@ const PAGE_SIZE = 15;
 export default function Notifications() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const {
     unreadCount,
     pendingRequestsCount,
@@ -220,11 +228,47 @@ export default function Notifications() {
 
   const unreadLocal = allNotifs.filter((n) => !n.read).length;
   const unreadDisplay = Math.max(unreadCount, unreadLocal);
-  const grouped = groupByDate(allNotifs);
+  const grouped = groupByDate(allNotifs, isMobile);
 
   return (
     <>
       <AppHeader userName={user?.username} />
+      {/* --- Mobile Header (visible solo en móvil) --- */}
+      <div className="nc-mobile-header">
+        <div className="nc-mobile-tabs">
+          <button
+            type="button"
+            className={`nc-mobile-tab ${tab === 'activity' ? 'active' : ''}`}
+            onClick={() => setTab('activity')}
+          >
+            <Inbox size={16} />
+            <span className="nc-mobile-tab-text">Actividad</span>
+            {unreadDisplay > 0 && <span className="nc-mobile-badge">{unreadDisplay}</span>}
+          </button>
+          <button
+            type="button"
+            className={`nc-mobile-tab ${tab === 'requests' ? 'active' : ''}`}
+            onClick={() => setTab('requests')}
+          >
+            <Users size={16} />
+            <span className="nc-mobile-tab-text">Solicitudes</span>
+            {pendingRequestsCount > 0 && (
+              <span className="nc-mobile-badge">{pendingRequestsCount}</span>
+            )}
+          </button>
+        </div>
+        {tab === 'activity' && (
+          <button
+            type="button"
+            className="nc-mobile-action"
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0 && unreadLocal === 0}
+            title="Marcar todas como leídas"
+          >
+            <CheckCheck size={18} />
+          </button>
+        )}
+      </div>
       <div className="nc-layout">
         {/* --- Sidebar --- */}
         <aside className="nc-sidebar">
@@ -258,6 +302,18 @@ export default function Notifications() {
             <h1 className="nc-title">
               {tab === 'activity' ? 'Actividad' : 'Solicitudes de seguimiento'}
             </h1>
+            {tab === 'activity' && (
+              <button
+                type="button"
+                className="nc-mark-all-btn nc-mark-all-btn--topbar"
+                onClick={handleMarkAllRead}
+                disabled={unreadCount === 0 && unreadLocal === 0}
+                title="Marcar todas como leídas"
+              >
+                <CheckCheck size={16} />
+                <span className="nc-mark-all-btn-text">Marcar todas</span>
+              </button>
+            )}
           </div>
 
           {tab === 'activity' && !initialReady && <SkeletonActivityList />}

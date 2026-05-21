@@ -22,8 +22,10 @@ import {
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
 import { CustomSelect } from '../components/CustomSelect';
-import { SearchX, PlusCircle } from 'lucide-react';
+import { SearchX, PlusCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatReleaseDate } from '../utils/dateFormat';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import '../App.css';
 
 function SkeletonLibraryItem() {
@@ -82,6 +84,7 @@ function SkeletonSearchSection() {
 }
 
 function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const busy = busyId === item.id;
   const tagList = item.tagNames ? Array.from(item.tagNames) : [];
 
@@ -106,7 +109,7 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
             <p className="library-item-meta text-muted">
               {MEDIA_TYPE_LABELS[item.type] || item.type}
               {item.creator ? ` · ${item.creator}` : ''}
-              {item.releaseDate ? ` · ${item.releaseDate}` : ''}
+              {item.releaseDate ? ` · ${formatReleaseDate(item.releaseDate, isMobile)}` : ''}
             </p>
             {tagList.length > 0 && (
               <div className="tags-container">
@@ -143,7 +146,8 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
           disabled={busy}
           onClick={() => onDelete(item)}
         >
-          Eliminar
+          <Trash2 size={16} className="library-item-delete-icon" />
+          <span className="library-item-delete-text">Eliminar</span>
         </button>
       </div>
     </article>

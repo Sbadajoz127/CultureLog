@@ -6,21 +6,15 @@ import { useAuth } from '../context/AuthContext';
 import { UserAvatar } from './UserAvatar';
 import { ConfirmModal } from './ConfirmModal';
 import { addPostComment, deletePostComment } from '../services/api';
+import { formatDateTime } from '../utils/dateFormat';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const MAX_COMMENT_LENGTH = 1000;
-
-function formatDate(iso) {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-  } catch {
-    return iso;
-  }
-}
 
 export function CommentSection({ postId, postAuthorId, comments, setComments, onCommentCountChange, loading, error, showTitle = false }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -48,8 +42,9 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
     setDeleting(true);
     try {
       await deletePostComment(commentToDelete.id);
+      const repliesCount = comments.filter((c) => c.parentCommentId === commentToDelete.id).length;
       setComments((prev) => prev.filter((c) => c.id !== commentToDelete.id && c.parentCommentId !== commentToDelete.id));
-      onCommentCountChange?.(-1);
+      onCommentCountChange?.(-(1 + repliesCount));
       toast.success('Comentario eliminado');
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo eliminar el comentario');
@@ -166,7 +161,7 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
             >
               {reply.authorName}
             </span>
-            <span className="text-dim">{formatDate(reply.createdAt)}</span>
+            <span className="text-dim">{formatDateTime(reply.createdAt, isMobile)}</span>
           </div>
           {canDeleteComment(reply) && (
             <button
@@ -208,7 +203,7 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
             >
               {c.authorName}
             </span>
-            <span className="text-dim">{formatDate(c.createdAt)}</span>
+            <span className="text-dim">{formatDateTime(c.createdAt, isMobile)}</span>
           </div>
           {canDeleteComment(c) && (
             <button

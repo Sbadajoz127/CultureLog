@@ -8,21 +8,15 @@ import { CommentSection } from './CommentSection';
 import { ConfirmModal } from './ConfirmModal';
 import { MEDIA_TYPE_LABELS } from '../constants/media';
 import { getPostComments, togglePostLike, togglePostSave, deletePost } from '../services/api';
+import { formatDateTime } from '../utils/dateFormat';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const CONTENT_TRUNCATE_LENGTH = 300;
-
-function formatDate(iso) {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-  } catch {
-    return iso;
-  }
-}
 
 export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showAuthorLink = true }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState([]);
@@ -133,7 +127,7 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
           </div>
         </div>
         <div className="post-card-header-right">
-          <span className="text-dim post-date">{formatDate(post.createdAt)}</span>
+          <span className="text-dim post-date">{formatDateTime(post.createdAt, isMobile)}</span>
           {isOwner && (
             <button
               type="button"

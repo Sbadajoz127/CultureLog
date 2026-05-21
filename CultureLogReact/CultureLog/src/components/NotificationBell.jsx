@@ -155,11 +155,13 @@ export function NotificationBell() {
                 {unreadNotifications.map((notif) => {
                   const Icon = ICON_MAP[notif.type] || Bell;
                   return (
-                    <button
+                    <div
                       key={notif.id}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       className="notification-item unread"
                       onClick={() => handleNotificationClick(notif)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleNotificationClick(notif); }}
                     >
                       <div className="notification-item-icon">
                         <Icon size={18} />
@@ -179,7 +181,7 @@ export function NotificationBell() {
                       >
                         <Check size={14} />
                       </button>
-                    </button>
+                    </div>
                   );
                 })}
                 {unreadCount > MAX_DROPDOWN_ITEMS && (

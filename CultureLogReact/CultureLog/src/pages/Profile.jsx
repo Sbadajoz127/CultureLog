@@ -148,6 +148,21 @@ function Profile() {
     setDeleteError('');
   };
 
+  useEffect(() => {
+    if (!showDeleteModal) return;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    const handleKey = (e) => { if (e.key === 'Escape') closeDeleteModal(); };
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [showDeleteModal]);
+
   const handleSave = async (e) => {
     e.preventDefault();
     setError('');
@@ -390,7 +405,7 @@ function Profile() {
                 Cancelar
               </button>
               <button type="submit" className="login-button profile-action-btn" disabled={saving}>
-                {saving ? 'Guardando...' : 'Guardar cambios'}
+                {saving ? 'Guardando...' : <><span>Guardar</span><span className="profile-btn-extra"> cambios</span></>}
               </button>
             </div>
           </form>

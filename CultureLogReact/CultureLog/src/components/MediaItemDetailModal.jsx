@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { X, Star, Calendar, Clock, Tag, BookOpen, User, Layers, Disc3, Plus, PenSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
+import { formatDateOnly } from '../utils/dateFormat';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const SOURCE_LABELS = {
   TMDB: 'TMDB',
@@ -10,19 +12,6 @@ const SOURCE_LABELS = {
   RAWG: 'RAWG',
   DEEZER: 'Deezer',
 };
-
-function formatDate(iso) {
-  if (!iso) return null;
-  try {
-    return new Date(iso + 'T00:00:00').toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 function RatingDisplay({ rating }) {
   if (rating == null) return null;
@@ -53,6 +42,7 @@ export function MediaItemDetailModal({
   onCreatePost,
   onAddAndCreatePost,
 }) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const overlayRef = useRef(null);
   const panelRef = useRef(null);
   const [adding, setAdding] = useState(false);
@@ -68,8 +58,10 @@ export function MediaItemDetailModal({
   useEffect(() => {
     if (!item) return;
 
-    const prev = document.body.style.overflow;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose();
@@ -79,7 +71,8 @@ export function MediaItemDetailModal({
     panelRef.current?.focus();
 
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
       document.removeEventListener('keydown', handleKey);
     };
   }, [item, onClose]);
@@ -87,8 +80,8 @@ export function MediaItemDetailModal({
   if (!item) return null;
 
   const tagList = item.tagNames ? Array.from(item.tagNames) : [];
-  const releaseDateFmt = formatDate(item.releaseDate);
-  const dateAddedFmt = formatDate(item.dateAdded);
+  const releaseDateFmt = formatDateOnly(item.releaseDate, isMobile);
+  const dateAddedFmt = formatDateOnly(item.dateAdded, isMobile);
   const sourceLabel = SOURCE_LABELS[item.externalSource] || item.externalSource;
 
   const canAdd = !isOwn && !alreadyInLibrary && !added && !!item.externalId;
