@@ -48,6 +48,18 @@ export function AppHeader({ active = 'home', userName }) {
   }, [isMobile]);
 
   useEffect(() => {
+    if (!drawerOpen) return;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  }, [drawerOpen]);
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
       const isInsideDesktopSearch = searchRef.current && searchRef.current.contains(e.target);
       const isInsideMobileSearch = mobileSearchSectionRef.current && mobileSearchSectionRef.current.contains(e.target);

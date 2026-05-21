@@ -353,6 +353,21 @@ function PublicProfile() {
     }
   };
 
+  useEffect(() => {
+    if (!connectionsModal) return;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    const handleKey = (e) => { if (e.key === 'Escape') setConnectionsModal(null); };
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [connectionsModal]);
+
   const openConnectionsModal = async (type) => {
     if (!profile?.id) return;
     setConnectionsModal(type);

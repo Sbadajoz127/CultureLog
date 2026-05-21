@@ -454,6 +454,20 @@ function CommentsModal({ postId, onClose, onDeleteComment }) {
   const confirm = useConfirm();
 
   useEffect(() => {
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [onClose]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       try {

@@ -58,8 +58,10 @@ export function MediaItemDetailModal({
   useEffect(() => {
     if (!item) return;
 
-    const prev = document.body.style.overflow;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose();
@@ -69,7 +71,8 @@ export function MediaItemDetailModal({
     panelRef.current?.focus();
 
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
       document.removeEventListener('keydown', handleKey);
     };
   }, [item, onClose]);

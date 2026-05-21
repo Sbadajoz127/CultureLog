@@ -9,8 +9,10 @@ function ConfirmModal({ state, onResolve }) {
   useEffect(() => {
     if (!state) return;
 
-    const prev = document.body.style.overflow;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     const handleKey = (e) => {
       if (e.key === 'Escape') onResolve(false);
@@ -19,7 +21,8 @@ function ConfirmModal({ state, onResolve }) {
     confirmBtnRef.current?.focus();
 
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
       document.removeEventListener('keydown', handleKey);
     };
   }, [state, onResolve]);
