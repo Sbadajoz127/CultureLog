@@ -8,8 +8,10 @@ import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
 import com.cultureSL.CultureLog.model.User;
+import com.cultureSL.CultureLog.model.Tag;
 import com.cultureSL.CultureLog.repository.MediaItemRepository;
 import com.cultureSL.CultureLog.repository.PostRepository;
+import com.cultureSL.CultureLog.repository.TagRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
 import com.cultureSL.CultureLog.service.ImageStorageService;
 import com.cultureSL.CultureLog.service.MediaItemService;
@@ -38,6 +40,7 @@ public class MediaItemServiceImpl implements MediaItemService {
     private final MediaItemRepository mediaItemRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final TagRepository tagRepository;
     private final ImageStorageService imageStorageService;
     private final MediaLibraryDuplicateFinder duplicateFinder;
 
@@ -115,7 +118,7 @@ public class MediaItemServiceImpl implements MediaItemService {
     @Override
     @Transactional
     public MediaItem updateItem(Long itemId, Long userId, MediaItemRequest request) {
-        MediaItem item = mediaItemRepository.findById(itemId)
+        MediaItem item = mediaItemRepository.findByIdWithTags(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
 
         if (!item.getUser().getId().equals(userId)) {
@@ -136,7 +139,8 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setExternalSource(request.getExternalSource());
         item.setAlbum(request.getAlbum());
 
-        return mediaItemRepository.save(item);
+        MediaItem saved = mediaItemRepository.save(item);
+        return mediaItemRepository.findByIdWithTags(saved.getId()).orElse(saved);
     }
 
     /** {@inheritDoc} */
@@ -176,5 +180,45 @@ public class MediaItemServiceImpl implements MediaItemService {
 
         item.setItemImageUrl(null);
         mediaItemRepository.save(item);
+    }
+
+    @Override
+    @Transactional
+    public MediaItem addTagToItem(Long itemId, Long userId, Long tagId) {
+        MediaItem item = mediaItemRepository.findByIdWithTags(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+
+        if (!item.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("No tienes permiso para modificar este item");
+        }
+
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new ResourceNotFoundException("Etiqueta no encontrada"));
+
+        if (!tag.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("La etiqueta no pertenece a tu cuenta");
+        }
+
+        item.getTags().add(tag);
+        mediaItemRepository.save(item);
+        return mediaItemRepository.findByIdWithTags(itemId).orElse(item);
+    }
+
+    @Override
+    @Transactional
+    public MediaItem removeTagFromItem(Long itemId, Long userId, Long tagId) {
+        MediaItem item = mediaItemRepository.findByIdWithTags(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+
+        if (!item.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("No tienes permiso para modificar este item");
+        }
+
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new ResourceNotFoundException("Etiqueta no encontrada"));
+
+        item.getTags().remove(tag);
+        mediaItemRepository.save(item);
+        return mediaItemRepository.findByIdWithTags(itemId).orElse(item);
     }
 }

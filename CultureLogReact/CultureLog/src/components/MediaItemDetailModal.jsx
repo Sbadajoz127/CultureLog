@@ -4,6 +4,9 @@ import { toast } from 'sonner';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
 import { formatDateOnly } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { TagChip } from './TagChip';
+import { TagPicker } from './TagPicker';
+import { removeTagFromItem } from '../services/api';
 
 const SOURCE_LABELS = {
   TMDB: 'TMDB',
@@ -41,6 +44,9 @@ export function MediaItemDetailModal({
   onAddToLibrary,
   onCreatePost,
   onAddAndCreatePost,
+  allTags = [],
+  onTagsChange,
+  onAllTagsChange,
 }) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const overlayRef = useRef(null);
@@ -60,10 +66,14 @@ export function MediaItemDetailModal({
   useEffect(() => {
     if (!item) return;
 
-    const prevBody = document.body.style.overflow;
-    const prevHtml = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    const scrollY = window.scrollY;
+    const body = document.body;
+
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.overflow = 'hidden';
 
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose();
@@ -73,15 +83,19 @@ export function MediaItemDetailModal({
     panelRef.current?.focus();
 
     return () => {
-      document.body.style.overflow = prevBody;
-      document.documentElement.style.overflow = prevHtml;
+      body.style.position = '';
+      body.style.top = '';
+      body.style.left = '';
+      body.style.right = '';
+      body.style.overflow = '';
+      window.scrollTo(0, scrollY);
       document.removeEventListener('keydown', handleKey);
     };
   }, [item, onClose]);
 
   if (!item) return null;
 
-  const tagList = item.tagNames ? Array.from(item.tagNames) : [];
+  const tagList = item.tags || [];
   const releaseDateFmt = formatDateOnly(item.releaseDate, isMobile);
   const dateAddedFmt = formatDateOnly(item.dateAdded, isMobile);
   const sourceLabel = SOURCE_LABELS[item.externalSource] || item.externalSource;
@@ -164,6 +178,34 @@ export function MediaItemDetailModal({
               )}
             </div>
 
+            {(tagList.length > 0 || (isOwn && onTagsChange)) && (
+              <div className="mdm-tags-inline">
+                {tagList.map((t) => (
+                  <TagChip
+                    key={t.id}
+                    tag={t}
+                    onRemove={isOwn && onTagsChange ? async (tag) => {
+                      try {
+                        const { data } = await removeTagFromItem(item.id, tag.id);
+                        onTagsChange(data.tags);
+                      } catch {
+                        toast.error('No se pudo quitar la etiqueta.');
+                      }
+                    } : undefined}
+                  />
+                ))}
+                {isOwn && onTagsChange && (
+                  <TagPicker
+                    itemId={item.id}
+                    itemTags={tagList}
+                    allTags={allTags}
+                    onTagsChange={onTagsChange}
+                    onAllTagsChange={onAllTagsChange}
+                  />
+                )}
+              </div>
+            )}
+
             {item.creator && (
               <p className="mdm-meta-line">
                 <User size={14} />
@@ -229,14 +271,6 @@ export function MediaItemDetailModal({
             )}
           </div>
         </div>
-
-        {tagList.length > 0 && (
-          <div className="mdm-section mdm-tags">
-            {tagList.map((t) => (
-              <span key={t} className="mdm-tag-chip">#{t}</span>
-            ))}
-          </div>
-        )}
 
         {item.description && (
           <div className="mdm-section">

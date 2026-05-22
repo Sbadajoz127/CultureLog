@@ -131,4 +131,34 @@ public class MediaItemController {
         mediaItemService.deleteItem(itemId, userId);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Asigna una etiqueta a un ítem multimedia.
+     * <p>Endpoint: {@code POST /api/items/{itemId}/tags/{tagId}}</p>
+     */
+    @PostMapping("/{itemId}/tags/{tagId}")
+    public ResponseEntity<MediaItemResponse> addTagToItem(
+            @PathVariable Long itemId,
+            @PathVariable Long tagId,
+            Authentication authentication) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        MediaItem item = mediaItemService.addTagToItem(itemId, userId, tagId);
+        return ResponseEntity.ok(mediaItemMapper.toDto(item));
+    }
+
+    /**
+     * Desasigna una etiqueta de un ítem multimedia.
+     * <p>Endpoint: {@code DELETE /api/items/{itemId}/tags/{tagId}}</p>
+     */
+    @DeleteMapping("/{itemId}/tags/{tagId}")
+    public ResponseEntity<MediaItemResponse> removeTagFromItem(
+            @PathVariable Long itemId,
+            @PathVariable Long tagId,
+            Authentication authentication) {
+
+        Long userId = (Long) authentication.getPrincipal();
+        MediaItem item = mediaItemService.removeTagFromItem(itemId, userId, tagId);
+        return ResponseEntity.ok(mediaItemMapper.toDto(item));
+    }
 }

@@ -106,6 +106,32 @@ export function createCustomMediaItem(body) {
   return api.post('/items', body);
 }
 
+// ── Tags ──
+
+export function getUserTags() {
+  return api.get('/tags');
+}
+
+export function createTag(body) {
+  return api.post('/tags', body);
+}
+
+export function updateTag(id, body) {
+  return api.put(`/tags/${id}`, body);
+}
+
+export function deleteTag(id) {
+  return api.delete(`/tags/${id}`);
+}
+
+export function addTagToItem(itemId, tagId) {
+  return api.post(`/items/${itemId}/tags/${tagId}`);
+}
+
+export function removeTagFromItem(itemId, tagId) {
+  return api.delete(`/items/${itemId}/tags/${tagId}`);
+}
+
 export function getFeed({ page = 0, size = 10 } = {}) {
   return api.get('/posts/feed', { params: { page, size } });
 }
