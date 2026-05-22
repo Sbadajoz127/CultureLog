@@ -42,7 +42,7 @@ function SmartFallback() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/CultureLog">
       <AuthProvider>
         <ThemeProvider>
           <ProfilePicProvider>
