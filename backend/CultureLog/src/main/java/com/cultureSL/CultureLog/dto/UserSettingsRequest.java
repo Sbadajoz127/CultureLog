@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class UserSettingsRequest {
     private ProfilePrivacy profilePrivacy;
-    private boolean showFutureList;
+    private boolean showLibrary;
     private boolean allowComments;
     private AppTheme theme;
     private String accentColor;

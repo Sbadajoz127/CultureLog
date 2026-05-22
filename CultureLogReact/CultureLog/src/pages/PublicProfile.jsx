@@ -398,10 +398,8 @@ function PublicProfile() {
   const filteredLibrary =
     profile?.libraryItems?.filter((item) => item.status === libraryStatus) ?? [];
 
-  const visibleLibraryTabs =
-    profile && !profile.ownProfile && !profile.showFutureList
-      ? LIBRARY_TABS.filter((t) => t.id !== 'POR_VER')
-      : LIBRARY_TABS;
+  const showLibraryTab =
+    !profile || profile.ownProfile || profile.showLibrary;
 
   const followBtnLabel = () => {
     if (!profile) return '';
@@ -524,13 +522,15 @@ function PublicProfile() {
                   >
                     Publicaciones
                   </button>
-                  <button
-                    type="button"
-                    className={`pub-profile-tab ${activeTab === 'library' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('library')}
-                  >
-                    Biblioteca
-                  </button>
+                  {showLibraryTab && (
+                    <button
+                      type="button"
+                      className={`pub-profile-tab ${activeTab === 'library' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('library')}
+                    >
+                      Biblioteca
+                    </button>
+                  )}
                   {profile.ownProfile && (
                     <>
                       <button
@@ -597,10 +597,10 @@ function PublicProfile() {
                   </div>
                 )}
 
-                {activeTab === 'library' && (
+                {activeTab === 'library' && showLibraryTab && (
                   <div className="pub-profile-content">
                     <nav className="pub-profile-library-tabs">
-                      {visibleLibraryTabs.map((tab) => (
+                      {LIBRARY_TABS.map((tab) => (
                         <button
                           key={tab.id}
                           type="button"

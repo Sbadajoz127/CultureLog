@@ -14,7 +14,7 @@ import com.cultureSL.CultureLog.mapper.PostMapper;
 import com.cultureSL.CultureLog.model.*;
 import com.cultureSL.CultureLog.model.enums.AppTheme;
 import com.cultureSL.CultureLog.model.enums.FollowStatus;
-import com.cultureSL.CultureLog.model.enums.MediaStatus;
+
 import com.cultureSL.CultureLog.model.enums.ProfilePrivacy;
 import com.cultureSL.CultureLog.model.enums.Role;
 import com.cultureSL.CultureLog.repository.AccountDeletionTokenRepository;
@@ -289,7 +289,7 @@ public class UserServiceImpl implements UserService {
 
         // Los booleanos primitivos siempre tienen valor (true/false), así que los
         // asignamos directamente
-        settings.setShowFutureList(request.isShowFutureList());
+        settings.setShowLibrary(request.isShowLibrary());
         settings.setAllowComments(request.isAllowComments());
         settings.setEmailNotifications(request.isEmailNotifications());
 
@@ -334,7 +334,7 @@ public class UserServiceImpl implements UserService {
 
         UserSettings settings = target.getSettings();
         ProfilePrivacy privacy = (settings != null) ? settings.getProfilePrivacy() : ProfilePrivacy.PUBLICO;
-        boolean showFuture = (settings != null) && settings.isShowFutureList();
+        boolean showLibrary = (settings != null) && settings.isShowLibrary();
         boolean isOwn = targetUserId.equals(viewerUserId);
 
         long followerCount = followRepository.countByFollowedIdAndStatus(targetUserId, FollowStatus.ACCEPTED);
@@ -371,13 +371,10 @@ public class UserServiceImpl implements UserService {
             ).getContent();
             posts = postMapper.toDtoList(userPosts, viewerUserId);
 
-            List<MediaItem> items = mediaItemRepository.findByUserIdWithTags(targetUserId);
-            if (!isOwn && !showFuture) {
-                items = items.stream()
-                        .filter(i -> i.getStatus() != MediaStatus.POR_VER)
-                        .toList();
+            if (isOwn || showLibrary) {
+                List<MediaItem> items = mediaItemRepository.findByUserIdWithTags(targetUserId);
+                libraryItems = mediaItemMapper.toDtoList(items);
             }
-            libraryItems = mediaItemMapper.toDtoList(items);
         }
 
         return UserProfileResponse.builder()
@@ -391,7 +388,7 @@ public class UserServiceImpl implements UserService {
                 .followingCount((int) followingCount)
                 .followStatus(followStatus)
                 .ownProfile(isOwn)
-                .showFutureList(showFuture)
+                .showLibrary(showLibrary)
                 .posts(posts)
                 .libraryItems(libraryItems)
                 .build();
