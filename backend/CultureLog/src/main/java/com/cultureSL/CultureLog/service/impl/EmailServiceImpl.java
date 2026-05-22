@@ -24,6 +24,15 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
 
+    private static String escapeHtml(String input) {
+        if (input == null) return "";
+        return input.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\"", "&quot;")
+                    .replace("'", "&#39;");
+    }
+
     /**
      * Envía un correo electrónico genérico con contenido HTML.
      * <p>Este método se ejecuta en un hilo separado (Async).</p>
@@ -62,7 +71,8 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendNewFollowerNotification(String toEmail, String followerUsername) {
         String subject = "¡Tienes un nuevo seguidor en CultureLog!";
-        
+        String safe = escapeHtml(followerUsername);
+
         String htmlContent = """
             <div style="font-family: Arial, sans-serif; color: #333;">
                 <h2 style="color: #448AFF;">¡Alguien te está siguiendo!</h2>
@@ -72,7 +82,7 @@ public class EmailServiceImpl implements EmailService {
                 <br>
                 <p style="font-size: 12px; color: #999;">El equipo de CultureLog</p>
             </div>
-            """.formatted(followerUsername);
+            """.formatted(safe);
 
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
@@ -81,6 +91,7 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendLikeNotification(String toEmail, String likerUsername) {
         String subject = "A alguien le gusta tu publicación en CultureLog";
+        String safe = escapeHtml(likerUsername);
 
         String htmlContent = """
             <div style="font-family: Arial, sans-serif; color: #333;">
@@ -91,7 +102,7 @@ public class EmailServiceImpl implements EmailService {
                 <br>
                 <p style="font-size: 12px; color: #999;">El equipo de CultureLog</p>
             </div>
-            """.formatted(likerUsername);
+            """.formatted(safe);
 
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
@@ -100,6 +111,7 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendCommentNotification(String toEmail, String commenterUsername) {
         String subject = "Nuevo comentario en tu publicación de CultureLog";
+        String safe = escapeHtml(commenterUsername);
 
         String htmlContent = """
             <div style="font-family: Arial, sans-serif; color: #333;">
@@ -110,7 +122,7 @@ public class EmailServiceImpl implements EmailService {
                 <br>
                 <p style="font-size: 12px; color: #999;">El equipo de CultureLog</p>
             </div>
-            """.formatted(commenterUsername);
+            """.formatted(safe);
 
         sendHtmlEmail(toEmail, subject, htmlContent);
     }

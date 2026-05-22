@@ -20,14 +20,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterRequest {
-    /** Nombre de usuario deseado (entre 3 y 30 caracteres, obligatorio). */
     @NotBlank(message = "El nombre de usuario es obligatorio")
     @Size(min = 3, max = 30, message = "El nombre de usuario debe tener entre 3 y 30 caracteres")
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^[a-zA-Z0-9._-]+$",
+            message = "El nombre de usuario solo puede contener letras, números, puntos, guiones y guiones bajos"
+    )
     private String username;
 
-    /** Contraseña en texto plano (mínimo 6 caracteres, se cifrará antes de almacenar). */
     @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    @Size(min = 8, max = 128, message = "La contraseña debe tener entre 8 y 128 caracteres")
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
+            message = "La contraseña debe contener al menos una mayúscula, una minúscula y un número"
+    )
     private String password;
 
     /** Dirección de correo electrónico (formato válido, obligatorio). */

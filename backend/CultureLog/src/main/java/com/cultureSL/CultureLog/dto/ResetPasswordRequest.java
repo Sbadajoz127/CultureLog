@@ -21,6 +21,10 @@ public class ResetPasswordRequest {
     private String token;
 
     @NotBlank(message = "La nueva contraseña es obligatoria")
-    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    @Size(min = 8, max = 128, message = "La contraseña debe tener entre 8 y 128 caracteres")
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
+            message = "La contraseña debe contener al menos una mayúscula, una minúscula y un número"
+    )
     private String newPassword;
 }

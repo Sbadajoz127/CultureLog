@@ -3,8 +3,8 @@ package com.cultureSL.CultureLog.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 /**
  * Token de seguridad temporal para la eliminación de cuentas.
@@ -52,9 +52,10 @@ public class AccountDeletionToken {
      * Genera un código numérico aleatorio de 6 dígitos.
      * @return código de 6 dígitos como String.
      */
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private String generateSixDigitCode() {
-        Random random = new Random();
-        int code = 100000 + random.nextInt(900000);
+        int code = 100000 + SECURE_RANDOM.nextInt(900000);
         return String.valueOf(code);
     }
 

@@ -4,7 +4,9 @@ import com.cultureSL.CultureLog.dto.NotificationResponse;
 import com.cultureSL.CultureLog.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -35,26 +37,28 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<Page<NotificationResponse>> getNotifications(
             Authentication authentication,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
 
         Long userId = (Long) authentication.getPrincipal();
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), 50),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
         return ResponseEntity.ok(notificationService.getUserNotifications(userId, pageable));
     }
 
-    /**
-     * Obtiene solo las notificaciones no leídas del usuario autenticado de forma paginada.
-     * <p>Endpoint: {@code GET /api/notifications/unread?page=0&size=5}</p>
-     *
-     * @param authentication contexto de autenticación con el ID del usuario
-     * @param pageable       configuración de paginación
-     * @return HTTP 200 con la página de {@link NotificationResponse} no leídas
-     */
     @GetMapping("/unread")
     public ResponseEntity<Page<NotificationResponse>> getUnreadNotifications(
             Authentication authentication,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
 
         Long userId = (Long) authentication.getPrincipal();
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), 50),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
         return ResponseEntity.ok(notificationService.getUnreadNotifications(userId, pageable));
     }
 

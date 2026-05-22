@@ -4,6 +4,8 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -126,15 +128,20 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
-        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage());
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, "Método HTTP no soportado");
     }
 
-    /**
-     * Manejador genérico para cualquier excepción no capturada específicamente.
-     *
-     * @param ex excepción no controlada
-     * @return respuesta HTTP 500 con mensaje genérico
-     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnreadable(HttpMessageNotReadableException ex) {
+        log.debug("Petición con cuerpo JSON inválido", ex);
+        return buildResponse(HttpStatus.BAD_REQUEST, "El cuerpo de la petición no es válido");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Acceso denegado");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         log.error("Error no controlado", ex);

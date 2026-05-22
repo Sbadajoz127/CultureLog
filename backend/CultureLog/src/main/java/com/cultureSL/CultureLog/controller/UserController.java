@@ -2,9 +2,11 @@ package com.cultureSL.CultureLog.controller;
 
 import com.cultureSL.CultureLog.dto.UserProfileResponse;
 import com.cultureSL.CultureLog.dto.UserSettingsRequest;
+import com.cultureSL.CultureLog.dto.UserSettingsResponse;
 import com.cultureSL.CultureLog.dto.UserSuggestionResponse;
 import com.cultureSL.CultureLog.model.UserSettings;
 import com.cultureSL.CultureLog.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -118,25 +120,19 @@ public class UserController {
      * @return Objeto UserSettings con las preferencias.
      */
     @GetMapping("/settings")
-    public ResponseEntity<UserSettings> getSettings(Authentication authentication) {
+    public ResponseEntity<UserSettingsResponse> getSettings(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(userService.getSettings(userId));
+        UserSettings settings = userService.getSettings(userId);
+        return ResponseEntity.ok(UserSettingsResponse.from(settings));
     }
 
-    /**
-     * Actualiza la configuración del usuario autenticado.
-     * <p>Endpoint: {@code PUT /api/users/settings}</p>
-     *
-     * @param authentication contexto de autenticación con el ID del usuario
-     * @param request JSON con los nuevos valores.
-     * @return La configuración actualizada.
-     */
     @PutMapping("/settings")
-    public ResponseEntity<UserSettings> updateSettings(
+    public ResponseEntity<UserSettingsResponse> updateSettings(
             Authentication authentication,
-            @RequestBody UserSettingsRequest request) {
+            @Valid @RequestBody UserSettingsRequest request) {
         Long userId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(userService.updateSettings(userId, request));
+        UserSettings settings = userService.updateSettings(userId, request);
+        return ResponseEntity.ok(UserSettingsResponse.from(settings));
     }
 
     /**
