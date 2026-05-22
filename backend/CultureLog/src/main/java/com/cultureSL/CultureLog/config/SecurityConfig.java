@@ -38,6 +38,9 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
 
+    @Value("${cors.allowed-headers}")
+    private String[] allowedHeaders;
+
     /**
      * Define el codificador de contraseñas BCrypt utilizado para cifrar y verificar credenciales.
      *
@@ -81,7 +84,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(allowedOrigins));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of(allowedHeaders));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
