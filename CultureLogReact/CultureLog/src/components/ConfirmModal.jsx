@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import '../App.css';
 
@@ -13,6 +13,7 @@ export function ConfirmModal({
   danger = false,
 }) {
   const confirmBtnRef = useRef(null);
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -22,6 +23,7 @@ export function ConfirmModal({
     } else {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
+      setConfirming(false);
     }
     return () => {
       document.body.style.overflow = '';
@@ -62,7 +64,8 @@ export function ConfirmModal({
             ref={confirmBtnRef}
             type="button"
             className={danger ? 'danger-btn' : 'login-button'}
-            onClick={onConfirm}
+            disabled={confirming}
+            onClick={() => { setConfirming(true); onConfirm(); }}
           >
             {confirmText}
           </button>

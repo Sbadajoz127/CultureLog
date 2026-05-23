@@ -235,16 +235,12 @@ public class PostServiceImpl implements PostService {
 
         int totalToDelete = 1 + comment.getReplies().size();
         
-        // Limpiar referencia del padre si es una respuesta
         if (comment.getParentComment() != null) {
             comment.getParentComment().getReplies().remove(comment);
         }
         
-        // Eliminar de la colección del post para sincronizar la relación bidireccional
         post.getComments().remove(comment);
         
-        commentRepository.delete(comment);
-        commentRepository.flush();
         postRepository.updateCommentCount(postId, -totalToDelete);
     }
 

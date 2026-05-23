@@ -1532,16 +1532,6 @@ input[type="password"]::-ms-clear {
     min-width: 0;
   }
 
-  .library-tag-filter-trigger span {
-    display: none;
-  }
-
-  .library-tag-filter-trigger {
-    padding: 0 10px;
-    justify-content: center;
-    width: auto;
-  }
-
   .library-tag-filter {
     flex: 0 0 auto;
     min-width: 0;
@@ -7289,7 +7279,7 @@ input[type="password"]::-ms-clear {
 
 /* --- 1230px: Compact header --- */
 @media (max-width: 1230px) {
-  .header-user-btn span {
+  .header-user-btn > span:not(.user-avatar-placeholder) {
     display: none;
   }
 
@@ -8162,6 +8152,7 @@ input[type="password"]::-ms-clear {
 .custom-item-badge-feed {
   font-size: 0.72rem;
   margin-left: 10px;
+  text-transform: none;
 }
 
 @media (max-width: 600px) {

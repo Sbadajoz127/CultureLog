@@ -148,7 +148,7 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
             <span className="text-muted"> · {post.linkedItemRating}/10</span>
           )}
           {post.linkedItemCustom && (
-            <span className="custom-item-badge custom-item-badge-feed">Ítem personalizado</span>
+            <span className="custom-item-badge custom-item-badge-feed">Personalizado</span>
           )}
         </div>
       )}

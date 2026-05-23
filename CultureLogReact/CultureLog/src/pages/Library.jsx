@@ -25,7 +25,7 @@ import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
 import { CustomSelect } from '../components/CustomSelect';
 import { TagChip } from '../components/TagChip';
 import { TagManager } from '../components/TagManager';
-import { SearchX, PlusCircle, Trash2, Tag as TagIcon, ChevronDown, Settings2 } from 'lucide-react';
+import { SearchX, PlusCircle, Trash2, Tag as TagIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatReleaseDate } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -604,9 +604,10 @@ function Library() {
                   className={`library-tag-filter-trigger${tagFilter ? ' active' : ''}`}
                   onClick={() => setTagFilterOpen((o) => !o)}
                 >
-                  <TagIcon size={14} />
-                  <span>{tagFilter ? allTags.find((t) => t.id === tagFilter)?.name || 'Etiqueta' : 'Etiqueta'}</span>
-                  <ChevronDown size={14} />
+                  <span className="cselect-value">{tagFilter ? allTags.find((t) => t.id === tagFilter)?.name || 'Etiqueta' : 'Etiqueta'}</span>
+                  <svg className="cselect-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </button>
                 {tagFilterOpen && (
                   <ul className="library-tag-filter-dropdown">
@@ -637,7 +638,7 @@ function Library() {
               aria-label="Gestionar etiquetas"
               title="Gestionar etiquetas"
             >
-              <Settings2 size={18} />
+              <TagIcon size={18} />
             </button>
             <div className="library-view-toggle">
               <button

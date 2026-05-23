@@ -221,10 +221,16 @@ public class AdminServiceImpl implements AdminService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comentario no encontrado"));
 
-        Long postId = comment.getPost().getId();
+        Post post = comment.getPost();
         int totalToDelete = 1 + comment.getReplies().size();
-        commentRepository.delete(comment);
-        postRepository.updateCommentCount(postId, -totalToDelete);
+
+        if (comment.getParentComment() != null) {
+            comment.getParentComment().getReplies().remove(comment);
+        }
+
+        post.getComments().remove(comment);
+
+        postRepository.updateCommentCount(post.getId(), -totalToDelete);
     }
 
     @Override

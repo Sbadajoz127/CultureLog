@@ -5,9 +5,13 @@ const ConfirmContext = createContext(null);
 function ConfirmModal({ state, onResolve }) {
   const overlayRef = useRef(null);
   const confirmBtnRef = useRef(null);
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
-    if (!state) return;
+    if (!state) {
+      setConfirming(false);
+      return;
+    }
 
     const prevBody = document.body.style.overflow;
     const prevHtml = document.documentElement.style.overflow;
@@ -68,7 +72,8 @@ function ConfirmModal({ state, onResolve }) {
             ref={confirmBtnRef}
             type="button"
             className={`confirm-modal-btn confirm-modal-btn-${variant}`}
-            onClick={() => onResolve(true)}
+            disabled={confirming}
+            onClick={() => { setConfirming(true); onResolve(true); }}
           >
             {isAlert ? 'Aceptar' : confirmText}
           </button>

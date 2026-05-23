@@ -28,7 +28,7 @@ public class UserSettingsResponse {
         if (settings == null) return new UserSettingsResponse();
         return UserSettingsResponse.builder()
                 .profilePrivacy(settings.getProfilePrivacy())
-                .showFutureList(settings.isShowFutureList())
+                .showFutureList(settings.isShowLibrary())
                 .allowComments(settings.isAllowComments())
                 .theme(settings.getTheme())
                 .accentColor(settings.getAccentColor())
