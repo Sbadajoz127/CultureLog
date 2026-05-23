@@ -79,14 +79,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findNewsFeed(@Param("userId") Long userId, Pageable pageable);
 
     /**
-     * Recupera todas las publicaciones creadas por un usuario espec?fico (vista de Perfil).
-     * Ordenadas de m?s reciente a m?s antigua.
+     * Recupera todas las publicaciones creadas por un usuario específico (vista de Perfil),
+     * con JOIN FETCH para evitar N+1 en author y linkedItem.
      *
      * @param userId   ID del autor de los posts.
-     * @param pageable configuraci?n de paginaci?n.
-     * @return p?gina de posts pertenecientes al usuario.
+     * @param pageable configuración de paginación.
+     * @return página de posts pertenecientes al usuario.
      */
-    Page<Post> findByAuthorIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    @Query(value = "SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.linkedItem " +
+           "WHERE p.author.id = :userId ORDER BY p.createdAt DESC",
+           countQuery = "SELECT COUNT(p) FROM Post p WHERE p.author.id = :userId")
+    Page<Post> findByAuthorIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
     /**
      * Incrementa o decrementa at?micamente el contador de likes de un post.
@@ -155,15 +158,21 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<MediaItem> findDistinctLinkedItems(@Param("q") String q);
 
     /**
-     * Obtiene los posts que un usuario ha dado like.
+     * Obtiene los posts que un usuario ha dado like, con JOIN FETCH para evitar N+1.
      */
-    @Query("SELECT p FROM Post p JOIN PostLike pl ON pl.post = p WHERE pl.user.id = :userId ORDER BY pl.likedAt DESC")
+    @Query(value = "SELECT p FROM Post p JOIN PostLike pl ON pl.post = p " +
+           "LEFT JOIN FETCH p.author LEFT JOIN FETCH p.linkedItem " +
+           "WHERE pl.user.id = :userId ORDER BY pl.likedAt DESC",
+           countQuery = "SELECT COUNT(p) FROM Post p JOIN PostLike pl ON pl.post = p WHERE pl.user.id = :userId")
     Page<Post> findLikedPostsByUserId(@Param("userId") Long userId, Pageable pageable);
 
     /**
-     * Obtiene los posts guardados por un usuario.
+     * Obtiene los posts guardados por un usuario, con JOIN FETCH para evitar N+1.
      */
-    @Query("SELECT p FROM Post p JOIN PostSave ps ON ps.post = p WHERE ps.user.id = :userId ORDER BY ps.savedAt DESC")
+    @Query(value = "SELECT p FROM Post p JOIN PostSave ps ON ps.post = p " +
+           "LEFT JOIN FETCH p.author LEFT JOIN FETCH p.linkedItem " +
+           "WHERE ps.user.id = :userId ORDER BY ps.savedAt DESC",
+           countQuery = "SELECT COUNT(p) FROM Post p JOIN PostSave ps ON ps.post = p WHERE ps.user.id = :userId")
     Page<Post> findSavedPostsByUserId(@Param("userId") Long userId, Pageable pageable);
 
     /**

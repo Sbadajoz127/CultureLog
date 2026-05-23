@@ -278,8 +278,33 @@ function Library() {
   }, []);
 
   useEffect(() => {
-    loadItems(activeStatus);
-  }, [activeStatus, loadItems]);
+    let cancelled = false;
+    (async () => {
+      setListLoading(true);
+      setListError('');
+      try {
+        const params = activeStatus ? { status: activeStatus } : {};
+        const { data } = await getMediaItems(params);
+        if (cancelled) return;
+        setItems(Array.isArray(data) ? data : []);
+      } catch (e) {
+        if (cancelled) return;
+        setListError(
+          e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar la biblioteca.'
+        );
+        setItems([]);
+      } finally {
+        if (!cancelled) {
+          setListLoading(false);
+          if (!initialDone.current) {
+            initialDone.current = true;
+            setInitialReady(true);
+          }
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeStatus]);
 
   useEffect(() => {
     getUserTags().then(({ data }) => setAllTags(data)).catch(() => {});

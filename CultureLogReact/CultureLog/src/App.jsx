@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ProfilePicProvider } from './context/ProfilePicContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ConfirmProvider } from './context/ConfirmContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import Login from './pages/auth/Login';
@@ -50,35 +51,37 @@ function App() {
               <ConfirmProvider>
                 <AuthNavigationGuard />
                 <ThemedToaster />
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/verify-email" element={<VerifyEmail />} />
+                <ErrorBoundary>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/verify-email" element={<VerifyEmail />} />
 
-                  {/* Protected routes */}
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/library" element={<Library />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/user/:username" element={<PublicProfile />} />
-                    <Route path="/notifications" element={<Notifications />} />
-                    <Route path="/posts/create" element={<CreatePost />} />
-                    <Route path="/posts/:postId" element={<PostDetail />} />
-                    <Route path="/search" element={<SearchPosts />} />
-                    <Route path="/search/users" element={<SearchUsers />} />
-                  </Route>
+                    {/* Protected routes */}
+                    <Route element={<ProtectedRoute />}>
+                      <Route path="/home" element={<Home />} />
+                      <Route path="/library" element={<Library />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/user/:username" element={<PublicProfile />} />
+                      <Route path="/notifications" element={<Notifications />} />
+                      <Route path="/posts/create" element={<CreatePost />} />
+                      <Route path="/posts/:postId" element={<PostDetail />} />
+                      <Route path="/search" element={<SearchPosts />} />
+                      <Route path="/search/users" element={<SearchUsers />} />
+                    </Route>
 
-                  {/* Admin routes */}
-                  <Route element={<ProtectedAdminRoute />}>
-                    <Route path="/admin" element={<AdminDashboard />} />
-                  </Route>
+                    {/* Admin routes */}
+                    <Route element={<ProtectedAdminRoute />}>
+                      <Route path="/admin" element={<AdminDashboard />} />
+                    </Route>
 
-                  {/* Fallback */}
-                  <Route path="*" element={<SmartFallback />} />
-                </Routes>
+                    {/* Fallback */}
+                    <Route path="*" element={<SmartFallback />} />
+                  </Routes>
+                </ErrorBoundary>
               </ConfirmProvider>
             </NotificationProvider>
           </ProfilePicProvider>

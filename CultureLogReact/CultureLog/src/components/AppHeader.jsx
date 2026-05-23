@@ -37,6 +37,7 @@ export function AppHeader({ active = 'home', userName }) {
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
   const mobileSearchSectionRef = useRef(null);
+  const searchSeqRef = useRef(0);
 
   const handleLogout = () => {
     logout();
@@ -85,21 +86,25 @@ export function AppHeader({ active = 'home', userName }) {
       setPostResults([]);
       return;
     }
+    const seq = ++searchSeqRef.current;
     const timer = setTimeout(async () => {
       setSearchLoading(true);
       try {
         if (searchType === 'users') {
           const { data } = await searchUsers({ query: searchQuery.trim(), size: 5 });
+          if (seq !== searchSeqRef.current) return;
           setSearchResults(Array.isArray(data?.content) ? data.content : []);
         } else {
           const { data } = await searchPosts({ query: searchQuery.trim(), size: 5 });
+          if (seq !== searchSeqRef.current) return;
           setPostResults(Array.isArray(data?.content) ? data.content : []);
         }
       } catch {
+        if (seq !== searchSeqRef.current) return;
         setSearchResults([]);
         setPostResults([]);
       } finally {
-        setSearchLoading(false);
+        if (seq === searchSeqRef.current) setSearchLoading(false);
       }
     }, 300);
     return () => clearTimeout(timer);

@@ -5,8 +5,6 @@ import com.cultureSL.CultureLog.dto.CommentResponse;
 import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostRequest;
 import com.cultureSL.CultureLog.dto.PostResponse;
-import com.cultureSL.CultureLog.mapper.PostMapper;
-import com.cultureSL.CultureLog.model.Post;
 import com.cultureSL.CultureLog.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +32,6 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
-    private final PostMapper postMapper;
 
     /**
      * Crea una nueva publicación en el feed del usuario.
@@ -50,8 +47,8 @@ public class PostController {
             @Valid @RequestBody PostRequest request) {
 
         Long userId = (Long) authentication.getPrincipal();
-        Post createdPost = postService.createPost(userId, request.getContent(), request.getLinkedMediaItemId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.toDto(createdPost, userId));
+        PostResponse response = postService.createPost(userId, request.getContent(), request.getLinkedMediaItemId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -141,16 +138,8 @@ public class PostController {
             @Valid @RequestBody CommentRequest request) {
 
         Long userId = (Long) authentication.getPrincipal();
-        var saved = postService.addComment(postId, userId, request.getText(), request.getParentCommentId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommentResponse.builder()
-                .id(saved.getId())
-                .text(saved.getText())
-                .authorName(saved.getAuthor().getUsername())
-                .authorId(saved.getAuthor().getId())
-                .authorProfilePictureUrl(saved.getAuthor().getProfilePictureUrl())
-                .parentCommentId(saved.getParentComment() != null ? saved.getParentComment().getId() : null)
-                .createdAt(saved.getCreatedAt())
-                .build());
+        CommentResponse response = postService.addComment(postId, userId, request.getText(), request.getParentCommentId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{postId}/comments")

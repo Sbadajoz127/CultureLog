@@ -42,7 +42,7 @@ export default function PostDetail() {
   const linkedItemDescriptionText = (linkedItem?.description || '').trim()
     || 'Esta obra no tiene descripción disponible todavía.';
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options = {}) => {
     if (!postId) return;
     setLoading(true);
     setError('');
@@ -51,18 +51,22 @@ export default function PostDetail() {
         getPostById(postId),
         getPostComments(postId),
       ]);
+      if (options.cancelled?.()) return;
       setPost(postData);
       setComments(Array.isArray(commentsData) ? commentsData : []);
     } catch (e) {
+      if (options.cancelled?.()) return;
       setError(e.response?.data?.message || e.response?.data?.error || 'No se pudo cargar la publicación.');
     } finally {
-      setLoading(false);
+      if (!options.cancelled?.()) setLoading(false);
     }
   }, [postId]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load({ cancelled: () => cancelled });
     setDescExpanded(false);
+    return () => { cancelled = true; };
   }, [load]);
 
   const handleLike = async () => {

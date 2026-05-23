@@ -188,7 +188,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     @Transactional(readOnly = true)
     public List<FollowRequestResponse> getPendingRequests(Long userId) {
-        return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.PENDING)
+        return followRepository.findByFollowedIdAndStatusWithFollower(userId, FollowStatus.PENDING)
                 .stream()
                 .map(f -> FollowRequestResponse.builder()
                         .followerId(f.getFollower().getId())
@@ -204,7 +204,7 @@ public class FollowServiceImpl implements FollowService {
     @Transactional(readOnly = true)
     public List<UserSuggestionResponse> getFollowersSummary(Long userId, Long viewerId) {
         validateProfileAccess(userId, viewerId);
-        return followRepository.findByFollowedIdAndStatus(userId, FollowStatus.ACCEPTED)
+        return followRepository.findByFollowedIdAndStatusWithFollower(userId, FollowStatus.ACCEPTED)
                 .stream()
                 .map(f -> new UserSuggestionResponse(
                         f.getFollower().getId(),
@@ -218,7 +218,7 @@ public class FollowServiceImpl implements FollowService {
     @Transactional(readOnly = true)
     public List<UserSuggestionResponse> getFollowingSummary(Long userId, Long viewerId) {
         validateProfileAccess(userId, viewerId);
-        return followRepository.findByFollowerIdAndStatus(userId, FollowStatus.ACCEPTED)
+        return followRepository.findByFollowerIdAndStatusWithFollowed(userId, FollowStatus.ACCEPTED)
                 .stream()
                 .map(f -> new UserSuggestionResponse(
                         f.getFollowed().getId(),

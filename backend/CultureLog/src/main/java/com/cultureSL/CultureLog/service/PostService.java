@@ -1,7 +1,7 @@
 package com.cultureSL.CultureLog.service;
 
-import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.CommentResponse;
+import com.cultureSL.CultureLog.dto.LikeResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.model.Comment;
 import com.cultureSL.CultureLog.model.Post;
@@ -25,10 +25,10 @@ public interface PostService {
      * @param userId            ID del autor
      * @param content           contenido textual del post
      * @param linkedMediaItemId ID del ítem multimedia vinculado (puede ser {@code null})
-     * @return el post creado con su ID generado
+     * @return DTO del post creado
      * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si el usuario o el ítem vinculado no existen
      */
-    Post createPost(Long userId, String content, Long linkedMediaItemId);
+    PostResponse createPost(Long userId, String content, Long linkedMediaItemId);
 
     /**
      * Genera el feed de noticias personalizado para un usuario.
@@ -79,13 +79,14 @@ public interface PostService {
     /**
      * Añade un comentario a una publicación.
      *
-     * @param postId ID de la publicación
-     * @param userId ID del usuario que comenta
-     * @param text   contenido textual del comentario
-     * @return el comentario creado
+     * @param postId          ID de la publicación
+     * @param userId          ID del usuario que comenta
+     * @param text            contenido textual del comentario
+     * @param parentCommentId ID del comentario padre (puede ser {@code null})
+     * @return DTO del comentario creado
      * @throws com.cultureSL.CultureLog.exception.ResourceNotFoundException si el post o el usuario no existen
      */
-    Comment addComment(Long postId, Long userId, String text, Long parentCommentId);
+    CommentResponse addComment(Long postId, Long userId, String text, Long parentCommentId);
 
     /**
      * Elimina un comentario.

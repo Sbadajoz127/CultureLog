@@ -128,4 +128,10 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
      * @param followedId ID del usuario como seguido.
      */
     void deleteByFollowerIdOrFollowedId(Long followerId, Long followedId);
+
+    @Query("SELECT f FROM Follow f JOIN FETCH f.follower WHERE f.followed.id = :followedId AND f.status = :status")
+    List<Follow> findByFollowedIdAndStatusWithFollower(@Param("followedId") Long followedId, @Param("status") FollowStatus status);
+
+    @Query("SELECT f FROM Follow f JOIN FETCH f.followed WHERE f.follower.id = :followerId AND f.status = :status")
+    List<Follow> findByFollowerIdAndStatusWithFollowed(@Param("followerId") Long followerId, @Param("status") FollowStatus status);
 }

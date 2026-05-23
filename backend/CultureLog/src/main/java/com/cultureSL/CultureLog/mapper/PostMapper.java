@@ -1,6 +1,5 @@
 package com.cultureSL.CultureLog.mapper;
 
-import com.cultureSL.CultureLog.dto.CommentResponse;
 import com.cultureSL.CultureLog.dto.PostResponse;
 import com.cultureSL.CultureLog.model.Post;
 import com.cultureSL.CultureLog.repository.PostLikeRepository;
@@ -10,10 +9,9 @@ import org.springframework.stereotype.Component;
 
 import org.springframework.data.domain.Page;
 
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Componente encargado de convertir entidades {@link Post} en DTOs {@link PostResponse}.
@@ -108,7 +106,7 @@ public class PostMapper {
                 .authorName(post.getAuthor().getUsername())
                 .authorProfilePictureUrl(post.getAuthor().getProfilePictureUrl())
                 .likeCount(post.getLikeCount())
-                .commentCount(post.getComments().size())
+                .commentCount(post.getCommentCount())
                 .likedByCurrentUser(isLiked)
                 .savedByCurrentUser(isSaved)
                 .linkedItemId(post.getLinkedItem() != null ? post.getLinkedItem().getId() : null)
@@ -122,19 +120,7 @@ public class PostMapper {
                 .linkedItemDescription(post.getLinkedItemDescription())
                 .linkedItemAlbum(post.getLinkedItemAlbum())
                 .linkedItemCustom(post.isLinkedItemCustom())
-                .recentComments(post.getComments().stream()
-                        .sorted(Comparator.comparing(c -> c.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
-                        .limit(3)
-                        .map(c -> CommentResponse.builder()
-                                .id(c.getId())
-                                .text(c.getText())
-                                .authorName(c.getAuthor().getUsername())
-                                .authorId(c.getAuthor().getId())
-                                .authorProfilePictureUrl(c.getAuthor().getProfilePictureUrl())
-                                .parentCommentId(c.getParentComment() != null ? c.getParentComment().getId() : null)
-                                .createdAt(c.getCreatedAt())
-                                .build())
-                        .collect(Collectors.toList()))
+                .recentComments(Collections.emptyList())
                 .build();
     }
 }

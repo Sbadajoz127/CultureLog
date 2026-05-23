@@ -56,7 +56,7 @@ public class PostServiceImpl implements PostService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public Post createPost(Long userId, String content, Long linkedMediaItemId) {
+    public PostResponse createPost(Long userId, String content, Long linkedMediaItemId) {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
@@ -89,7 +89,7 @@ public class PostServiceImpl implements PostService {
         notificationService.createBulkNotificationsAsync(
                 followerIds, userId, NotificationType.NUEVO_POST, savedPost.getId());
 
-        return savedPost;
+        return postMapper.toDto(savedPost, userId);
     }
 
     /** {@inheritDoc} */
@@ -171,7 +171,7 @@ public class PostServiceImpl implements PostService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public Comment addComment(Long postId, Long userId, String text, Long parentCommentId) {
+    public CommentResponse addComment(Long postId, Long userId, String text, Long parentCommentId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post no encontrado"));
         validatePostAccess(post, userId);
@@ -214,7 +214,15 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        return savedComment;
+        return CommentResponse.builder()
+                .id(savedComment.getId())
+                .text(savedComment.getText())
+                .authorName(author.getUsername())
+                .authorId(author.getId())
+                .authorProfilePictureUrl(author.getProfilePictureUrl())
+                .parentCommentId(parentCommentId)
+                .createdAt(savedComment.getCreatedAt())
+                .build();
     }
 
     /** {@inheritDoc} */
