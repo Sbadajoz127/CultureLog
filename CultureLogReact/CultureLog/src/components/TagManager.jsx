@@ -22,12 +22,10 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
   const confirm = useConfirm();
   const overlayRef = useRef(null);
   const panelRef = useRef(null);
+  const inputRef = useRef(null);
 
   const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState('');
-  const [editColor, setEditColor] = useState('POR_DEFECTO');
   const [busy, setBusy] = useState(false);
-
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('POR_DEFECTO');
 
@@ -45,7 +43,10 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     const handleKey = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (editingId) cancelEdit();
+        else onClose();
+      }
     };
     document.addEventListener('keydown', handleKey);
     panelRef.current?.focus();
@@ -54,7 +55,7 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
       document.documentElement.style.overflow = prevHtml;
       document.removeEventListener('keydown', handleKey);
     };
-  }, [open, onClose]);
+  }, [open, onClose, editingId]);
 
   if (!open) return null;
 
@@ -64,23 +65,24 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
 
   const startEdit = (tag) => {
     setEditingId(tag.id);
-    setEditName(tag.name);
-    setEditColor(tag.color);
+    setNewName(tag.name);
+    setNewColor(tag.color);
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditName('');
-    setEditColor('POR_DEFECTO');
+    setNewName('');
+    setNewColor('POR_DEFECTO');
   };
 
   const saveEdit = async () => {
-    if (!editName.trim() || busy) return;
+    if (!newName.trim() || busy) return;
     setBusy(true);
     try {
-      const { data } = await updateTag(editingId, { name: editName.trim(), color: editColor });
+      const { data } = await updateTag(editingId, { name: newName.trim(), color: newColor });
       onTagsChange(tags.map((t) => (t.id === editingId ? data : t)));
-      setEditingId(null);
+      cancelEdit();
       toast.success('Etiqueta actualizada.');
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo actualizar la etiqueta.');
@@ -101,6 +103,7 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
     try {
       await deleteTag(tag.id);
       onTagsChange(tags.filter((t) => t.id !== tag.id));
+      if (editingId === tag.id) cancelEdit();
       toast.success(`Etiqueta «${tag.name}» eliminada.`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo eliminar la etiqueta.');
@@ -125,6 +128,13 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
     }
   };
 
+  const handleSubmit = () => {
+    if (editingId) saveEdit();
+    else handleCreate();
+  };
+
+  const currentColorHex = TAG_COLORS.find((c) => c.value === newColor)?.hex || '#E0E0E0';
+
   return (
     <div className="mdm-overlay" ref={overlayRef} onClick={handleOverlayClick}>
       <div
@@ -148,100 +158,57 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
           ) : (
             <ul className="tag-manage-list">
               {tags.map((tag) => (
-                <li key={tag.id} className="tag-manage-item">
-                  {editingId === tag.id ? (
-                    <>
-                      <div className="tag-manage-edit-row">
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          maxLength={50}
-                          autoFocus
-                        />
-                        <div className="tag-color-selector-row">
-                          {TAG_COLORS.map((c) => (
-                            <span
-                              key={c.value}
-                              className={`tag-color-dot${editColor === c.value ? ' selected' : ''}`}
-                              style={{ backgroundColor: c.hex, width: 20, height: 20 }}
-                              onClick={() => setEditColor(c.value)}
-                              role="button"
-                              aria-label={c.value}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <div className="tag-manage-item-actions">
-                        <button
-                          type="button"
-                          className="tag-manage-icon-btn"
-                          onClick={saveEdit}
-                          disabled={busy || !editName.trim()}
-                          aria-label="Guardar"
-                        >
-                          <Check size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          className="tag-manage-icon-btn"
-                          onClick={cancelEdit}
-                          aria-label="Cancelar"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="tag-manage-item-dot"
-                        style={{ backgroundColor: tag.colorHex }}
-                      />
-                      <span className="tag-manage-item-name">{tag.name}</span>
-                      <div className="tag-manage-item-actions">
-                        <button
-                          type="button"
-                          className="tag-manage-icon-btn"
-                          onClick={() => startEdit(tag)}
-                          aria-label="Editar"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="tag-manage-icon-btn tag-manage-icon-btn--danger"
-                          onClick={() => handleDelete(tag)}
-                          disabled={busy}
-                          aria-label="Eliminar"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </>
-                  )}
+                <li
+                  key={tag.id}
+                  className={`tag-manage-item${editingId === tag.id ? ' tag-manage-item--editing' : ''}`}
+                >
+                  <span
+                    className="tag-manage-item-dot"
+                    style={{ backgroundColor: tag.colorHex }}
+                  />
+                  <span className="tag-manage-item-name">{tag.name}</span>
+                  <div className="tag-manage-item-actions">
+                    <button
+                      type="button"
+                      className="tag-manage-icon-btn"
+                      onClick={() => editingId === tag.id ? cancelEdit() : startEdit(tag)}
+                      aria-label={editingId === tag.id ? 'Cancelar edición' : 'Editar'}
+                    >
+                      {editingId === tag.id ? <X size={14} /> : <Pencil size={14} />}
+                    </button>
+                    <button
+                      type="button"
+                      className="tag-manage-icon-btn tag-manage-icon-btn--danger"
+                      onClick={() => handleDelete(tag)}
+                      disabled={busy}
+                      aria-label="Eliminar"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
 
-          <div className="tag-manage-create-row">
+          <div className={`tag-manage-create-row${editingId ? ' tag-manage-create-row--editing' : ''}`}>
             <span
               className="tag-color-dot"
               style={{
-                backgroundColor: TAG_COLORS.find((c) => c.value === newColor)?.hex || '#E0E0E0',
+                backgroundColor: currentColorHex,
                 width: 20,
                 height: 20,
                 cursor: 'default',
               }}
             />
             <input
+              ref={inputRef}
               type="text"
-              placeholder="Nueva etiqueta…"
+              placeholder={editingId ? 'Editando etiqueta…' : 'Nueva etiqueta…'}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               maxLength={50}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
             />
             <div className="tag-color-selector-row" style={{ flexShrink: 0 }}>
               {TAG_COLORS.slice(0, 6).map((c) => (
@@ -258,12 +225,22 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
             <button
               type="button"
               className="tag-manage-icon-btn"
-              onClick={handleCreate}
+              onClick={handleSubmit}
               disabled={busy || !newName.trim()}
-              aria-label="Crear etiqueta"
+              aria-label={editingId ? 'Guardar cambios' : 'Crear etiqueta'}
             >
-              <Plus size={16} />
+              {editingId ? <Check size={16} /> : <Plus size={16} />}
             </button>
+            {editingId && (
+              <button
+                type="button"
+                className="tag-manage-icon-btn"
+                onClick={cancelEdit}
+                aria-label="Cancelar edición"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
         </div>
       </div>

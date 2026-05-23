@@ -1225,6 +1225,14 @@ input[type="password"]::-ms-clear {
   border-color: var(--accent-color);
 }
 
+.tag-picker-search-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding-left: 2px;
+}
+
 .tag-picker-list {
   flex: 1;
   overflow-y: auto;
@@ -1465,27 +1473,11 @@ input[type="password"]::-ms-clear {
   color: var(--danger);
 }
 
-.tag-manage-edit-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.tag-manage-edit-row input {
-  flex: 1;
-  height: 32px;
-  padding: 0 8px;
-  font-size: 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-medium);
+.tag-manage-item--editing {
   background: var(--bg-input);
-  color: var(--text-primary);
-  outline: none;
-}
-
-.tag-manage-edit-row input:focus {
-  border-color: var(--accent-color);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-color);
+  padding-left: 8px;
 }
 
 .tag-manage-empty {
@@ -1518,6 +1510,42 @@ input[type="password"]::-ms-clear {
 
 .tag-manage-create-row input:focus {
   border-color: var(--accent-color);
+}
+
+.tag-manage-create-row--editing {
+  border-top-color: var(--accent-color);
+}
+
+@media (max-width: 454px) {
+  .tag-manage-create-row {
+    flex-wrap: wrap;
+  }
+
+  .tag-manage-create-row .tag-color-selector-row {
+    width: 100%;
+    justify-content: center;
+    padding-top: 6px;
+  }
+
+  .tag-manage-create-row input {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .library-tag-filter-trigger span {
+    display: none;
+  }
+
+  .library-tag-filter-trigger {
+    padding: 0 10px;
+    justify-content: center;
+    width: auto;
+  }
+
+  .library-tag-filter {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
 }
 
 /* ── Tag filter in Library toolbar ── */

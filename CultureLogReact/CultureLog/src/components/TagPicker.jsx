@@ -118,12 +118,15 @@ export function TagPicker({ itemId, itemTags = [], allTags, onTagsChange, onAllT
     }
   };
 
-  const handleCreate = async () => {
+  const handleCreate = async (quickCreate = false) => {
     const name = (creating ? newName : search).trim();
     if (!name || busy) return;
+    const color = quickCreate
+      ? TAG_COLORS.filter((c) => c.value !== 'POR_DEFECTO')[Math.floor(Math.random() * (TAG_COLORS.length - 1))].value
+      : newColor;
     setBusy(true);
     try {
-      const { data: tag } = await createTag({ name, color: newColor });
+      const { data: tag } = await createTag({ name, color });
       onAllTagsChange([...allTags, tag]);
 
       const { data: updatedItem } = await addTagToItem(itemId, tag.id);
@@ -171,10 +174,18 @@ export function TagPicker({ itemId, itemTags = [], allTags, onTagsChange, onAllT
             <input
               ref={searchRef}
               type="text"
-              placeholder="Buscar etiqueta…"
+              placeholder="Buscar o crear etiqueta…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && search.trim() && !exactMatch) {
+                  handleCreate(true);
+                }
+              }}
             />
+            {search.trim() && !exactMatch && (
+              <span className="tag-picker-search-hint">Enter para crear rápido</span>
+            )}
           </div>
 
           {filtered.length > 0 ? (
@@ -208,7 +219,7 @@ export function TagPicker({ itemId, itemTags = [], allTags, onTagsChange, onAllT
                 onClick={startCreating}
               >
                 <Plus size={14} />
-                Crear «{search.trim()}»
+                Crear «{search.trim()}» con color…
               </button>
             </div>
           )}
