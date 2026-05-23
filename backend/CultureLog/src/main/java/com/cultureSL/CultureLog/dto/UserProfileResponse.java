@@ -22,7 +22,7 @@ public class UserProfileResponse {
     private int followingCount;
     private String followStatus;
     private boolean ownProfile;
-    private boolean showFutureList;
+    private boolean showLibrary;
 
     private List<PostResponse> posts;
     private List<MediaItemResponse> libraryItems;

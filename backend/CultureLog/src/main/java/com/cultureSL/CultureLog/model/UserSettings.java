@@ -37,11 +37,10 @@ public class UserSettings {
     private ProfilePrivacy profilePrivacy = ProfilePrivacy.PUBLICO;
 
     /**
-     * Indica si la lista de items "Por Ver" (Pendientes) es visible para otros usuarios.
-     * Útil si el usuario quiere compartir lo que ha visto, pero mantener en privado sus planes futuros.
+     * Indica si la biblioteca completa (Visto, Viendo, Por ver) es visible para otros usuarios.
      */
-    @Column(nullable = false)
-    private boolean showFutureList = true;
+    @Column(name = "show_future_list", nullable = false)
+    private boolean showLibrary = true;
 
     /**
      * Interruptor global para permitir o bloquear comentarios en las publicaciones del usuario.

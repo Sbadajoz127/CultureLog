@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 /**
  * DTO de salida que representa un ítem multimedia de la biblioteca del usuario.
@@ -54,6 +54,6 @@ public class MediaItemResponse {
     private String album;
     /** Indica si el ítem fue creado manualmente por el usuario. */
     private boolean custom;
-    /** Nombres de las etiquetas asociadas al ítem. */
-    private Set<String> tagNames;
+    /** Etiquetas asociadas al ítem con id, nombre y color. */
+    private List<TagResponse> tags;
 }

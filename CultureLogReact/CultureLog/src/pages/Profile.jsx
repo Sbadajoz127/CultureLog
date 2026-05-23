@@ -43,7 +43,7 @@ function Profile() {
   const [localAccent, setLocalAccent] = useState(accentColor);
   const [localPrivacy, setLocalPrivacy] = useState(settings?.profilePrivacy || 'PUBLICO');
   const [localAllowComments, setLocalAllowComments] = useState(settings?.allowComments ?? true);
-  const [localShowFutureList, setLocalShowFutureList] = useState(settings?.showFutureList ?? true);
+  const [localShowLibrary, setLocalShowLibrary] = useState(settings?.showLibrary ?? true);
   const [localEmailNotifications, setLocalEmailNotifications] = useState(settings?.emailNotifications ?? true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -66,7 +66,7 @@ function Profile() {
     if (settings) {
       setLocalPrivacy(settings.profilePrivacy || 'PUBLICO');
       setLocalAllowComments(settings.allowComments ?? true);
-      setLocalShowFutureList(settings.showFutureList ?? true);
+      setLocalShowLibrary(settings.showLibrary ?? true);
       setLocalEmailNotifications(settings.emailNotifications ?? true);
     }
   }, [settings]);
@@ -199,7 +199,7 @@ function Profile() {
       await updateSettings({
         profilePrivacy: localPrivacy,
         allowComments: localAllowComments,
-        showFutureList: localShowFutureList,
+        showLibrary: localShowLibrary,
         emailNotifications: localEmailNotifications,
       });
 
@@ -365,14 +365,14 @@ function Profile() {
             </div>
 
             <div className="input-group">
-              <label>Mostrar lista &quot;Por ver&quot;</label>
+              <label>Mostrar biblioteca</label>
               <button
                 type="button"
-                className={`toggle-switch ${localShowFutureList ? 'active' : ''}`}
-                onClick={() => setLocalShowFutureList((v) => !v)}
+                className={`toggle-switch ${localShowLibrary ? 'active' : ''}`}
+                onClick={() => setLocalShowLibrary((v) => !v)}
                 disabled={saving}
                 role="switch"
-                aria-checked={localShowFutureList}
+                aria-checked={localShowLibrary}
               >
                 <span className="toggle-knob" />
               </button>

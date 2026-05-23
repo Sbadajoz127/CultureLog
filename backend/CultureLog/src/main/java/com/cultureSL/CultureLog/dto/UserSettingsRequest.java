@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 public class UserSettingsRequest {
     private ProfilePrivacy profilePrivacy;
-    private boolean showFutureList;
+    private boolean showLibrary;
     private boolean allowComments;
     private AppTheme theme;
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "El color debe tener formato hexadecimal (#RRGGBB)")

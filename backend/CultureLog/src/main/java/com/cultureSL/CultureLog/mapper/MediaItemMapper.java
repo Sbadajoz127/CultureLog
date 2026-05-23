@@ -2,29 +2,24 @@ package com.cultureSL.CultureLog.mapper;
 
 import com.cultureSL.CultureLog.dto.MediaItemResponse;
 import com.cultureSL.CultureLog.model.MediaItem;
-import com.cultureSL.CultureLog.model.Tag;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Componente encargado de convertir entidades {@link MediaItem} en DTOs {@link MediaItemResponse}.
- * <p>
- * Transforma los datos de la entidad JPA, incluyendo los nombres de las etiquetas
- * asociadas, en un formato adecuado para la respuesta de la API REST.
- * </p>
  */
 @Component
+@RequiredArgsConstructor
 public class MediaItemMapper {
 
-    /**
-     * Convierte un ítem multimedia en su DTO de respuesta.
-     *
-     * @param item entidad del ítem a convertir
-     * @return DTO con los datos del ítem y los nombres de sus etiquetas
-     */
+    private final TagMapper tagMapper;
+
     public MediaItemResponse toDto(MediaItem item) {
+        boolean tagsLoaded = Hibernate.isInitialized(item.getTags());
         return MediaItemResponse.builder()
                 .id(item.getId())
                 .title(item.getTitle())
@@ -42,9 +37,7 @@ public class MediaItemMapper {
                 .externalSource(item.getExternalSource())
                 .album(item.getAlbum())
                 .custom(item.isCustom())
-                .tagNames(item.getTags().stream()
-                        .map(Tag::getName)
-                        .collect(Collectors.toSet()))
+                .tags(tagsLoaded ? tagMapper.toDtoList(item.getTags()) : Collections.emptyList())
                 .build();
     }
 

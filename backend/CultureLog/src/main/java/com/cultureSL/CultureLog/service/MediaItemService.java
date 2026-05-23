@@ -77,4 +77,24 @@ public interface MediaItemService {
      * @throws com.cultureSL.CultureLog.exception.UnauthorizedException     si el ítem no pertenece al usuario
      */
     void deleteItem(Long itemId, Long userId);
+
+    /**
+     * Asigna una etiqueta a un ítem multimedia.
+     *
+     * @param itemId ID del ítem
+     * @param userId ID del usuario propietario
+     * @param tagId  ID de la etiqueta a asignar
+     * @return el ítem actualizado con tags cargados
+     */
+    MediaItem addTagToItem(Long itemId, Long userId, Long tagId);
+
+    /**
+     * Desasigna una etiqueta de un ítem multimedia.
+     *
+     * @param itemId ID del ítem
+     * @param userId ID del usuario propietario
+     * @param tagId  ID de la etiqueta a quitar
+     * @return el ítem actualizado con tags cargados
+     */
+    MediaItem removeTagFromItem(Long itemId, Long userId, Long tagId);
 }

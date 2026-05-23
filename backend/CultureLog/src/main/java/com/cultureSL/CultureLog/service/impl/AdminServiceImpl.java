@@ -123,7 +123,7 @@ public class AdminServiceImpl implements AdminService {
                 .followingCount((int) followingCount)
                 .followStatus("NONE")
                 .ownProfile(false)
-                .showFutureList(true)
+                .showLibrary(true)
                 .posts(posts)
                 .libraryItems(libraryItems)
                 .build();

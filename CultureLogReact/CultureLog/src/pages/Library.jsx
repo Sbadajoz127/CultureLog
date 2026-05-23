@@ -18,11 +18,14 @@ import {
   updateMediaItem,
   deleteMediaItem,
   createCustomMediaItem,
+  getUserTags,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
 import { CustomSelect } from '../components/CustomSelect';
-import { SearchX, PlusCircle, Trash2 } from 'lucide-react';
+import { TagChip } from '../components/TagChip';
+import { TagManager } from '../components/TagManager';
+import { SearchX, PlusCircle, Trash2, Tag as TagIcon, ChevronDown, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatReleaseDate } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -86,7 +89,7 @@ function SkeletonSearchSection() {
 function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const busy = busyId === item.id;
-  const tagList = item.tagNames ? Array.from(item.tagNames) : [];
+  const tagList = item.tags || [];
 
   return (
     <article className="library-item-card">
@@ -114,9 +117,7 @@ function LibraryItemCard({ item, onStatusChange, onDelete, onItemClick, busyId }
             {tagList.length > 0 && (
               <div className="tags-container">
                 {tagList.map((tag) => (
-                  <span key={tag} className="custom-tag">
-                    #{tag}
-                  </span>
+                  <TagChip key={tag.id} tag={tag} />
                 ))}
               </div>
             )}
@@ -217,7 +218,11 @@ function Library() {
 
   const [nameFilter, setNameFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [tagFilter, setTagFilter] = useState(null);
   const [viewMode, setViewMode] = useState('list');
+  const [allTags, setAllTags] = useState([]);
+  const [tagFilterOpen, setTagFilterOpen] = useState(false);
+  const tagFilterRef = useRef(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('');
@@ -232,6 +237,7 @@ function Library() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [customSubmitting, setCustomSubmitting] = useState(false);
+  const [tagManagerOpen, setTagManagerOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -242,8 +248,13 @@ function Library() {
       const q = nameFilter.toLowerCase();
       result = result.filter((item) => item.title.toLowerCase().includes(q));
     }
+    if (tagFilter) {
+      result = result.filter((item) =>
+        item.tags && item.tags.some((t) => t.id === tagFilter)
+      );
+    }
     return result;
-  }, [items, nameFilter, typeFilter]);
+  }, [items, nameFilter, typeFilter, tagFilter]);
 
   const loadItems = useCallback(async (status) => {
     setListLoading(true);
@@ -271,8 +282,24 @@ function Library() {
   }, [activeStatus, loadItems]);
 
   useEffect(() => {
+    getUserTags().then(({ data }) => setAllTags(data)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!tagFilterOpen) return;
+    const handle = (e) => {
+      if (tagFilterRef.current && !tagFilterRef.current.contains(e.target)) {
+        setTagFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [tagFilterOpen]);
+
+  useEffect(() => {
     setNameFilter('');
     setTypeFilter('');
+    setTagFilter(null);
   }, [activeStatus]);
 
   const handleStatusChange = async (item, newStatus) => {
@@ -570,6 +597,48 @@ function Library() {
               onChange={setTypeFilter}
               ariaLabel="Filtrar por tipo de medio"
             />
+            {allTags.length > 0 && (
+              <div className="library-tag-filter" ref={tagFilterRef}>
+                <button
+                  type="button"
+                  className={`library-tag-filter-trigger${tagFilter ? ' active' : ''}`}
+                  onClick={() => setTagFilterOpen((o) => !o)}
+                >
+                  <TagIcon size={14} />
+                  <span>{tagFilter ? allTags.find((t) => t.id === tagFilter)?.name || 'Etiqueta' : 'Etiqueta'}</span>
+                  <ChevronDown size={14} />
+                </button>
+                {tagFilterOpen && (
+                  <ul className="library-tag-filter-dropdown">
+                    <li
+                      className={`library-tag-filter-option${!tagFilter ? ' active' : ''}`}
+                      onClick={() => { setTagFilter(null); setTagFilterOpen(false); }}
+                    >
+                      Todas
+                    </li>
+                    {allTags.map((tag) => (
+                      <li
+                        key={tag.id}
+                        className={`library-tag-filter-option${tagFilter === tag.id ? ' active' : ''}`}
+                        onClick={() => { setTagFilter(tag.id); setTagFilterOpen(false); }}
+                      >
+                        <span className="library-tag-filter-dot" style={{ backgroundColor: tag.colorHex }} />
+                        {tag.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            <button
+              type="button"
+              className="library-view-btn"
+              onClick={() => setTagManagerOpen(true)}
+              aria-label="Gestionar etiquetas"
+              title="Gestionar etiquetas"
+            >
+              <Settings2 size={18} />
+            </button>
             <div className="library-view-toggle">
               <button
                 type="button"
@@ -613,7 +682,7 @@ function Library() {
             )
           ) : filteredItems.length === 0 ? (
             <p className="text-muted library-empty">
-              {nameFilter.trim() || typeFilter
+              {nameFilter.trim() || typeFilter || tagFilter
                 ? 'No se encontraron ítems con esos filtros.'
                 : 'No hay ítems en esta lista.'}
             </p>
@@ -649,6 +718,14 @@ function Library() {
         onClose={() => setSelectedItem(null)}
         isOwn
         alreadyInLibrary
+        allTags={allTags}
+        onTagsChange={(newTags) => {
+          if (!selectedItem) return;
+          const updated = { ...selectedItem, tags: newTags };
+          setSelectedItem(updated);
+          setItems((prev) => prev.map((it) => it.id === updated.id ? { ...it, tags: newTags } : it));
+        }}
+        onAllTagsChange={setAllTags}
         onCreatePost={selectedItem ? () => {
           navigate('/posts/create', {
             state: {
@@ -672,6 +749,21 @@ function Library() {
         onClose={() => setCustomModalOpen(false)}
         onSubmit={handleCustomItemSubmit}
         submitting={customSubmitting}
+      />
+
+      <TagManager
+        open={tagManagerOpen}
+        onClose={() => setTagManagerOpen(false)}
+        tags={allTags}
+        onTagsChange={(updated) => {
+          setAllTags(updated);
+          setItems((prev) => prev.map((it) => ({
+            ...it,
+            tags: it.tags
+              ? it.tags.map((t) => updated.find((u) => u.id === t.id) || t).filter((t) => updated.some((u) => u.id === t.id))
+              : [],
+          })));
+        }}
       />
     </div>
   );
