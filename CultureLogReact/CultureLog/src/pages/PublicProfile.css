@@ -1,0 +1,410 @@
+/* ===================================================================
+   PUBLIC PROFILE
+   =================================================================== */
+
+.pub-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 4vw, 40px);
+  padding: clamp(20px, 4vw, 32px) clamp(16px, 4vw, 40px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+
+.pub-profile-avatar-section {
+  flex-shrink: 0;
+}
+
+.pub-profile-avatar {
+  width: 96px !important;
+  height: 96px !important;
+  border-radius: 50%;
+  font-size: 2rem;
+}
+
+.pub-profile-info {
+  min-width: 0;
+}
+
+.pub-profile-top-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.pub-profile-username {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pub-profile-edit-btn {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pub-profile-edit-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.pub-profile-follow-btn {
+  padding: 8px 24px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent-color);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pub-profile-follow-btn:hover {
+  opacity: 0.85;
+}
+
+.pub-profile-follow-btn.following {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+}
+
+.pub-profile-follow-btn.following:hover {
+  border-color: #e74c3c;
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.08);
+}
+
+.pub-profile-follow-btn.pending {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border: 1px solid var(--border-medium);
+}
+
+.pub-profile-follow-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pub-profile-follow-btn.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* --- STATS --- */
+
+.pub-profile-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.pub-profile-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.pub-profile-stat-count {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pub-profile-stat-label {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+/* --- TABS --- */
+
+.pub-profile-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 16px;
+  gap: 0;
+  justify-content: center;
+}
+
+.pub-profile-tab {
+  padding: 0 20px 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.pub-profile-tab:hover {
+  color: var(--text-primary);
+}
+
+.pub-profile-tab.active {
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
+}
+
+/* --- CONTENT AREA --- */
+
+.pub-profile-content {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.pub-profile-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* --- LIBRARY TABS (sub-tabs for status) --- */
+
+.pub-profile-library-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0;
+}
+
+/* --- LIBRARY GRID --- */
+
+.pub-profile-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.pub-profile-library-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pub-profile-library-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.pub-profile-library-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.pub-profile-library-img-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.pub-profile-library-card-body {
+  padding: 10px 12px;
+}
+
+.pub-profile-library-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pub-profile-library-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* --- EMPTY STATES --- */
+
+.pub-profile-empty {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+}
+
+.pub-profile-empty-text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0 0 16px;
+}
+
+.pub-profile-cta-btn {
+  margin-top: 8px;
+}
+
+/* --- PRIVATE PROFILE --- */
+
+.pub-profile-private {
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.pub-profile-private-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.pub-profile-private-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.pub-profile-private-text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* --- CLICKABLE AUTHOR NAMES --- */
+
+.post-author-link {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.post-author-link:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+.suggestion-user-link {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.suggestion-user-link:hover {
+  opacity: 0.8;
+}
+
+/* ==================== Public Profile Banner ==================== */
+.pub-profile-banner {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  margin-bottom: -40px;
+}
+
+.pub-profile-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pub-profile-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--banner-overlay-start) 0%,
+    var(--banner-overlay-mid) 60%,
+    var(--banner-overlay-end) 100%
+  );
+  pointer-events: none;
+}
+
+.pub-profile-header.has-banner {
+  padding-top: 0;
+}
+
+.pub-profile-header.has-banner .pub-profile-avatar-section {
+  margin-top: -30px;
+  z-index: 1;
+}
+
+.pub-profile-header.has-banner .pub-profile-avatar {
+  border: 4px solid var(--bg-primary);
+  border-radius: 50%;
+}
+
+.pub-profile-header.has-banner .pub-profile-info {
+  position: relative;
+  z-index: 1;
+}
+
+.pub-profile-header.has-banner .pub-profile-username {
+  text-shadow: 0 2px 8px var(--banner-text-shadow);
+}
+
+/* ==================== Clickable Stats ==================== */
+.pub-profile-stat-clickable {
+  cursor: pointer;
+  padding: 8px 12px;
+  margin: -8px -12px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.pub-profile-stat-clickable:hover {
+  background: var(--hover-overlay);
+}
+
+.pub-profile-stat-clickable:focus {
+  outline: none;
+}
+
+.pub-profile-stat-clickable .pub-profile-stat-count {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.pub-profile-stat-clickable .pub-profile-stat-label {
+  color: var(--text-secondary);
+}
+
+.pub-profile-stat-clickable:hover .pub-profile-stat-count {
+  text-decoration: underline;
+}
+
+/* PublicProfile library card clickable */
+.pub-profile-library-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pub-profile-library-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px var(--shadow-card);
+}
+

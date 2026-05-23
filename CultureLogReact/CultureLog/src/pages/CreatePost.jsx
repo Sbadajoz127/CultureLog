@@ -17,7 +17,7 @@ import { Search, X, BookOpen, ArrowLeft, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatReleaseDate } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import '../App.css';
+import './CreatePost.css';
 
 const MAX_POST_LENGTH = 2000;
 

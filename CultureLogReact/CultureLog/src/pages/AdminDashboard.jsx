@@ -19,7 +19,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { toast } from 'sonner';
-import '../App.css';
+import './AdminDashboard.css';
 
 const PIE_COLORS = ['#448AFF', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#36A2EB'];
 

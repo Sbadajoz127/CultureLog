@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import './CustomSelect.css';
 
 export function CustomSelect({ options, value, onChange, ariaLabel, className = '' }) {
   const [open, setOpen] = useState(false);

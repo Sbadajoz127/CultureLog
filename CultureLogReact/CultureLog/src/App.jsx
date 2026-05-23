@@ -24,7 +24,8 @@ import SearchPosts from './pages/SearchPosts';
 import SearchUsers from './pages/SearchUsers';
 import AdminDashboard from './pages/AdminDashboard';
 import ThemedToaster from './components/ThemedToaster';
-import './App.css';
+import './styles/global.css';
+import './styles/shared.css';
 
 function AuthNavigationGuard() {
   const navigate = useNavigate();

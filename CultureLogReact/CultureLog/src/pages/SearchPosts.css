@@ -1,0 +1,91 @@
+/* ==================== Search Posts Page ==================== */
+.search-posts-header {
+  margin-bottom: 24px;
+}
+
+.search-posts-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.search-posts-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.search-posts-input-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.search-posts-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-posts-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px 0 44px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-posts-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.search-posts-input::placeholder {
+  color: var(--text-faint);
+}
+
+.search-posts-btn {
+  height: 44px;
+  padding: 0 24px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.search-posts-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.search-posts-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.search-posts-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .search-posts-form {
+    flex-direction: column;
+  }
+
+  .search-posts-btn {
+    width: 100%;
+  }
+}
+

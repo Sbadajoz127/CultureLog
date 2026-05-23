@@ -3,6 +3,7 @@ import { X, Pencil, Trash2, Check, Plus } from 'lucide-react';
 import { createTag, updateTag, deleteTag } from '../services/api';
 import { useConfirm } from '../context/ConfirmContext';
 import { toast } from 'sonner';
+import './TagManager.css';
 
 const TAG_COLORS = [
   { value: 'ROJO', hex: '#FF5252' },

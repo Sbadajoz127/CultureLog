@@ -15,7 +15,7 @@ import {
   requestAccountDeletion,
   confirmAccountDeletion,
 } from '../services/api';
-import '../App.css';
+import './Profile.css';
 
 const THEME_OPTIONS = [
   { value: 'DARK', label: 'Oscuro' },

@@ -29,7 +29,7 @@ import { SearchX, PlusCircle, Trash2, Tag as TagIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatReleaseDate } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import '../App.css';
+import './Library.css';
 
 function SkeletonLibraryItem() {
   return (

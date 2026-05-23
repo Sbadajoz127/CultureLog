@@ -7,7 +7,7 @@ import { UserAvatar } from './UserAvatar';
 import { NotificationBell } from './NotificationBell';
 import { searchUsers, searchPosts } from '../services/api';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import '../App.css';
+import './AppHeader.css';
 
 const MEDIA_TYPE_ICONS = {
   PELICULA: Film,
@@ -337,7 +337,7 @@ export function AppHeader({ active = 'home', userName }) {
         <NotificationBell />
         <button type="button" className="header-user-btn" onClick={() => navigate(`/user/${userName}`)}>
           <UserAvatar src={profilePic} name={userName} size="small" />
-          <span>@{userName}</span>
+          <span className="header-user-btn-name">@{userName}</span>
         </button>
         <button type="button" className="logout-button" onClick={handleLogout} aria-label="Cerrar sesión">
           <LogOut size={18} className="logout-icon" />

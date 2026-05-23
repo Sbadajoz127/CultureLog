@@ -19,7 +19,7 @@ import {
   addToLibraryFromSearch,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
-import '../App.css';
+import './PublicProfile.css';
 
 function formatDate(iso) {
   if (!iso) return '';

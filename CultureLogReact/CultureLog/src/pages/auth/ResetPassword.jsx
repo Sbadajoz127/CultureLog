@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { resetPassword } from '../../services/api';
-import '../../App.css';
+import './Auth.css';
 
 function ResetPassword() {
   const [token, setToken] = useState('');

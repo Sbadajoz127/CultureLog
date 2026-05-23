@@ -1,0 +1,33 @@
+/* Search users page (reuses search-posts form styles) */
+.search-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-users-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.search-users-row:hover {
+  border-color: var(--accent-muted);
+  background: var(--bg-card);
+}
+
+.search-users-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.search-users-placeholder-icon {
+  margin-bottom: 12px;
+}
+

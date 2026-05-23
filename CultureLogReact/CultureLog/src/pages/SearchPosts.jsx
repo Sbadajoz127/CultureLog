@@ -6,7 +6,7 @@ import { AppHeader } from '../components/AppHeader';
 import { PostCard } from '../components/PostCard';
 import { FEED_TABS, postMatchesFeedTab } from '../constants/media';
 import { searchPosts } from '../services/api';
-import '../App.css';
+import './SearchPosts.css';
 
 const SEARCH_PAGE_SIZE = 10;
 

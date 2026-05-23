@@ -12,7 +12,7 @@ import {
   getSuggestedUsers,
   followUser,
 } from '../services/api';
-import '../App.css';
+import './Home.css';
 
 const FEED_PAGE_SIZE = 10;
 

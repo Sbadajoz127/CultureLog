@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { searchUsers } from '../services/api';
-import '../App.css';
+import './SearchUsers.css';
 
 const SEARCH_PAGE_SIZE = 10;
 

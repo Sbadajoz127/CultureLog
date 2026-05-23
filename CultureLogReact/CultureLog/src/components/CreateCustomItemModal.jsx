@@ -3,6 +3,7 @@ import { X, ImagePlus, Trash2 } from 'lucide-react';
 import { MEDIA_TYPES, MEDIA_STATUS_TABS } from '../constants/media';
 import { uploadImage } from '../services/api';
 import { CustomSelect } from './CustomSelect';
+import './CreateCustomItemModal.css';
 
 const TYPE_OPTIONS = [{ value: '', label: 'Seleccionar tipo' }, ...MEDIA_TYPES.filter((t) => t.value)];
 const STATUS_OPTIONS = MEDIA_STATUS_TABS;

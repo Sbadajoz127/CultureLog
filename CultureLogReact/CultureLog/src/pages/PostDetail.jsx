@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { getPostById, getPostComments, togglePostLike, togglePostSave, deletePost } from '../services/api';
 import { formatDateTime, formatReleaseDate } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import '../App.css';
+import './PostDetail.css';
 
 export default function PostDetail() {
   const { user } = useAuth();

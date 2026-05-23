@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Heart, MessageCircle, UserPlus, BookOpen, Check, CheckCheck, X } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { UserAvatar } from './UserAvatar';
-import '../App.css';
+import '../pages/Notifications.css';
 
 const ICON_MAP = {
   LIKE_POST: Heart,

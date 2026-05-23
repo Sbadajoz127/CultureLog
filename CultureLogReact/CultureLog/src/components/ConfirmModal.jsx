@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import '../App.css';
+import './ConfirmModal.css';
 
 export function ConfirmModal({
   isOpen,

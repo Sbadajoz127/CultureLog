@@ -1,0 +1,128 @@
+/* -----------------------------------------
+   3. COMPONENTES COMUNES (Botones e Iconos)
+----------------------------------------- */
+.login-button {
+  background-color: var(--accent-color);
+  color: var(--btn-primary-text);
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, filter 0.2s ease;
+}
+
+.login-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+[data-theme="light"] .login-button {
+  color: #ffffff;
+}
+
+.login-button:disabled {
+  background-color: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
+  cursor: not-allowed;
+}
+
+.password-group .input-with-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-group input {
+  padding-right: 45px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  opacity: 1;
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* --- Danger button --- */
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--btn-danger-bg);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.danger-btn:hover:not(:disabled) {
+  background: #c62828;
+  transform: translateY(-1px);
+}
+.danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Mensajes de autenticación --- */
+.auth-error {
+  background-color: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.auth-success {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #66bb6a;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* --- Utilidades --- */
+.text-dim {
+  color: var(--text-dim);
+}
+
+.text-faint {
+  color: var(--text-faint);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.bg-card {
+  background-color: var(--bg-card);
+}
+

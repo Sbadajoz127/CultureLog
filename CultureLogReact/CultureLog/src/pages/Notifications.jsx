@@ -10,7 +10,7 @@ import { getNotifications } from '../services/api';
 import { AppHeader } from '../components/AppHeader';
 import { UserAvatar } from '../components/UserAvatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import '../App.css';
+import './Notifications.css';
 
 const ICON_MAP = {
   LIKE_POST: Heart,
@@ -334,11 +334,13 @@ export default function Notifications() {
                   {group.items.map((notif) => {
                     const Icon = ICON_MAP[notif.type] || Bell;
                     return (
-                      <button
+                      <div
                         key={notif.id}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         className={`nc-notif-card ${!notif.read ? 'nc-notif-unread' : ''}`}
                         onClick={() => handleNotificationClick(notif)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleNotificationClick(notif); }}
                       >
                         <div className={`nc-notif-icon nc-notif-icon--${notif.type.toLowerCase()}`}>
                           <Icon size={18} />
@@ -363,7 +365,7 @@ export default function Notifications() {
                             <Check size={14} />
                           </button>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

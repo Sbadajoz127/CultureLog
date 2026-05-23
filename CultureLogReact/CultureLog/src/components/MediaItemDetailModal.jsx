@@ -3,6 +3,7 @@ import { X, Star, Calendar, Clock, Tag, BookOpen, User, Layers, Disc3, Plus, Pen
 import { toast } from 'sonner';
 import { MEDIA_TYPE_LABELS, MEDIA_STATUS_LABELS } from '../constants/media';
 import { formatDateOnly } from '../utils/dateFormat';
+import './MediaItemDetailModal.css';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { TagChip } from './TagChip';
 import { TagPicker } from './TagPicker';

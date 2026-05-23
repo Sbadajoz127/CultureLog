@@ -1,0 +1,149 @@
+/* =========================================
+   CULTURELOG - ESTILOS GLOBALES
+   Variables de tema, reset y base
+========================================= */
+
+/* -----------------------------------------
+   0. VARIABLES DE TEMA
+----------------------------------------- */
+:root {
+  --bg-body: #121212;
+  --bg-card: #1e1e1e;
+  --bg-input: #2c2c2c;
+  --border-subtle: #333333;
+  --border-medium: #444444;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-muted: #a0a0a0;
+  --text-faint: #888888;
+  --text-dim: #555555;
+  --btn-primary-bg: #ffffff;
+  --btn-primary-text: #121212;
+  --btn-primary-hover: #e0e0e0;
+  --btn-disabled-bg: #555555;
+  --btn-disabled-text: #a0a0a0;
+  --shadow-card: rgba(0, 0, 0, 0.5);
+  --focus-ring: rgba(255, 255, 255, 0.1);
+  --hover-overlay: rgba(255, 255, 255, 0.05);
+  --accent-color: #448AFF;
+  --accent-muted: color-mix(in srgb, var(--accent-color) 18%, transparent);
+  --danger: #e53935;
+  --danger-hover: #ff4b4b;
+  --banner-overlay-start: rgba(0, 0, 0, 0.1);
+  --banner-overlay-mid: rgba(0, 0, 0, 0.4);
+  --banner-overlay-end: rgba(0, 0, 0, 0.7);
+  --banner-text-shadow: rgba(0, 0, 0, 0.5);
+  --bg-error: rgba(211, 47, 47, 0.08);
+  --border-error: rgba(211, 47, 47, 0.3);
+  --text-error: #ef5350;
+  --btn-danger-bg: #d32f2f;
+}
+
+[data-theme="light"] {
+  --bg-body: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-input: #f0f0f0;
+  --border-subtle: #e0e0e0;
+  --border-medium: #cccccc;
+  --text-primary: #1a1a1a;
+  --text-secondary: #333333;
+  --text-muted: #666666;
+  --text-faint: #999999;
+  --text-dim: #aaaaaa;
+  --btn-primary-bg: #1a1a1a;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #333333;
+  --btn-disabled-bg: #cccccc;
+  --btn-disabled-text: #888888;
+  --shadow-card: rgba(0, 0, 0, 0.1);
+  --focus-ring: rgba(0, 0, 0, 0.1);
+  --hover-overlay: rgba(0, 0, 0, 0.03);
+  --accent-muted: color-mix(in srgb, var(--accent-color) 12%, transparent);
+  --danger: #c62828;
+  --danger-hover: #e53935;
+  --banner-overlay-start: rgba(255, 255, 255, 0.1);
+  --banner-overlay-mid: rgba(255, 255, 255, 0.5);
+  --banner-overlay-end: rgba(255, 255, 255, 0.85);
+  --banner-text-shadow: rgba(255, 255, 255, 0.8);
+  --bg-error: rgba(211, 47, 47, 0.06);
+  --border-error: rgba(211, 47, 47, 0.2);
+  --text-error: #c62828;
+  --btn-danger-bg: #d32f2f;
+}
+
+/* -----------------------------------------
+   1. RESET Y BASE
+----------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+input, select, textarea {
+  font-size: max(16px, 1rem);
+}
+
+/* -----------------------------------------
+   1.1 SCROLLBAR GLOBAL
+----------------------------------------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 100px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--accent-color);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* -----------------------------------------
+   SONNER TOAST OVERRIDES
+----------------------------------------- */
+[data-sonner-toaster] {
+  --normal-bg: var(--bg-secondary);
+  --normal-border: var(--accent-color);
+  --normal-text: var(--text-primary);
+  font-family: inherit;
+}

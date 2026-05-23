@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { verifyEmail, resendVerificationEmail } from '../../services/api';
-import '../../App.css';
+import './Auth.css';
 
 function VerifyEmail() {
   const [token, setToken] = useState('');

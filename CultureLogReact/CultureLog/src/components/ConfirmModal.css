@@ -1,0 +1,106 @@
+.confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  animation: confirm-fade-in 0.18s ease;
+  padding: clamp(16px, 3vw, 24px);
+}
+
+@keyframes confirm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes confirm-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.confirm-modal-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 24px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: confirm-scale-in 0.18s ease;
+}
+
+.confirm-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 10px;
+}
+
+.confirm-modal-message {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 22px;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirm-modal-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.confirm-modal-btn:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.confirm-modal-btn-cancel {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  border-color: var(--border-medium);
+}
+
+.confirm-modal-btn-cancel:hover {
+  background: var(--hover-overlay);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.confirm-modal-btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.confirm-modal-btn-danger:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+.confirm-modal-btn-primary {
+  background: var(--accent-muted);
+  color: var(--accent-color);
+  border-color: transparent;
+}
+
+.confirm-modal-btn-primary:hover {
+  background: var(--accent-color);
+  color: #fff;
+  border-color: var(--accent-color);
+}

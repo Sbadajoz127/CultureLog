@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Plus, Check } from 'lucide-react';
 import { createTag, addTagToItem, removeTagFromItem } from '../services/api';
 import { toast } from 'sonner';
+import './TagPicker.css';
 
 const TAG_COLORS = [
   { value: 'ROJO', hex: '#FF5252' },

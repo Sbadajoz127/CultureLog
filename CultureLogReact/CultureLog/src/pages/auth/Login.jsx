@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import '../../App.css';
+import './Auth.css';
 
 function Login() {
   const [username, setUsername] = useState('');

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import '../App.css';
+import styles from './UserAvatar.module.css';
 
 function initialsFromName(name) {
   if (!name || typeof name !== 'string') return '?';
@@ -12,7 +12,7 @@ function initialsFromName(name) {
 
 export function UserAvatar({ src, alt, name, className = '', size = 'small' }) {
   const [imgError, setImgError] = useState(false);
-  const sizeClass = size === 'large' ? 'user-avatar-large' : 'user-avatar-small';
+  const sizeClass = size === 'large' ? styles.large : styles.small;
 
   useEffect(() => setImgError(false), [src]);
 
@@ -21,7 +21,7 @@ export function UserAvatar({ src, alt, name, className = '', size = 'small' }) {
       <img
         src={src}
         alt={alt || name || 'Usuario'}
-        className={`user-avatar-img ${sizeClass} ${className}`.trim()}
+        className={`${sizeClass} ${className}`.trim()}
         onError={() => setImgError(true)}
       />
     );
@@ -29,7 +29,7 @@ export function UserAvatar({ src, alt, name, className = '', size = 'small' }) {
   const label = initialsFromName(name || alt);
   return (
     <span
-      className={`user-avatar-placeholder ${sizeClass} ${className}`.trim()}
+      className={`${styles.placeholder} ${sizeClass} ${className}`.trim()}
       aria-hidden={!alt}
       title={alt || name}
     >

@@ -1,0 +1,108 @@
+/* -----------------------------------------
+   2. PANTALLAS DE ACCESO (LOGIN / REGISTRO)
+----------------------------------------- */
+.culturelog-login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+
+.login-card {
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px var(--shadow-card);
+  width: min(100%, 420px);
+  padding: clamp(24px, 5vw, 40px);
+  text-align: center;
+}
+
+.brand-section {
+  margin-bottom: 30px;
+}
+
+.brand-logo {
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.brand-logo span {
+  color: var(--accent-color);
+}
+
+.brand-tagline {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-top: 5px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 20%, transparent);
+}
+
+.form-options {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -10px;
+}
+
+.forgot-password, .sign-up-link {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sign-up-link {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.forgot-password:hover, .sign-up-link:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+.footer-section {
+  margin-top: 30px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 20px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
