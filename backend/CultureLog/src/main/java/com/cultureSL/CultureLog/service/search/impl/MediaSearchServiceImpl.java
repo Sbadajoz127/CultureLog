@@ -2,12 +2,14 @@ package com.cultureSL.CultureLog.service.search.impl;
 
 import com.cultureSL.CultureLog.dto.AddToLibraryResult;
 import com.cultureSL.CultureLog.dto.MediaItemRequest;
+import com.cultureSL.CultureLog.dto.search.LibraryMatchProjection;
 import com.cultureSL.CultureLog.dto.search.MediaSearchResult;
 import com.cultureSL.CultureLog.exception.DuplicateItemException;
 import com.cultureSL.CultureLog.mapper.MediaItemMapper;
 import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
+import com.cultureSL.CultureLog.repository.MediaItemRepository;
 import com.cultureSL.CultureLog.service.ImageStorageService;
 import com.cultureSL.CultureLog.service.MediaItemService;
 import com.cultureSL.CultureLog.service.MediaLibraryDuplicateFinder;
@@ -19,9 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -47,6 +47,7 @@ public class MediaSearchServiceImpl implements MediaSearchService {
     private final MediaLibraryDuplicateFinder duplicateFinder;
     private final ImageStorageService imageStorageService;
     private final MediaItemMapper mediaItemMapper;
+    private final MediaItemRepository mediaItemRepository;
 
     @Qualifier("taskExecutor")
     private final Executor taskExecutor;
@@ -142,6 +143,36 @@ public class MediaSearchServiceImpl implements MediaSearchService {
             }
             throw e;
         }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<MediaSearchResult> enrichWithLibraryStatus(Long userId, List<MediaSearchResult> results) {
+        if (results == null || results.isEmpty()) {
+            return results;
+        }
+
+        List<LibraryMatchProjection> libraryKeys = mediaItemRepository.findExternalKeysByUserId(userId);
+
+        Map<String, MediaStatus> libraryMap = new HashMap<>();
+        for (LibraryMatchProjection p : libraryKeys) {
+            String key = p.getExternalSource() + "|" + p.getExternalId() + "|" + p.getType();
+            libraryMap.put(key, p.getStatus());
+        }
+
+        return results.stream()
+                .map(r -> {
+                    if (r.getSource() == null || r.getExternalId() == null) {
+                        return r;
+                    }
+                    String key = r.getSource() + "|" + r.getExternalId() + "|" + r.getType();
+                    MediaStatus status = libraryMap.get(key);
+                    if (status != null) {
+                        return r.toBuilder().libraryStatus(status.name()).build();
+                    }
+                    return r;
+                })
+                .toList();
     }
 
     /**

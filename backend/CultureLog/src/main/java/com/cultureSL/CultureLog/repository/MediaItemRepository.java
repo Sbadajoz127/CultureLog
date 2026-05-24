@@ -1,5 +1,6 @@
 package com.cultureSL.CultureLog.repository;
 
+import com.cultureSL.CultureLog.dto.search.LibraryMatchProjection;
 import com.cultureSL.CultureLog.model.MediaItem;
 import com.cultureSL.CultureLog.model.enums.MediaStatus;
 import com.cultureSL.CultureLog.model.enums.MediaType;
@@ -151,6 +152,12 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
 
     Optional<MediaItem> findFirstByUserIdAndTypeAndTitleIgnoreCase(
             Long userId, MediaType type, String title);
+
+    @Query("SELECT m.externalId AS externalId, m.externalSource AS externalSource, " +
+           "m.type AS type, m.status AS status " +
+           "FROM MediaItem m WHERE m.user.id = :userId " +
+           "AND m.externalId IS NOT NULL AND m.externalSource IS NOT NULL")
+    List<LibraryMatchProjection> findExternalKeysByUserId(@Param("userId") Long userId);
 
     long countByUserId(Long userId);
 

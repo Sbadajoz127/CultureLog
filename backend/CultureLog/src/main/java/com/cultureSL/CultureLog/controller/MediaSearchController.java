@@ -45,12 +45,15 @@ public class MediaSearchController {
      */
     @GetMapping
     public ResponseEntity<List<MediaSearchResult>> search(
+            Authentication authentication,
             @RequestParam @NotBlank(message = "La consulta de búsqueda es obligatoria") @Size(max = 200, message = "La consulta no puede exceder 200 caracteres") String query,
             @RequestParam(required = false) MediaType type,
             @RequestParam(defaultValue = "0") @Min(value = 0, message = "La página no puede ser negativa") int page) {
 
         List<MediaSearchResult> results = mediaSearchService.search(query, type, page);
-        return ResponseEntity.ok(results);
+        Long userId = (Long) authentication.getPrincipal();
+        List<MediaSearchResult> enriched = mediaSearchService.enrichWithLibraryStatus(userId, results);
+        return ResponseEntity.ok(enriched);
     }
 
     /**

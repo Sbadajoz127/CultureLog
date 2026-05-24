@@ -19,7 +19,7 @@ import java.time.LocalDate;
  * </p>
  */
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class MediaSearchResult {
@@ -58,4 +58,7 @@ public class MediaSearchResult {
 
     /** Nombre del álbum (solo para contenido musical). */
     private String album;
+
+    /** Estado en la biblioteca del usuario ({@code null} si no está en su biblioteca). */
+    private String libraryStatus;
 }

@@ -25,7 +25,7 @@ import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
 import { CustomSelect } from '../components/CustomSelect';
 import { TagChip } from '../components/TagChip';
 import { TagManager } from '../components/TagManager';
-import { SearchX, PlusCircle, Trash2, Tag as TagIcon } from 'lucide-react';
+import { SearchX, PlusCircle, Trash2, Tag as TagIcon, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatReleaseDate } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -233,6 +233,7 @@ function Library() {
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [addingKey, setAddingKey] = useState(null);
+  const [addedKeys, setAddedKeys] = useState(new Set());
   const [busyItemId, setBusyItemId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [customModalOpen, setCustomModalOpen] = useState(false);
@@ -378,6 +379,7 @@ function Library() {
     setSearchLoading(true);
     setSearchError('');
     setLastSearchQuery(q);
+    setAddedKeys(new Set());
     try {
       const { data } = await searchMedia({
         query: q,
@@ -415,10 +417,7 @@ function Library() {
       } else {
         toast.success(`«${result.title}» añadido a ${MEDIA_STATUS_LABELS[targetStatus]}.`);
       }
-      setSearchResults([]);
-      setSearchQuery('');
-      setHasSearched(false);
-      setLastSearchQuery('');
+      setAddedKeys(prev => new Set(prev).add(`${result.source}-${result.externalId}-${result.title}`));
       await loadItems(activeStatus);
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo añadir a la biblioteca.';
@@ -427,6 +426,14 @@ function Library() {
     } finally {
       setAddingKey(null);
     }
+  };
+
+  const clearSearchResults = () => {
+    setSearchResults([]);
+    setSearchQuery('');
+    setHasSearched(false);
+    setLastSearchQuery('');
+    setAddedKeys(new Set());
   };
 
   const handleCustomItemSubmit = async (formData) => {
@@ -518,13 +525,32 @@ function Library() {
           )}
 
           {searchResults.length > 0 && (
+            <>
+            <div className="library-search-results-header">
+              <span className="library-search-results-count">
+                {searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''}
+              </span>
+              <button
+                type="button"
+                className="library-search-close-btn"
+                onClick={clearSearchResults}
+              >
+                <X size={16} />
+                Cerrar resultados
+              </button>
+            </div>
             <ul className="library-search-results">
               {searchResults.map((r, idx) => {
                 const k = `${r.source}-${r.externalId}-${idx}`;
                 const rowKey = `${r.source}-${r.externalId}-${r.title}`;
                 const rowAdding = addingKey === rowKey;
+                const rowAdded = addedKeys.has(rowKey);
+                const inLibrary = r.libraryStatus || rowAdded;
+                const statusLabel = r.libraryStatus
+                  ? MEDIA_STATUS_LABELS[r.libraryStatus] || r.libraryStatus
+                  : 'Añadido';
                 return (
-                  <li key={k} className="library-search-result-row">
+                  <li key={k} className={`library-search-result-row${inLibrary ? ' library-search-result-added' : ''}`}>
                     <div className="library-search-result-info">
                       {r.imageUrl ? (
                         <img src={r.imageUrl} alt="" className="library-search-thumb" />
@@ -541,7 +567,12 @@ function Library() {
                         </div>
                       </div>
                     </div>
-                    {rowAdding ? (
+                    {inLibrary ? (
+                      <span className="library-added-label">
+                        <Check size={16} />
+                        {statusLabel}
+                      </span>
+                    ) : rowAdding ? (
                       <p className="text-muted library-adding-label">Añadiendo…</p>
                     ) : (
                       <div className="library-add-status-btns">
@@ -562,6 +593,7 @@ function Library() {
                 );
               })}
             </ul>
+            </>
           )}
 
           {!searchLoading && hasSearched && searchResults.length === 0 && !searchError && (

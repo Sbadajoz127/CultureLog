@@ -44,4 +44,19 @@ public interface MediaSearchService {
      * @return resultado con {@code created=true} si se insertó fila nueva, {@code false} si ya existía (mismo ítem devuelto)
      */
     AddToLibraryResult addToLibrary(Long userId, MediaSearchResult searchResult);
+
+    /**
+     * Enriquece una lista de resultados de búsqueda con el estado de la biblioteca del usuario.
+     * <p>
+     * Para cada resultado que ya exista en la biblioteca, se establece {@code libraryStatus}
+     * con el nombre del estado actual. Los resultados que no estén en la biblioteca
+     * mantienen {@code libraryStatus = null}. Los objetos originales (potencialmente cacheados)
+     * no se mutan; se devuelven copias.
+     * </p>
+     *
+     * @param userId  ID del usuario autenticado
+     * @param results resultados de búsqueda a enriquecer
+     * @return nueva lista con copias enriquecidas de los resultados
+     */
+    List<MediaSearchResult> enrichWithLibraryStatus(Long userId, List<MediaSearchResult> results);
 }
