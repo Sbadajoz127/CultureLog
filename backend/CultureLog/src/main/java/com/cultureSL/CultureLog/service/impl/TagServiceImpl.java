@@ -35,7 +35,7 @@ public class TagServiceImpl implements TagService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         String trimmedName = request.getName().trim();
-        if (tagRepository.existsByNameAndUserId(trimmedName, userId)) {
+        if (tagRepository.existsByNameIgnoreCaseAndUserId(trimmedName, userId)) {
             throw new DuplicateItemException("Ya tienes una etiqueta con ese nombre");
         }
 
@@ -58,7 +58,7 @@ public class TagServiceImpl implements TagService {
         }
 
         String trimmedName = request.getName().trim();
-        tagRepository.findByNameAndUserId(trimmedName, userId).ifPresent(existing -> {
+        tagRepository.findByNameIgnoreCaseAndUserId(trimmedName, userId).ifPresent(existing -> {
             if (!existing.getId().equals(tagId)) {
                 throw new DuplicateItemException("Ya tienes una etiqueta con ese nombre");
             }

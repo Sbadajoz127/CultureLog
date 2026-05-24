@@ -20,26 +20,17 @@ import java.util.Optional;
 public interface TagRepository extends JpaRepository<Tag, Long> {
     
     /**
-     * Busca una etiqueta por su nombre exacto.
-     * Útil para reutilizar etiquetas existentes antes de crear una nueva.
-     *
-     * @param name Nombre de la etiqueta.
-     * @return Un {@link Optional} con la etiqueta si existe.
-     */
-    Optional<Tag> findByName(String name);
-
-    /**
-     * Busca una etiqueta por nombre dentro del ámbito de un usuario específico.
+     * Busca una etiqueta por nombre dentro del ámbito de un usuario específico (case-insensitive).
      *
      * @param name   Nombre de la etiqueta.
      * @param userId ID del usuario propietario.
      * @return Un {@link Optional} con la etiqueta si existe para ese usuario.
      */
-    Optional<Tag> findByNameAndUserId(String name, Long userId);
+    Optional<Tag> findByNameIgnoreCaseAndUserId(String name, Long userId);
 
     List<Tag> findByUserId(Long userId);
 
-    boolean existsByNameAndUserId(String name, Long userId);
+    boolean existsByNameIgnoreCaseAndUserId(String name, Long userId);
 
     @Modifying
     @Query(value = "DELETE FROM media_tags WHERE tag_id = :tagId", nativeQuery = true)

@@ -100,7 +100,7 @@ public class MediaItem {
     private User user;
 
     /** Etiquetas asociadas para clasificación personalizada. */
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
         name = "media_tags",
         joinColumns = @JoinColumn(name = "media_id"),

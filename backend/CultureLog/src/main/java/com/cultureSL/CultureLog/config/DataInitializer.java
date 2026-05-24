@@ -16,6 +16,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
+import java.sql.*;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class DataInitializer implements ApplicationRunner {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DataSource dataSource;
 
     @Value("${admin.username:#{null}}")
     private String adminUsername;
@@ -52,7 +56,60 @@ public class DataInitializer implements ApplicationRunner {
             log.info("Sincronizados contadores de comentarios en {} publicaciones", synced);
         }
 
+        fixTagsUniqueConstraint();
         seedAdminUser();
+    }
+
+    /**
+     * Corrige la constraint única de la tabla tags: elimina cualquier índice único
+     * que solo cubra la columna 'name' (global) y asegura que exista el índice
+     * compuesto (user_id, name) que permite tags con el mismo nombre entre usuarios distintos.
+     */
+    private void fixTagsUniqueConstraint() {
+        try (Connection conn = dataSource.getConnection()) {
+            DatabaseMetaData meta = conn.getMetaData();
+
+            boolean hasNameOnlyUnique = false;
+            boolean hasCompositeUnique = false;
+            String nameOnlyIndexName = null;
+
+            try (ResultSet rs = meta.getIndexInfo(null, null, "tags", true, false)) {
+                java.util.Map<String, java.util.List<String>> indexColumns = new java.util.LinkedHashMap<>();
+                while (rs.next()) {
+                    String indexName = rs.getString("INDEX_NAME");
+                    String columnName = rs.getString("COLUMN_NAME");
+                    if (indexName == null || "PRIMARY".equalsIgnoreCase(indexName)) continue;
+                    indexColumns.computeIfAbsent(indexName, k -> new java.util.ArrayList<>()).add(columnName.toLowerCase());
+                }
+
+                for (var entry : indexColumns.entrySet()) {
+                    java.util.List<String> cols = entry.getValue();
+                    if (cols.size() == 1 && cols.contains("name")) {
+                        hasNameOnlyUnique = true;
+                        nameOnlyIndexName = entry.getKey();
+                    }
+                    if (cols.size() == 2 && cols.contains("user_id") && cols.contains("name")) {
+                        hasCompositeUnique = true;
+                    }
+                }
+            }
+
+            if (hasNameOnlyUnique) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE tags DROP INDEX " + nameOnlyIndexName);
+                    log.info("Eliminado índice único incorrecto '{}' (solo name) de la tabla tags", nameOnlyIndexName);
+                }
+            }
+
+            if (!hasCompositeUnique) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE tags ADD CONSTRAINT uk_tags_user_name UNIQUE (user_id, name)");
+                    log.info("Creado índice único compuesto (user_id, name) en la tabla tags");
+                }
+            }
+        } catch (SQLException e) {
+            log.warn("No se pudo verificar/corregir las constraints de la tabla tags: {}", e.getMessage());
+        }
     }
 
     private void seedAdminUser() {
