@@ -322,11 +322,6 @@ function Library() {
     return () => document.removeEventListener('mousedown', handle);
   }, [tagFilterOpen]);
 
-  useEffect(() => {
-    setNameFilter('');
-    setTypeFilter('');
-    setTagFilter(null);
-  }, [activeStatus]);
 
   const handleStatusChange = async (item, newStatus) => {
     if (newStatus === item.status) return;
