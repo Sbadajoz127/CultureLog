@@ -23,7 +23,7 @@ public enum TagColor {
     /** Color gris claro estándar para etiquetas sin clasificación específica. */
     POR_DEFECTO("#E0E0E0");
 
-    /** Código de color en formato Hexadecimal (ej: #FF0000) para uso en Swing/CSS. */
+    /** Código de color en formato hexadecimal (ej: #FF0000). */
     private final String hexCode;
 
     /**

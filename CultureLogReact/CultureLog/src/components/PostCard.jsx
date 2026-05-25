@@ -25,7 +25,6 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
   const [commentsError, setCommentsError] = useState('');
   const [liking, setLiking] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -34,7 +33,7 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
   const isSaved = post.savedByCurrentUser;
   const isOwner = user?.id === post.authorId;
   const content = post.content || '';
-  const isTruncated = content.length > CONTENT_TRUNCATE_LENGTH && !expanded;
+  const isTruncated = content.length > CONTENT_TRUNCATE_LENGTH;
 
   const handleLike = async () => {
     if (liking) return;
@@ -43,7 +42,7 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
       const { data } = await togglePostLike(post.id);
       onPostUpdate?.(post.id, { likedByCurrentUser: data.liked, likeCount: data.likeCount });
     } catch {
-      toast.error('No se pudo registrar el like.');
+      toast.error('No se pudo registrar el me gusta.');
     } finally {
       setLiking(false);
     }

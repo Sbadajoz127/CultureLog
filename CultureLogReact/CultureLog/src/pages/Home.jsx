@@ -81,6 +81,7 @@ function Home() {
 
   const [suggestions, setSuggestions] = useState([]);
   const [followingIds, setFollowingIds] = useState(new Set());
+  const [pendingIds, setPendingIds] = useState(new Set());
 
   const [initialReady, setInitialReady] = useState(false);
   const feedDone = useRef(false);
@@ -144,10 +145,11 @@ function Home() {
   };
 
   const handleFollow = async (targetId) => {
-    if (followingIds.has(targetId)) return;
+    if (followingIds.has(targetId) || pendingIds.has(targetId)) return;
     try {
       const { data } = await followUser(targetId);
       if (data?.status === 'PENDING') {
+        setPendingIds((prev) => new Set(prev).add(targetId));
         toast.success('Solicitud de seguimiento enviada.');
       } else {
         setFollowingIds((prev) => new Set(prev).add(targetId));
@@ -176,8 +178,9 @@ function Home() {
         <div className="suggestions-list suggestions-list-inline">
           {suggestions.slice(0, 3).map((u) => {
             const isFollowed = followingIds.has(u.id);
+            const isPending = pendingIds.has(u.id);
             return (
-              <div key={u.id} className={`suggestion-item suggestion-item-inline ${isFollowed ? 'followed' : ''}`}>
+              <div key={u.id} className={`suggestion-item suggestion-item-inline ${isFollowed || isPending ? 'followed' : ''}`}>
                 <div
                   className="suggestion-user suggestion-user-link"
                   role="button"
@@ -190,11 +193,11 @@ function Home() {
                 </div>
                 <button
                   type="button"
-                  className={`suggestion-follow-btn ${isFollowed ? 'following' : ''}`}
+                  className={`suggestion-follow-btn ${isFollowed ? 'following' : ''} ${isPending ? 'pending' : ''}`}
                   onClick={() => handleFollow(u.id)}
-                  disabled={isFollowed}
+                  disabled={isFollowed || isPending}
                 >
-                  {isFollowed ? 'Siguiendo' : 'Seguir'}
+                  {isFollowed ? 'Siguiendo' : isPending ? 'Pendiente' : 'Seguir'}
                 </button>
               </div>
             );
@@ -295,8 +298,9 @@ function Home() {
               <div className="suggestions-list">
                 {suggestions.slice(0, 3).map((u) => {
                   const isFollowed = followingIds.has(u.id);
+                  const isPending = pendingIds.has(u.id);
                   return (
-                    <div key={u.id} className={`suggestion-item ${isFollowed ? 'followed' : ''}`}>
+                    <div key={u.id} className={`suggestion-item ${isFollowed || isPending ? 'followed' : ''}`}>
                       <div
                         className="suggestion-user suggestion-user-link"
                         role="button"
@@ -309,11 +313,11 @@ function Home() {
                       </div>
                       <button
                         type="button"
-                        className={`suggestion-follow-btn ${isFollowed ? 'following' : ''}`}
+                        className={`suggestion-follow-btn ${isFollowed ? 'following' : ''} ${isPending ? 'pending' : ''}`}
                         onClick={() => handleFollow(u.id)}
-                        disabled={isFollowed}
+                        disabled={isFollowed || isPending}
                       >
-                        {isFollowed ? 'Siguiendo' : 'Seguir'}
+                        {isFollowed ? 'Siguiendo' : isPending ? 'Pendiente' : 'Seguir'}
                       </button>
                     </div>
                   );

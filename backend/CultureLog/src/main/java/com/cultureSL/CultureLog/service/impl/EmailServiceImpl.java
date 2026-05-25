@@ -166,7 +166,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendPasswordResetEmail(String to, String token) {
         String subject = "Restablecer contraseña - CultureLog";
         
-        // Envio del token para copiar/pegar
+        // Envío del token para copiar/pegar
         String htmlContent = """
             <div style="font-family: Arial, sans-serif; color: #333;">
                 <h2 style="color: #D32F2F;">Recuperación de Contraseña</h2>

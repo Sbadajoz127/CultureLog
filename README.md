@@ -24,7 +24,7 @@ CultureLog es una **red social cultural** que combina el concepto de biblioteca 
 - **Biblioteca multimedia personal** — Organiza contenido en 7 categorías (películas, series, libros, videojuegos, anime, manga y música) con estados de seguimiento, valoraciones, notas y etiquetas personalizadas.
 - **Búsqueda en catálogos externos** — Busca en TMDB, Open Library, Jikan, RAWG y Deezer; añade resultados a tu biblioteca con un clic.
 - **Feed social** — Publica posts vinculados a elementos de tu biblioteca, sigue a otros usuarios y descubre nuevo contenido.
-- **Interacciones sociales** — Likes, guardados, comentarios con hilos de respuestas y notificaciones en tiempo real.
+- **Interacciones sociales** — Me gusta, guardados, comentarios con hilos de respuestas y notificaciones.
 - **Perfiles personalizables** — Avatar, banner, tema oscuro/claro, color de acento personalizado y controles de privacidad.
 - **Panel de administración** — Moderación de usuarios, posts, comentarios e ítems con estadísticas y gráficas.
 
@@ -90,11 +90,13 @@ cd CultureLog
 
 ### 2. Configurar la base de datos
 
-Crea una base de datos MySQL vacía. Hibernate se encargará de crear las tablas automáticamente:
+Crea una base de datos MySQL vacía:
 
 ```sql
 CREATE DATABASE culturelog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
+
+> **Nota:** La primera vez que ejecutes el backend, añade `DDL_AUTO=update` en tu archivo `.env` para que Hibernate genere las tablas automáticamente. Una vez creadas, puedes cambiar a `DDL_AUTO=validate` (valor por defecto) para mayor seguridad.
 
 ### 3. Configurar variables de entorno (Backend)
 
@@ -171,6 +173,7 @@ CultureLog utiliza autenticación **JWT stateless**:
 | Registro | `POST /api/auth/register` |
 | Verificar email | `POST /api/auth/verify-email` |
 | Iniciar sesión | `POST /api/auth/login` |
+| Reenviar verificación | `POST /api/auth/resend-verification` |
 | Recuperar contraseña | `POST /api/auth/request-reset` |
 | Restablecer contraseña | `POST /api/auth/reset-password` |
 
@@ -200,7 +203,7 @@ Todos los endpoints se encuentran bajo `/api`. Los principales grupos son:
 - **Color de acento personalizable** por usuario.
 - **Diseño responsive** con adaptación para móvil y escritorio.
 - **Skeleton loaders** durante la carga de contenido.
-- **Scroll infinito** en el feed y listados.
+- **Paginación progresiva** en el feed y listados.
 - **Vistas de biblioteca** en lista y cuadrícula con filtros por tipo y estado.
 - **Interfaz completamente en español**.
 
@@ -252,5 +255,5 @@ Proyecto desarrollado como **Trabajo de Fin de Grado (TFG)**.
 ---
 
 <p align="center">
-  Hecho con ❤️ por el equipo de CultureLog
+  Hecho con ❤️ por Santiago Badajoz y Daniel Pallares — Trabajo de Fin de Grado
 </p>

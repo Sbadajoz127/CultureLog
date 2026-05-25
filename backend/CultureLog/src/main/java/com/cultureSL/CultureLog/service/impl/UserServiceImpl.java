@@ -36,8 +36,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -232,11 +232,11 @@ public class UserServiceImpl implements UserService {
 
     private void validateCloudinaryUrl(String imageUrl) {
         try {
-            URL url = new URL(imageUrl);
-            if (!CLOUDINARY_HOST.equals(url.getHost())) {
+            URI uri = new URI(imageUrl);
+            if (!CLOUDINARY_HOST.equals(uri.getHost())) {
                 throw new BadRequestException("La URL de imagen debe pertenecer a Cloudinary");
             }
-        } catch (MalformedURLException e) {
+        } catch (URISyntaxException e) {
             throw new BadRequestException("La URL de imagen no es válida");
         }
     }
@@ -278,8 +278,7 @@ public class UserServiceImpl implements UserService {
             user.setSettings(settings);
         }
 
-        // Actualizamos campos solo si no son nulos (o sobrescribimos todo según tu
-        // lógica de UI)
+        // Actualización parcial: solo se sobrescriben los campos no nulos
         if (request.getProfilePrivacy() != null)
             settings.setProfilePrivacy(request.getProfilePrivacy());
         if (request.getTheme() != null)

@@ -21,18 +21,10 @@ import {
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import './PublicProfile.css';
 
-function formatDate(iso) {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-  } catch {
-    return iso;
-  }
-}
 
 const LIBRARY_TABS = [
   { id: 'VISTO', label: 'Visto' },
-  { id: 'EN_PROGRESO', label: 'Viendo' },
+  { id: 'EN_PROGRESO', label: 'En progreso' },
   { id: 'POR_VER', label: 'Por ver' },
 ];
 
@@ -217,36 +209,40 @@ function PublicProfile() {
   };
 
   const handleAddAndCreatePost = async (item) => {
-    const payload = {
-      externalId: item.externalId ?? null,
-      source: item.externalSource ?? null,
-      title: item.title,
-      type: item.type,
-      genre: item.genre ?? null,
-      creator: item.creator ?? null,
-      description: item.description ?? null,
-      releaseDate: item.releaseDate ?? null,
-      imageUrl: item.itemImageUrl ?? null,
-      rating: item.rating ?? null,
-      album: item.album ?? null,
-    };
-    const { data: savedItem } = await addToLibraryFromSearch(payload);
-    setMyLibraryItems((prev) => [...prev, savedItem]);
-    toast.success(`«${savedItem.title}» añadido a tu biblioteca.`);
-    navigate('/posts/create', {
-      state: {
-        linkedItem: {
-          id: savedItem.id,
-          title: savedItem.title,
-          type: savedItem.type,
-          creator: savedItem.creator,
-          releaseDate: savedItem.releaseDate,
-          imageUrl: savedItem.itemImageUrl,
-          genre: savedItem.genre,
-          rating: savedItem.rating,
+    try {
+      const payload = {
+        externalId: item.externalId ?? null,
+        source: item.externalSource ?? null,
+        title: item.title,
+        type: item.type,
+        genre: item.genre ?? null,
+        creator: item.creator ?? null,
+        description: item.description ?? null,
+        releaseDate: item.releaseDate ?? null,
+        imageUrl: item.itemImageUrl ?? null,
+        rating: item.rating ?? null,
+        album: item.album ?? null,
+      };
+      const { data: savedItem } = await addToLibraryFromSearch(payload);
+      setMyLibraryItems((prev) => [...prev, savedItem]);
+      toast.success(`«${savedItem.title}» añadido a tu biblioteca.`);
+      navigate('/posts/create', {
+        state: {
+          linkedItem: {
+            id: savedItem.id,
+            title: savedItem.title,
+            type: savedItem.type,
+            creator: savedItem.creator,
+            releaseDate: savedItem.releaseDate,
+            imageUrl: savedItem.itemImageUrl,
+            genre: savedItem.genre,
+            rating: savedItem.rating,
+          },
         },
-      },
-    });
+      });
+    } catch {
+      toast.error('No se pudo añadir el ítem a la biblioteca.');
+    }
   };
 
   const handleFollow = async () => {
@@ -551,7 +547,7 @@ function PublicProfile() {
                           loadLikedPosts();
                         }}
                       >
-                        Likes
+                        Me gusta
                       </button>
                     </>
                   )}

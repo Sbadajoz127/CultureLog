@@ -14,7 +14,7 @@ import java.util.List;
  * Controlador REST para las operaciones de seguimiento entre usuarios.
  * <p>
  * Permite seguir, dejar de seguir y gestionar solicitudes pendientes
- * (aceptar/rechazar) entre usuarios. Requiere autenticaci?n JWT.
+ * (aceptar/rechazar) entre usuarios. Requiere autenticación JWT.
  * </p>
  */
 @RestController
@@ -25,12 +25,12 @@ public class FollowController {
     private final FollowService followService;
 
     /**
-     * Env?a una solicitud de seguimiento a otro usuario.
+     * Envía una solicitud de seguimiento a otro usuario.
      * <p>Endpoint: {@code POST /api/follows?targetId=...}</p>
      *
-     * @param authentication contexto de autenticaci?n con el ID del usuario actual
+     * @param authentication contexto de autenticación con el ID del usuario actual
      * @param targetId       ID del usuario a seguir
-     * @return HTTP 200 con mensaje de confirmaci?n
+     * @return HTTP 200 con mensaje de confirmación
      */
     @PostMapping
     public ResponseEntity<java.util.Map<String, String>> followUser(
@@ -46,9 +46,9 @@ public class FollowController {
      * Deja de seguir a un usuario.
      * <p>Endpoint: {@code DELETE /api/follows?targetId=...}</p>
      *
-     * @param authentication contexto de autenticaci?n con el ID del usuario actual
+     * @param authentication contexto de autenticación con el ID del usuario actual
      * @param targetId       ID del usuario a dejar de seguir
-     * @return HTTP 200 con mensaje de confirmaci?n
+     * @return HTTP 200 con mensaje de confirmación
      */
     @DeleteMapping
     public ResponseEntity<String> unfollowUser(
@@ -64,7 +64,7 @@ public class FollowController {
      * Obtiene las solicitudes de seguimiento pendientes recibidas por el usuario.
      * <p>Endpoint: {@code GET /api/follows/pending}</p>
      *
-     * @param authentication contexto de autenticaci?n con el ID del usuario
+     * @param authentication contexto de autenticación con el ID del usuario
      * @return HTTP 200 con la lista de solicitudes pendientes
      */
     @GetMapping("/pending")
@@ -74,11 +74,11 @@ public class FollowController {
     }
 
     /**
-     * Obtiene el n?mero de solicitudes de seguimiento pendientes sin cargar sus datos.
+     * Obtiene el número de solicitudes de seguimiento pendientes sin cargar sus datos.
      * <p>Endpoint: {@code GET /api/follows/pending-count}</p>
      *
-     * @param authentication contexto de autenticaci?n con el ID del usuario
-     * @return HTTP 200 con el n?mero de solicitudes pendientes
+     * @param authentication contexto de autenticación con el ID del usuario
+     * @return HTTP 200 con el número de solicitudes pendientes
      */
     @GetMapping("/pending-count")
     public ResponseEntity<Long> getPendingRequestsCount(Authentication authentication) {
@@ -90,9 +90,9 @@ public class FollowController {
      * Acepta una solicitud de seguimiento pendiente.
      * <p>Endpoint: {@code POST /api/follows/accept?followerId=...}</p>
      *
-     * @param authentication contexto de autenticaci?n con el ID del usuario que acepta
-     * @param followerId     ID del usuario que envi? la solicitud
-     * @return HTTP 200 con mensaje de confirmaci?n
+     * @param authentication contexto de autenticación con el ID del usuario que acepta
+     * @param followerId     ID del usuario que envió la solicitud
+     * @return HTTP 200 con mensaje de confirmación
      */
     @PostMapping("/accept")
     public ResponseEntity<String> acceptFollow(
@@ -108,9 +108,9 @@ public class FollowController {
      * Rechaza una solicitud de seguimiento pendiente.
      * <p>Endpoint: {@code POST /api/follows/reject?followerId=...}</p>
      *
-     * @param authentication contexto de autenticaci?n con el ID del usuario que rechaza
-     * @param followerId     ID del usuario que envi? la solicitud
-     * @return HTTP 200 con mensaje de confirmaci?n
+     * @param authentication contexto de autenticación con el ID del usuario que rechaza
+     * @param followerId     ID del usuario que envió la solicitud
+     * @return HTTP 200 con mensaje de confirmación
      */
     @PostMapping("/reject")
     public ResponseEntity<String> rejectFollow(

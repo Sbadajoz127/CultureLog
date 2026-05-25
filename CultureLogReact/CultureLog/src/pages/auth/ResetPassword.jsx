@@ -58,7 +58,7 @@ function ResetPassword() {
                 id="reset-token"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                placeholder="Pega aquí el código del email"
+                placeholder="Pega aquí el código del correo electrónico"
                 required
                 disabled={isLoading}
               />

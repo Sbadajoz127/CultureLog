@@ -7,6 +7,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Clase de arranque de la aplicación CultureLog (Spring Boot).
@@ -23,6 +25,8 @@ import java.nio.file.Path;
 @SpringBootApplication
 @EnableAsync
 public class CultureLogApplication {
+
+	private static final Logger log = Logger.getLogger(CultureLogApplication.class.getName());
 
 	/**
 	 * Punto de entrada principal de la aplicación.
@@ -64,7 +68,7 @@ public class CultureLogApplication {
 				}
 			});
 		} catch (IOException e) {
-			System.err.println("Warning: Could not read .env file: " + e.getMessage());
+			log.log(Level.WARNING, "No se pudo leer el archivo .env: {0}", e.getMessage());
 		}
 	}
 

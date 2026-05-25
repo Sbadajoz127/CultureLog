@@ -139,7 +139,7 @@ public class AdminServiceImpl implements AdminService {
             throw new BadRequestException("No se puede eliminar una cuenta de administrador");
         }
 
-        // Unlink media items referenced by posts from other users
+        // Desvincular ítems multimedia referenciados en posts de otros usuarios
         List<MediaItem> items = mediaItemRepository.findByUserId(userId);
         for (MediaItem item : items) {
             postRepository.unlinkMediaItem(item.getId());
@@ -151,7 +151,11 @@ public class AdminServiceImpl implements AdminService {
         if (user.getProfilePictureUrl() != null) {
             imageStorageService.deleteImage(user.getProfilePictureUrl());
         }
+        if (user.getBannerUrl() != null) {
+            imageStorageService.deleteImage(user.getBannerUrl());
+        }
 
+        followRepository.deleteByFollowerIdOrFollowedId(userId, userId);
         userRepository.delete(user);
     }
 
@@ -237,7 +241,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void deleteMediaItem(Long itemId) {
         MediaItem item = mediaItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ítem no encontrado"));
 
         postRepository.unlinkMediaItem(itemId);
 

@@ -74,6 +74,7 @@ function Profile() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (previewPic && previewPic.startsWith('blob:')) URL.revokeObjectURL(previewPic);
       setPreviewPic(URL.createObjectURL(file));
       setPendingFile(file);
     }
@@ -82,6 +83,7 @@ function Profile() {
   const handleBannerChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (previewBanner && previewBanner.startsWith('blob:')) URL.revokeObjectURL(previewBanner);
       setPreviewBanner(URL.createObjectURL(file));
       setPendingBannerFile(file);
     }

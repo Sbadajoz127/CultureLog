@@ -119,7 +119,7 @@ public class MediaItemServiceImpl implements MediaItemService {
     @Transactional
     public MediaItem updateItem(Long itemId, Long userId, MediaItemRequest request) {
         MediaItem item = mediaItemRepository.findByIdWithTags(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ítem no encontrado"));
 
         if (!item.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("No tienes permiso para editar este item");
@@ -148,7 +148,7 @@ public class MediaItemServiceImpl implements MediaItemService {
     @Transactional
     public void deleteItem(Long itemId, Long userId) {
         MediaItem item = mediaItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ítem no encontrado"));
 
         if (!item.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("No tienes permiso para eliminar este item");
@@ -168,7 +168,7 @@ public class MediaItemServiceImpl implements MediaItemService {
     @Transactional
     public void removeMediaItemImage(Long itemId, Long userId) {
         MediaItem item = mediaItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ítem no encontrado"));
 
         if (!item.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("No tienes permiso para modificar este item");
@@ -186,7 +186,7 @@ public class MediaItemServiceImpl implements MediaItemService {
     @Transactional
     public MediaItem addTagToItem(Long itemId, Long userId, Long tagId) {
         MediaItem item = mediaItemRepository.findByIdWithTags(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ítem no encontrado"));
 
         if (!item.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("No tienes permiso para modificar este item");
@@ -208,7 +208,7 @@ public class MediaItemServiceImpl implements MediaItemService {
     @Transactional
     public MediaItem removeTagFromItem(Long itemId, Long userId, Long tagId) {
         MediaItem item = mediaItemRepository.findByIdWithTags(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ítem no encontrado"));
 
         if (!item.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("No tienes permiso para modificar este item");

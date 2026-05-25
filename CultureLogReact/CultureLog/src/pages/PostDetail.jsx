@@ -84,7 +84,7 @@ export default function PostDetail() {
       await togglePostLike(post.id);
     } catch {
       setPost((prev) => prev ? { ...prev, likedByCurrentUser: wasLiked, likeCount: prevCount } : prev);
-      toast.error('No se pudo registrar el like.');
+      toast.error('No se pudo registrar el me gusta.');
     }
   };
 

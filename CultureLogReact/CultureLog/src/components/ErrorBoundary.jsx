@@ -14,10 +14,6 @@ export class ErrorBoundary extends Component {
     console.error('ErrorBoundary caught:', error, errorInfo);
   }
 
-  handleReset = () => {
-    this.setState({ hasError: false });
-  };
-
   render() {
     if (this.state.hasError) {
       return (

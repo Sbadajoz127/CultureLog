@@ -645,7 +645,7 @@ function Library() {
               placeholder="Filtrar por nombre…"
               value={nameFilter}
               onChange={(e) => setNameFilter(e.target.value)}
-              aria-label="Filtrar items por nombre"
+              aria-label="Filtrar ítems por nombre"
             />
             <CustomSelect
               className="library-toolbar-type-select"

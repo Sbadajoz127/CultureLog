@@ -1,8 +1,6 @@
 package com.cultureSL.CultureLog.repository;
 
 import com.cultureSL.CultureLog.model.PostSave;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,11 +25,6 @@ public interface PostSaveRepository extends JpaRepository<PostSave, Long> {
      * Verifica si existe un guardado para un post y usuario.
      */
     boolean existsByPostIdAndUserId(Long postId, Long userId);
-
-    /**
-     * Obtiene todos los posts guardados por un usuario.
-     */
-    Page<PostSave> findByUserIdOrderBySavedAtDesc(Long userId, Pageable pageable);
 
     /**
      * Cuenta los posts guardados por un usuario.

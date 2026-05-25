@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 /**
  * Repositorio de acceso a datos para la entidad {@link Post}.
  * <p>
- * Contiene la l?gica central para la generaci?n del Feed de noticias y la consulta
+ * Contiene la lógica central para la generación del Feed de noticias y la consulta
  * de perfiles de usuario.
  * </p>
  */
@@ -92,10 +92,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByAuthorIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
     /**
-     * Incrementa o decrementa at?micamente el contador de likes de un post.
+     * Incrementa o decrementa atómicamente el contador de likes de un post.
      * <p>
      * Usa {@code clearAutomatically = true} para invalidar el contexto de persistencia
-     * tras la actualizaci?n, garantizando que lecturas posteriores reflejen el nuevo valor.
+     * tras la actualización, garantizando que lecturas posteriores reflejen el nuevo valor.
      * </p>
      *
      * @param postId ID del post.
@@ -106,14 +106,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void updateLikeCount(@Param("postId") Long postId, @Param("delta") int delta);
 
     /**
-     * Incrementa o decrementa at?micamente el contador de comentarios de un post.
+     * Incrementa o decrementa atómicamente el contador de comentarios de un post.
      * <p>
      * Usa {@code clearAutomatically = true} para invalidar el contexto de persistencia
-     * tras la actualizaci?n, garantizando que lecturas posteriores reflejen el nuevo valor.
+     * tras la actualización, garantizando que lecturas posteriores reflejen el nuevo valor.
      * </p>
      *
      * @param postId ID del post.
-     * @param delta  valor a sumar (1 para nuevo comentario, -1 para eliminaci?n).
+     * @param delta  valor a sumar (1 para nuevo comentario, -1 para eliminación).
      */
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.commentCount = CASE WHEN p.commentCount + :delta < 0 THEN 0 ELSE p.commentCount + :delta END WHERE p.id = :postId")
