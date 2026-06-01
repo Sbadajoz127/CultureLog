@@ -17,6 +17,7 @@ import com.cultureSL.CultureLog.service.ImageStorageService;
 import com.cultureSL.CultureLog.service.MediaItemService;
 import com.cultureSL.CultureLog.service.MediaLibraryDuplicateFinder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,7 +112,13 @@ public class MediaItemServiceImpl implements MediaItemService {
         item.setDateAdded(LocalDate.now());
         item.setUser(user);
 
-        return mediaItemRepository.save(item);
+        try {
+            MediaItem saved = mediaItemRepository.save(item);
+            mediaItemRepository.flush();
+            return saved;
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateItemException("Este ítem ya está en tu biblioteca");
+        }
     }
 
     /** {@inheritDoc} */

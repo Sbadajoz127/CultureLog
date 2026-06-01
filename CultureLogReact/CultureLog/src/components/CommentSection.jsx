@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { ConfirmModal } from './ConfirmModal';
 import { addPostComment, deletePostComment } from '../services/api';
 import { formatDateTime } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useKeyedAsyncLock } from '../hooks/useAsyncAction';
 
 const MAX_COMMENT_LENGTH = 1000;
 
@@ -26,6 +27,8 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const submitLockRef = useRef(false);
+  const runReplyLocked = useKeyedAsyncLock();
 
   const canDeleteComment = (comment) => {
     if (!user) return false;
@@ -89,7 +92,8 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     const text = commentText.trim();
-    if (!text || !postId) return;
+    if (!text || !postId || submitLockRef.current) return;
+    submitLockRef.current = true;
     setSubmittingComment(true);
     setSubmitError('');
     try {
@@ -102,6 +106,7 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
       setSubmitError(msg);
       toast.error(msg);
     } finally {
+      submitLockRef.current = false;
       setSubmittingComment(false);
     }
   };
@@ -121,25 +126,27 @@ export function CommentSection({ postId, postAuthorId, comments, setComments, on
     }
   };
 
-  const submitReply = async (rootId) => {
+  const submitReply = (rootId) => {
     const text = (replyDrafts[rootId] || '').trim();
     if (!text || !postId) return;
-    setSubmittingReplyId(rootId);
-    setSubmitError('');
-    try {
-      const { data: created } = await addPostComment(postId, text, rootId);
-      setComments((prev) => [...prev, created]);
-      onCommentCountChange?.(1);
-      setReplyDrafts((prev) => ({ ...prev, [rootId]: '' }));
-      setReplyOpenForRootId(null);
-      setExpandedReplies((prev) => ({ ...prev, [rootId]: true }));
-    } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo enviar la respuesta.';
-      setSubmitError(msg);
-      toast.error(msg);
-    } finally {
-      setSubmittingReplyId(null);
-    }
+    return runReplyLocked(rootId, async () => {
+      setSubmittingReplyId(rootId);
+      setSubmitError('');
+      try {
+        const { data: created } = await addPostComment(postId, text, rootId);
+        setComments((prev) => [...prev, created]);
+        onCommentCountChange?.(1);
+        setReplyDrafts((prev) => ({ ...prev, [rootId]: '' }));
+        setReplyOpenForRootId(null);
+        setExpandedReplies((prev) => ({ ...prev, [rootId]: true }));
+      } catch (err) {
+        const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo enviar la respuesta.';
+        setSubmitError(msg);
+        toast.error(msg);
+      } finally {
+        setSubmittingReplyId(null);
+      }
+    });
   };
 
   const toggleReplies = (commentId) => {

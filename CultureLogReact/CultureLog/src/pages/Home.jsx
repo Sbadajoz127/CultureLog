@@ -12,6 +12,7 @@ import {
   getSuggestedUsers,
   followUser,
 } from '../services/api';
+import { useKeyedAsyncLock } from '../hooks/useAsyncAction';
 import './Home.css';
 
 const FEED_PAGE_SIZE = 10;
@@ -144,22 +145,26 @@ function Home() {
     setPosts((prev) => prev.filter((p) => p.id !== postId));
   };
 
-  const handleFollow = async (targetId) => {
+  const runFollowLocked = useKeyedAsyncLock();
+
+  const handleFollow = (targetId) => {
     if (followingIds.has(targetId) || pendingIds.has(targetId)) return;
-    try {
-      const { data } = await followUser(targetId);
-      if (data?.status === 'PENDING') {
-        setPendingIds((prev) => new Set(prev).add(targetId));
-        toast.success('Solicitud de seguimiento enviada.');
-      } else {
-        setFollowingIds((prev) => new Set(prev).add(targetId));
-        toast.success('Ahora sigues a este usuario.');
-        loadFeed(0, false);
-        setFeedPage(0);
+    return runFollowLocked(targetId, async () => {
+      try {
+        const { data } = await followUser(targetId);
+        if (data?.status === 'PENDING') {
+          setPendingIds((prev) => new Set(prev).add(targetId));
+          toast.success('Solicitud de seguimiento enviada.');
+        } else {
+          setFollowingIds((prev) => new Set(prev).add(targetId));
+          toast.success('Ahora sigues a este usuario.');
+          loadFeed(0, false);
+          setFeedPage(0);
+        }
+      } catch {
+        toast.error('No se pudo seguir al usuario.');
       }
-    } catch {
-      toast.error('No se pudo seguir al usuario.');
-    }
+    });
   };
 
   const loadMore = () => {

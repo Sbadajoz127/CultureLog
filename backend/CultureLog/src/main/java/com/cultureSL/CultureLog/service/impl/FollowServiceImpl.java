@@ -19,6 +19,7 @@ import com.cultureSL.CultureLog.service.FollowService;
 import com.cultureSL.CultureLog.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,7 +81,12 @@ public class FollowServiceImpl implements FollowService {
             follow.setStatus(FollowStatus.ACCEPTED);
         }
 
-        followRepository.save(follow);
+        try {
+            followRepository.save(follow);
+            followRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new BadRequestException("Ya sigues a este usuario");
+        }
 
         if (follow.getStatus() == FollowStatus.ACCEPTED
                 && settings != null && settings.isEmailNotifications()) {

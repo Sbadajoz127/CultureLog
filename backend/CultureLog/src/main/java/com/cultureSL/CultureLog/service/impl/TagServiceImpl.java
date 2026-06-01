@@ -10,6 +10,7 @@ import com.cultureSL.CultureLog.repository.TagRepository;
 import com.cultureSL.CultureLog.repository.UserRepository;
 import com.cultureSL.CultureLog.service.TagService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +45,13 @@ public class TagServiceImpl implements TagService {
         tag.setColor(request.getColor() != null ? request.getColor() : com.cultureSL.CultureLog.model.enums.TagColor.POR_DEFECTO);
         tag.setUser(user);
 
-        return tagRepository.save(tag);
+        try {
+            Tag saved = tagRepository.save(tag);
+            tagRepository.flush();
+            return saved;
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateItemException("Ya tienes una etiqueta con ese nombre");
+        }
     }
 
     @Override

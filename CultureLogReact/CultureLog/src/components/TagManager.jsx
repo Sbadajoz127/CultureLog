@@ -27,6 +27,7 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
 
   const [editingId, setEditingId] = useState(null);
   const [busy, setBusy] = useState(false);
+  const busyLockRef = useRef(false);
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('POR_DEFECTO');
 
@@ -114,7 +115,8 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
   };
 
   const handleCreate = async () => {
-    if (!newName.trim() || busy) return;
+    if (!newName.trim() || busyLockRef.current) return;
+    busyLockRef.current = true;
     setBusy(true);
     try {
       const { data } = await createTag({ name: newName.trim(), color: newColor });
@@ -125,6 +127,7 @@ export function TagManager({ open, onClose, tags, onTagsChange }) {
     } catch (err) {
       toast.error(err.response?.data?.message || 'No se pudo crear la etiqueta.');
     } finally {
+      busyLockRef.current = false;
       setBusy(false);
     }
   };

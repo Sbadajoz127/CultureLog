@@ -332,9 +332,14 @@ public class PostServiceImpl implements PostService {
         var existingSave = postSaveRepository.findByPostIdAndUserId(postId, userId);
         if (existingSave.isPresent()) {
             postSaveRepository.delete(existingSave.get());
+            postSaveRepository.flush();
             return false;
         } else {
-            postSaveRepository.save(new PostSave(post, user));
+            try {
+                postSaveRepository.save(new PostSave(post, user));
+            } catch (DataIntegrityViolationException e) {
+                log.debug("Guardado duplicado ignorado para post {} y usuario {}", postId, userId);
+            }
             return true;
         }
     }

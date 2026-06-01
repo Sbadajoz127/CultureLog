@@ -2,6 +2,7 @@ package com.cultureSL.CultureLog.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -140,6 +141,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, "Acceso denegado");
+    }
+
+    /**
+     * Red de seguridad para violaciones de integridad de datos (p. ej. restricciones
+     * {@code UNIQUE}) que escapan al manejo especifico de los servicios, normalmente
+     * por condiciones de carrera (doble clic, peticiones concurrentes).
+     * <p>
+     * Evita que estas situaciones se propaguen como errores 500 no controlados y las
+     * traduce a un conflicto 409.
+     * </p>
+     *
+     * @param ex excepción de violación de integridad
+     * @return respuesta HTTP 409 con mensaje genérico
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("Violación de integridad de datos", ex);
+        return buildResponse(HttpStatus.CONFLICT, "La operación no se pudo completar por un conflicto de datos");
     }
 
     @ExceptionHandler(Exception.class)

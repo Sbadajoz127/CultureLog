@@ -34,6 +34,7 @@ export function NotificationProvider({ children }) {
   const [loadingUnread, setLoadingUnread] = useState(false);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const intervalRef = useRef(null);
+  const requestLockRef = useRef(new Set());
 
   const fetchUnreadCount = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -120,6 +121,8 @@ export function NotificationProvider({ children }) {
   }, []);
 
   const acceptRequest = useCallback(async (followerId) => {
+    if (requestLockRef.current.has(followerId)) return;
+    requestLockRef.current.add(followerId);
     try {
       await apiAcceptFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
@@ -127,10 +130,14 @@ export function NotificationProvider({ children }) {
       toast.success('Solicitud de seguimiento aceptada.');
     } catch {
       toast.error('No se pudo aceptar la solicitud.');
+    } finally {
+      requestLockRef.current.delete(followerId);
     }
   }, []);
 
   const rejectRequest = useCallback(async (followerId) => {
+    if (requestLockRef.current.has(followerId)) return;
+    requestLockRef.current.add(followerId);
     try {
       await apiRejectFollow(followerId);
       setPendingRequests((prev) => prev.filter((r) => r.followerId !== followerId));
@@ -138,6 +145,8 @@ export function NotificationProvider({ children }) {
       toast.success('Solicitud de seguimiento rechazada.');
     } catch {
       toast.error('No se pudo rechazar la solicitud.');
+    } finally {
+      requestLockRef.current.delete(followerId);
     }
   }, []);
 

@@ -10,6 +10,7 @@ import { MEDIA_TYPE_LABELS } from '../constants/media';
 import { getPostComments, togglePostLike, togglePostSave, deletePost } from '../services/api';
 import { formatDateTime } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useAsyncAction } from '../hooks/useAsyncAction';
 
 const CONTENT_TRUNCATE_LENGTH = 300;
 
@@ -23,8 +24,6 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
   const [commentsLoaded, setCommentsLoaded] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
-  const [liking, setLiking] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -35,31 +34,23 @@ export function PostCard({ post, onPostUpdate, onPostDelete, authorAvatar, showA
   const content = post.content || '';
   const isTruncated = content.length > CONTENT_TRUNCATE_LENGTH;
 
-  const handleLike = async () => {
-    if (liking) return;
-    setLiking(true);
+  const [handleLike, liking] = useAsyncAction(async () => {
     try {
       const { data } = await togglePostLike(post.id);
       onPostUpdate?.(post.id, { likedByCurrentUser: data.liked, likeCount: data.likeCount });
     } catch {
       toast.error('No se pudo registrar el me gusta.');
-    } finally {
-      setLiking(false);
     }
-  };
+  });
 
-  const handleSave = async () => {
-    if (saving) return;
-    setSaving(true);
+  const [handleSave, saving] = useAsyncAction(async () => {
     try {
       const { data } = await togglePostSave(post.id);
       onPostUpdate?.(post.id, { savedByCurrentUser: data.saved });
     } catch {
       toast.error('No se pudo guardar la publicación.');
-    } finally {
-      setSaving(false);
     }
-  };
+  });
 
   const handleDelete = async () => {
     setDeleting(true);

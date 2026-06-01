@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { getPostById, getPostComments, togglePostLike, togglePostSave, deletePost } from '../services/api';
 import { formatDateTime, formatReleaseDate } from '../utils/dateFormat';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useAsyncAction } from '../hooks/useAsyncAction';
 import './PostDetail.css';
 
 export default function PostDetail() {
@@ -69,7 +70,7 @@ export default function PostDetail() {
     return () => { cancelled = true; };
   }, [load]);
 
-  const handleLike = async () => {
+  const [handleLike, liking] = useAsyncAction(async () => {
     if (!post) return;
     const wasLiked = post.likedByCurrentUser;
     const prevCount = post.likeCount;
@@ -86,9 +87,9 @@ export default function PostDetail() {
       setPost((prev) => prev ? { ...prev, likedByCurrentUser: wasLiked, likeCount: prevCount } : prev);
       toast.error('No se pudo registrar el me gusta.');
     }
-  };
+  });
 
-  const handleSave = async () => {
+  const [handleSave, saving] = useAsyncAction(async () => {
     if (!post) return;
     const wasSaved = post.savedByCurrentUser;
 
@@ -100,7 +101,7 @@ export default function PostDetail() {
       setPost((prev) => prev ? { ...prev, savedByCurrentUser: wasSaved } : prev);
       toast.error('No se pudo guardar la publicación.');
     }
-  };
+  });
 
   const handleCommentCountChange = (delta) => {
     setPost((prev) => prev ? { ...prev, commentCount: (prev.commentCount || 0) + delta } : prev);
@@ -221,6 +222,7 @@ export default function PostDetail() {
                   type="button"
                   className={`post-like-btn ${post.likedByCurrentUser ? 'liked' : ''}`}
                   onClick={handleLike}
+                  disabled={liking}
                 >
                   <Heart size={16} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} /> {post.likeCount}
                 </button>
@@ -228,6 +230,7 @@ export default function PostDetail() {
                   type="button"
                   className={`post-like-btn ${post.savedByCurrentUser ? 'saved' : ''}`}
                   onClick={handleSave}
+                  disabled={saving}
                 >
                   <Bookmark size={16} fill={post.savedByCurrentUser ? 'currentColor' : 'none'} />
                 </button>

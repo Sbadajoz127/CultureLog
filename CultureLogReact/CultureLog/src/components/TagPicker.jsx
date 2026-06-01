@@ -28,6 +28,7 @@ export function TagPicker({ itemId, itemTags = [], allTags, onTagsChange, onAllT
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('POR_DEFECTO');
   const [busy, setBusy] = useState(false);
+  const busyLockRef = useRef(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
   const triggerRef = useRef(null);
@@ -121,7 +122,8 @@ export function TagPicker({ itemId, itemTags = [], allTags, onTagsChange, onAllT
 
   const handleCreate = async (quickCreate = false) => {
     const name = (creating ? newName : search).trim();
-    if (!name || busy) return;
+    if (!name || busyLockRef.current) return;
+    busyLockRef.current = true;
     const color = quickCreate
       ? TAG_COLORS.filter((c) => c.value !== 'POR_DEFECTO')[Math.floor(Math.random() * (TAG_COLORS.length - 1))].value
       : newColor;
@@ -142,6 +144,7 @@ export function TagPicker({ itemId, itemTags = [], allTags, onTagsChange, onAllT
       const msg = err.response?.data?.message || 'No se pudo crear la etiqueta.';
       toast.error(msg);
     } finally {
+      busyLockRef.current = false;
       setBusy(false);
     }
   };

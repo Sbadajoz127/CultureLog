@@ -19,6 +19,7 @@ import {
   addToLibraryFromSearch,
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
+import { useAsyncAction } from '../hooks/useAsyncAction';
 import './PublicProfile.css';
 
 
@@ -109,7 +110,6 @@ function PublicProfile() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('posts');
   const [libraryStatus, setLibraryStatus] = useState('VISTO');
-  const [followLoading, setFollowLoading] = useState(false);
   const [savedPosts, setSavedPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [loadingSaved, setLoadingSaved] = useState(false);
@@ -245,9 +245,8 @@ function PublicProfile() {
     }
   };
 
-  const handleFollow = async () => {
-    if (followLoading || !profile) return;
-    setFollowLoading(true);
+  const [handleFollow, followLoading] = useAsyncAction(async () => {
+    if (!profile) return;
     try {
       if (profile.followStatus === 'ACCEPTED') {
         await unfollowUser(profile.id);
@@ -271,10 +270,8 @@ function PublicProfile() {
       }
     } catch {
       toast.error('No se pudo completar la acción.');
-    } finally {
-      setFollowLoading(false);
     }
-  };
+  });
 
   const handlePostUpdate = (postId, updates) => {
     setProfile((prev) => ({

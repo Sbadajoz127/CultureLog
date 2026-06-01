@@ -56,6 +56,7 @@ export function MediaItemDetailModal({
   const [added, setAdded] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
+  const actionLockRef = useRef(false);
 
   useEffect(() => {
     setAdded(false);
@@ -107,7 +108,8 @@ export function MediaItemDetailModal({
   const showPublishFromOtherBtn = !isOwn && !!item.externalId && !!onAddAndCreatePost;
 
   const handleAddToLibrary = async () => {
-    if (adding || added || !onAddToLibrary) return;
+    if (added || !onAddToLibrary || actionLockRef.current) return;
+    actionLockRef.current = true;
     setAdding(true);
     try {
       await onAddToLibrary(item);
@@ -116,17 +118,20 @@ export function MediaItemDetailModal({
     } catch {
       toast.error('No se pudo añadir a tu biblioteca.');
     } finally {
+      actionLockRef.current = false;
       setAdding(false);
     }
   };
 
   const handleAddAndCreatePost = async () => {
-    if (publishing || !onAddAndCreatePost) return;
+    if (!onAddAndCreatePost || actionLockRef.current) return;
+    actionLockRef.current = true;
     setPublishing(true);
     try {
       await onAddAndCreatePost(item);
     } catch {
       toast.error('No se pudo preparar la publicación.');
+      actionLockRef.current = false;
       setPublishing(false);
     }
   };

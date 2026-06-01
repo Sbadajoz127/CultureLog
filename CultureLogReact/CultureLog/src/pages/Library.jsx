@@ -22,6 +22,7 @@ import {
 } from '../services/api';
 import { MediaItemDetailModal } from '../components/MediaItemDetailModal';
 import { CreateCustomItemModal } from '../components/CreateCustomItemModal';
+import { useKeyedAsyncLock } from '../hooks/useAsyncAction';
 import { CustomSelect } from '../components/CustomSelect';
 import { TagChip } from '../components/TagChip';
 import { TagManager } from '../components/TagManager';
@@ -238,6 +239,8 @@ function Library() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [customSubmitting, setCustomSubmitting] = useState(false);
+  const customSubmitLockRef = useRef(false);
+  const runAddLocked = useKeyedAsyncLock();
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
@@ -393,34 +396,37 @@ function Library() {
     }
   };
 
-  const addSearchResultWithStatus = async (result, targetStatus) => {
-    setAddingKey(`${result.source}-${result.externalId}-${result.title}`);
-    setSearchError('');
-    try {
-      const payload = searchResultToPayload(result);
-      const res = await addToLibraryFromSearch(payload);
-      const item = res.data;
-      if (targetStatus !== 'POR_VER') {
-        const body = mediaItemToRequest(item, { status: targetStatus });
-        await updateMediaItem(item.id, body);
+  const addSearchResultWithStatus = (result, targetStatus) => {
+    const key = `${result.source}-${result.externalId}-${result.title}`;
+    return runAddLocked(key, async () => {
+      setAddingKey(key);
+      setSearchError('');
+      try {
+        const payload = searchResultToPayload(result);
+        const res = await addToLibraryFromSearch(payload);
+        const item = res.data;
+        if (targetStatus !== 'POR_VER') {
+          const body = mediaItemToRequest(item, { status: targetStatus });
+          await updateMediaItem(item.id, body);
+        }
+        if (res.status === 200) {
+          toast(`«${result.title}» ya estaba en tu biblioteca.` +
+            (targetStatus !== 'POR_VER'
+              ? ` Estado actualizado a ${MEDIA_STATUS_LABELS[targetStatus]}.`
+              : ''));
+        } else {
+          toast.success(`«${result.title}» añadido a ${MEDIA_STATUS_LABELS[targetStatus]}.`);
+        }
+        setAddedKeys(prev => new Set(prev).add(key));
+        await loadItems(activeStatus);
+      } catch (err) {
+        const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo añadir a la biblioteca.';
+        setSearchError(msg);
+        toast.error(msg);
+      } finally {
+        setAddingKey(null);
       }
-      if (res.status === 200) {
-        toast(`«${result.title}» ya estaba en tu biblioteca.` +
-          (targetStatus !== 'POR_VER'
-            ? ` Estado actualizado a ${MEDIA_STATUS_LABELS[targetStatus]}.`
-            : ''));
-      } else {
-        toast.success(`«${result.title}» añadido a ${MEDIA_STATUS_LABELS[targetStatus]}.`);
-      }
-      setAddedKeys(prev => new Set(prev).add(`${result.source}-${result.externalId}-${result.title}`));
-      await loadItems(activeStatus);
-    } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo añadir a la biblioteca.';
-      setSearchError(msg);
-      toast.error(msg);
-    } finally {
-      setAddingKey(null);
-    }
+    });
   };
 
   const clearSearchResults = () => {
@@ -432,6 +438,8 @@ function Library() {
   };
 
   const handleCustomItemSubmit = async (formData) => {
+    if (customSubmitLockRef.current) return;
+    customSubmitLockRef.current = true;
     setCustomSubmitting(true);
     try {
       const payload = buildCustomItemPayload(formData);
@@ -443,6 +451,7 @@ function Library() {
       const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo crear el ítem.';
       toast.error(msg);
     } finally {
+      customSubmitLockRef.current = false;
       setCustomSubmitting(false);
     }
   };
