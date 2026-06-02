@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import {
   uploadImage,
   updateProfilePicture,
+  removeProfilePicture,
   updateBanner,
   removeBanner,
   requestAccountDeletion,
@@ -124,6 +125,29 @@ function Profile() {
       toast.success('Banner eliminado.');
     } catch {
       toast.error('Error al eliminar el banner.');
+    }
+  };
+
+  const handleRemoveProfilePic = async () => {
+    if (!previewPic) return;
+    try {
+      if (pendingFile) {
+        if (previewPic.startsWith('blob:')) URL.revokeObjectURL(previewPic);
+        setPendingFile(null);
+        setPreviewPic(profilePic);
+        return;
+      }
+      if (user?.profilePictureUrl) {
+        await removeProfilePicture();
+      }
+      setProfilePic(null);
+      setPreviewPic(null);
+      const updated = { ...user, profilePictureUrl: null };
+      setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      toast.success('Foto de perfil eliminada.');
+    } catch {
+      toast.error('Error al eliminar la foto de perfil.');
     }
   };
 
@@ -264,6 +288,15 @@ function Profile() {
               {previewBanner ? (
                 <div className="profile-banner-preview-wrap">
                   <img src={previewBanner} alt="Banner" className="profile-banner-preview" />
+                </div>
+              ) : (
+                <div className="profile-banner-placeholder">Sin banner</div>
+              )}
+              <div className="profile-banner-actions">
+                <label htmlFor="banner-upload" className="upload-btn">
+                  {previewBanner ? 'Cambiar banner' : 'Subir banner'}
+                </label>
+                {previewBanner && (
                   <button
                     type="button"
                     className="profile-banner-remove-btn"
@@ -273,13 +306,8 @@ function Profile() {
                   >
                     <Trash2 size={16} />
                   </button>
-                </div>
-              ) : (
-                <div className="profile-banner-placeholder">Sin banner</div>
-              )}
-              <label htmlFor="banner-upload" className="upload-btn">
-                {previewBanner ? 'Cambiar banner' : 'Subir banner'}
-              </label>
+                )}
+              </div>
               <input
                 id="banner-upload"
                 type="file"
@@ -291,14 +319,29 @@ function Profile() {
             </div>
 
             <div className="profile-pic-section">
-              {previewPic ? (
-                <img src={previewPic} alt="Tu perfil" className="profile-avatar-large" />
-              ) : (
-                <UserAvatar name={user?.username} size="large" className="profile-avatar-large" />
-              )}
-              <label htmlFor="avatar-upload" className="upload-btn">
-                Cambiar foto
-              </label>
+              <div className="profile-avatar-preview-wrap">
+                {previewPic ? (
+                  <img src={previewPic} alt="Tu perfil" className="profile-avatar-large" />
+                ) : (
+                  <UserAvatar name={user?.username} size="large" className="profile-avatar-large" />
+                )}
+              </div>
+              <div className="profile-avatar-actions">
+                <label htmlFor="avatar-upload" className="upload-btn">
+                  Cambiar foto
+                </label>
+                {previewPic && (
+                  <button
+                    type="button"
+                    className="profile-avatar-remove-btn"
+                    onClick={handleRemoveProfilePic}
+                    disabled={saving}
+                    title="Eliminar foto de perfil"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
               <input
                 id="avatar-upload"
                 type="file"

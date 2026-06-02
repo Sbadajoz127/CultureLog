@@ -67,7 +67,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return lista de usuarios sugeridos.
      */
     @Query("SELECT u FROM User u WHERE u.id <> :userId AND u.id NOT IN " +
-           "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId)")
+           "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :userId) AND u.role <> com.cultureSL.CultureLog.model.enums.Role.ADMIN")
     List<User> findSuggestedUsers(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT u FROM User u WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :term, '%')) " +

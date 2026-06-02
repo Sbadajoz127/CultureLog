@@ -12,12 +12,42 @@
   gap: 15px;
 }
 
+.profile-avatar-preview-wrap {
+  flex-shrink: 0;
+}
+
+.profile-avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .profile-avatar-large {
   width: 120px;
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--accent-color);
+}
+
+.profile-avatar-remove-btn {
+  background: var(--bg-error);
+  color: var(--text-error);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.profile-avatar-remove-btn:hover {
+  background: var(--btn-danger-bg);
+  color: white;
+  transform: scale(1.1);
 }
 
 .upload-btn {
@@ -218,7 +248,6 @@
 }
 
 .profile-banner-preview-wrap {
-  position: relative;
   width: 100%;
   max-width: 500px;
 }
@@ -231,10 +260,13 @@
   border: 2px solid var(--border-subtle);
 }
 
+.profile-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .profile-banner-remove-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   background: var(--bg-error);
   color: var(--text-error);
   border: none;
