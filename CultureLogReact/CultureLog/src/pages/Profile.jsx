@@ -14,6 +14,7 @@ import {
   removeBanner,
   requestAccountDeletion,
   confirmAccountDeletion,
+  getUserProfile,
 } from '../services/api';
 import './Profile.css';
 
@@ -60,7 +61,7 @@ function Profile() {
 
   useEffect(() => {
     if (!pendingBannerFile) setPreviewBanner(user?.bannerUrl || null);
-  }, [user?.bannerUrl, pendingBannerFile]);
+  }, [user, pendingBannerFile]);
 
   useEffect(() => {
     if (settings) {
@@ -70,6 +71,26 @@ function Profile() {
       setLocalEmailNotifications(settings.emailNotifications ?? true);
     }
   }, [settings]);
+
+  useEffect(() => {
+    if (user?.username && settings) {
+      
+      getUserProfile(user.username)
+        .then((res) => {
+          
+          if (res.data?.bannerUrl && res.data.bannerUrl !== user.bannerUrl) {
+            const updatedUser = { ...user, bannerUrl: res.data.bannerUrl };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            setPreviewBanner(res.data.bannerUrl);
+          }
+        
+        })
+        .catch(() => {
+          toast.error('Error al cargar el banner. Intenta refrescar la página.');
+        });
+    }
+  }, [user?.username, settings, user, setUser]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -225,7 +246,7 @@ function Profile() {
       <AppHeader active="profile" userName={user.username} />
 
       <main className="feed profile-feed">
-        <div className="create-post-card profile-card">
+          <div className="create-post-card profile-card">
           <h3 className="profile-card-title">Ajustes de cuenta</h3>
           <button
             type="button"

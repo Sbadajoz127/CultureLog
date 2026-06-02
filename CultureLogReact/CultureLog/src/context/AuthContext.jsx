@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { loginUser as apiLogin } from '../services/api';
+import { loginUser as apiLogin, getUserProfile } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -48,6 +48,7 @@ export function AuthProvider({ children }) {
       username: data.username,
       email: data.email,
       profilePictureUrl: data.profilePictureUrl ?? null,
+      bannerUrl: data.bannerUrl ?? null,
       role: data.role ?? 'USER',
     };
     localStorage.setItem('token', data.token);
@@ -75,6 +76,22 @@ export function AuthProvider({ children }) {
     window.addEventListener('auth:expired', handleExpired);
     return () => window.removeEventListener('auth:expired', handleExpired);
   }, [logout]);
+
+  useEffect(() => {
+    if (user?.username) {
+      getUserProfile(user.username)
+        .then((res) => {
+          if (res.data?.bannerUrl && res.data.bannerUrl !== user.bannerUrl) {
+            const updatedUser = { ...user, bannerUrl: res.data.bannerUrl };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          }
+        })
+        .catch(() => {
+          toast.error('Error al refrescar el perfil. Intenta refrescar la página.');
+        });
+    }
+  }, []);
 
   const value = {
     user,

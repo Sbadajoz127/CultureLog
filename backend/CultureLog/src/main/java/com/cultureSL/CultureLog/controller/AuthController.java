@@ -68,13 +68,14 @@ public class AuthController {
                     user.getUsername(),
                     user.getEmail(),
                     user.getProfilePictureUrl(),
+                    user.getBannerUrl(),
                     token,
                     user.getRole().name(),
                     "Login correcto"
             ));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponse(null, null, null, null, null, null, "Credenciales incorrectas"));
+                    .body(new AuthResponse(null, null, null, null, null, null, null, "Credenciales incorrectas"));
         }
     }
 

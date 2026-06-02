@@ -23,6 +23,8 @@ public class AuthResponse {
     private String email;
     /** URL de la foto de perfil del usuario (puede ser null). */
     private String profilePictureUrl;
+    /** URL del banner del usuario (puede ser null). */
+    private String bannerUrl;
     /** Token JWT para autenticación en endpoints protegidos. */
     private String token;
     /** Rol del usuario (USER o ADMIN). */
